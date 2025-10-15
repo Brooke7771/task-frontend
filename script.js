@@ -32,7 +32,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 { id: 'details', label: 'Додаткова інформація', type: 'textarea', placeholder: 'Будь-які деталі...' }
             ],
             formatter: (data) => {
-                const itemsList = (data.items || '').split('\n').map(item => `- ${escapeMarkdown(item.trim())}`).join('\n');
+                // --- ОСНОВНА ЗМІНА ТУТ ---
+                // Додаємо екранування для дефіса, який створює список
+                const itemsList = (data.items || '')
+                    .split('\n')
+                    .filter(item => item.trim() !== '') // Ігноруємо порожні рядки
+                    .map(item => `\\- ${escapeMarkdown(item.trim())}`) // Додаємо \\-
+                    .join('\n');
                 return `*${escapeMarkdown(data.topic || 'Завдання')}*\n\n${itemsList}\n\n_${escapeMarkdown(data.details || '')}_`;
             }
         },
@@ -108,7 +114,13 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Функція для перетворення Markdown в HTML для прев'ю
     function formatForPreview(text) {
-        return text
+        // Спочатку екрануємо HTML символи, а потім замінюємо Markdown
+        let safeText = text.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        
+        // Замінюємо екрановані символи для коректного відображення в прев'ю
+        safeText = safeText.replace(/\\(.)/g, '$1');
+
+        return safeText
             .replace(/\*(.*?)\*/g, '<b>$1</b>') // Bold
             .replace(/_(.*?)_/g, '<i>$1</i>')   // Italic
             .replace(/`(.*?)`/g, '<code>$1</code>') // Monospace
@@ -118,6 +130,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Функція для екранування символів MarkdownV2
     function escapeMarkdown(text) {
+        if (!text) return '';
         const charsToEscape = '_*[]()~`>#+-=|{}.!';
         return text.split('').map(char => charsToEscape.includes(char) ? '\\' + char : char).join('');
     }
@@ -131,15 +144,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const templateId = templateSelect.value;
         const template = templates[templateId];
 
-        // Збираємо дані з усіх полів
         const formData = new FormData(form);
         const data = {};
         template.fields.forEach(field => data[field.id] = formData.get(field.id));
         
-        // Форматуємо фінальний текст для Telegram
         const finalTaskText = template.formatter(data);
         
-        // Створюємо новий FormData для відправки
         const submissionData = new FormData();
         submissionData.append('task_text', finalTaskText);
         submissionData.append('people_needed', formData.get('people_needed'));
@@ -159,8 +169,8 @@ document.addEventListener('DOMContentLoaded', () => {
             statusMessage.textContent = 'Завдання успішно створено!';
             statusMessage.className = 'success';
             form.reset();
-            renderFormFields(templateSelect.value); // Перемальовуємо форму
-            updatePreview(); // Очищуємо прев'ю
+            renderFormFields(templateSelect.value);
+            updatePreview();
         } catch (error) {
             console.error('Не вдалося відправити завдання:', error);
             statusMessage.textContent = 'Помилка! Не вдалося створити завдання.';
