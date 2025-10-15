@@ -1,3 +1,5 @@
+import { createTask } from './api.js';
+
 document.addEventListener('DOMContentLoaded', () => {
     // Елементи DOM
     const templateSelect = document.getElementById('template-select');
