@@ -250,7 +250,7 @@ button[type="submit"]:hover {
 .nav-link {
     display: block;
     width: fit-content;
-    margin-top: 2em;
+    margin-top: 1.5em;
     padding: 0.8em 1.5em;
     background-color: #6c757d;
     color: white;
