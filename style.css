@@ -276,6 +276,24 @@ button[type="submit"]:hover { background-color: #0056b3; }
     border: 1px solid transparent;
 }
 
+.form-actions {
+    display: flex;
+    gap: 1em;
+    margin-top: 1.5em; /* Додаємо відступ зверху */
+}
+
+.form-actions button {
+    flex: 1; /* Кнопки займають рівний простір */
+}
+
+#postNowBtn {
+    background-color: #28a745; /* Зелений колір */
+    border-color: #28a745;
+}
+#postNowBtn:hover {
+    background-color: #218838;
+}
+
 .post-now-btn { background-color: #28a745; color: white; border-color: #28a745; }
 .edit-btn { background-color: #ffc107; color: #212529; border-color: #ffc107; }
 .delete-btn { background-color: #dc3545; color: white; border-color: #dc3545; }

@@ -1,13 +1,16 @@
+import { schedulePost, postNewsNow } from './api.js';
+
 document.addEventListener('DOMContentLoaded', () => {
     const templateSelect = document.getElementById('template-select');
     const dynamicFieldsContainer = document.getElementById('dynamic-form-fields');
     const previewContent = document.getElementById('preview-content');
     const form = document.getElementById('postForm');
     const statusMessage = document.getElementById('statusMessage');
-    const backendUrl = 'https://my-telegram-task-bot-5c4258bd3f9b.herokuapp.com';
+    const scheduleBtn = document.getElementById('scheduleBtn');
+    const postNowBtn = document.getElementById('postNowBtn');
+    const postAtInput = document.getElementById('post_at');
 
     const templates = {
-        // ... (тут можна додати багато шаблонів)
         news_simple: {
             name: 'Проста новина',
             fields: [{ id: 'text', label: 'Текст', type: 'textarea', placeholder: 'Що нового?' }],
@@ -30,9 +33,45 @@ document.addEventListener('DOMContentLoaded', () => {
                 { id: 'event_desc', label: 'Опис', type: 'textarea' }
             ],
             formatter: (data) => `*Анонс: ${escapeMarkdown(data.event_name || '')}*\n\n🗓 *Коли:* ${escapeMarkdown(data.event_date || '')}\n📍 *Де:* ${escapeMarkdown(data.event_place || '')}\n\n${escapeMarkdown(data.event_desc || '')}`
+        },
+        market_update: {
+            name: 'Аналітика ринку',
+            fields: [
+                { id: 'market_title', label: 'Тема аналітики', type: 'input', placeholder: 'Наприклад, Ринок акцій сьогодні' },
+                { id: 'analysis', label: 'Ключові тези', type: 'textarea', placeholder: 'Теза 1\nТеза 2\nТеза 3' }
+            ],
+            formatter: (data) => {
+                const items = (data.analysis || '').split('\n').filter(i => i.trim()).map(i => `\\- ${escapeMarkdown(i.trim())}`).join('\n');
+                return `*📈 Аналітика: ${escapeMarkdown(data.market_title || 'Огляд ринку')}*\n\n${items}`;
+            }
+        },
+        quote_of_day: {
+            name: 'Цитата дня',
+            fields: [
+                { id: 'quote', label: 'Текст цитати', type: 'textarea' },
+                { id: 'author', label: 'Автор', type: 'input' }
+            ],
+            formatter: (data) => `_"${escapeMarkdown(data.quote || '')}"_\n\n*${escapeMarkdown(data.author || 'Невідомий автор')}*`
+        },
+        link_digest: {
+            name: 'Дайджест посилань',
+            fields: [
+                { id: 'digest_title', label: 'Тема дайджесту', type: 'input', placeholder: 'Корисні матеріали за тиждень' },
+                { id: 'links', label: 'Посилання (формат: Опис - https://... )', type: 'textarea', placeholder: 'Назва статті 1 - https://link1.com\nНазва статті 2 - https://link2.com' }
+            ],
+            formatter: (data) => {
+                const links = (data.links || '').split('\n').filter(l => l.includes('-')).map(l => {
+                    const parts = l.split('-');
+                    const desc = (parts[0] || '').trim();
+                    const url = (parts.slice(1).join('-') || '').trim();
+                    return `\\[${escapeMarkdown(desc)}]\\(${escapeMarkdown(url)})`;
+                }).join('\n');
+                return `*🔗 ${escapeMarkdown(data.digest_title || 'Дайджест')}*\n\n${links}`;
+            }
         }
-        // ... додайте ще шаблонів за аналогією
     };
+
+    // --- Далі йде логіка, яку можна не змінювати, а просто скопіювати ---
 
     Object.keys(templates).forEach(key => {
         const option = document.createElement('option');
@@ -90,10 +129,20 @@ document.addEventListener('DOMContentLoaded', () => {
         return text.split('').map(char => charsToEscape.includes(char) ? '\\' + char : char).join('');
     }
 
-    form.addEventListener('submit', async (event) => {
-        event.preventDefault();
-        statusMessage.textContent = 'Плануємо пост...';
+    async function handleFormSubmit(isScheduling) {
+        statusMessage.textContent = isScheduling ? 'Плануємо пост...' : 'Публікуємо пост...';
         statusMessage.className = '';
+        scheduleBtn.disabled = true;
+        postNowBtn.disabled = true;
+
+        if (isScheduling && !postAtInput.value) {
+            alert('Будь ласка, вкажіть дату та час для планування.');
+            statusMessage.textContent = '';
+            scheduleBtn.disabled = false;
+            postNowBtn.disabled = false;
+            return;
+        }
+
         const template = templates[templateSelect.value];
         const formData = new FormData(form);
         const data = {};
@@ -101,29 +150,43 @@ document.addEventListener('DOMContentLoaded', () => {
         const finalPostText = template.formatter(data);
         const submissionData = new FormData();
         submissionData.append('post_text', finalPostText);
-        const postAtValue = formData.get('post_at');
-        if (postAtValue) {
-            submissionData.append('post_at', new Date(postAtValue).toISOString());
+
+        if (isScheduling) {
+            submissionData.append('post_at', new Date(formData.get('post_at')).toISOString());
         }
+
         if (formData.get('post_photo')?.size > 0) {
             submissionData.append('post_photo', formData.get('post_photo'));
         }
+
         try {
-            const response = await fetch(`${backendUrl}/api/schedule_post`, {
-                method: 'POST',
-                body: submissionData,
-            });
-            if (!response.ok) throw new Error(`Помилка сервера: ${response.status}`);
-            statusMessage.textContent = 'Пост успішно заплановано!';
+            if (isScheduling) {
+                await schedulePost(submissionData);
+            } else {
+                await postNewsNow(submissionData);
+            }
+            statusMessage.textContent = isScheduling ? 'Пост успішно заплановано!' : 'Пост успішно опубліковано!';
             statusMessage.className = 'success';
             form.reset();
             renderFormFields(templateSelect.value);
             updatePreview();
         } catch (error) {
-            statusMessage.textContent = 'Помилка! Не вдалося запланувати пост.';
+            statusMessage.textContent = 'Помилка! Не вдалося виконати дію.';
             statusMessage.className = 'error';
             console.error(error);
+        } finally {
+            scheduleBtn.disabled = false;
+            postNowBtn.disabled = false;
         }
+    }
+
+    form.addEventListener('submit', (event) => {
+        event.preventDefault();
+        handleFormSubmit(true); // Планування
+    });
+
+    postNowBtn.addEventListener('click', () => {
+        handleFormSubmit(false); // Публікація зараз
     });
 
     templateSelect.addEventListener('change', () => {
