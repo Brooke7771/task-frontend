@@ -7,27 +7,50 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="container">
-        <h1>Створення нового завдання</h1>
-        <form id="taskForm">
+    <div class="main-container">
+        <div class="container creation-form">
+            <h1>Створення нового завдання</h1>
+
             <div class="form-group">
-                <label for="task_text">Текст завдання:</label>
-                <textarea id="task_text" name="task_text" rows="5" required></textarea>
+                <label for="template-select">Оберіть шаблон завдання:</label>
+                <select id="template-select">
+                    <option value="simple">Просте повідомлення</option>
+                    <option value="announcement">Оголошення</option>
+                    <option value="checklist">Завдання зі списком</option>
+                    <option value="report">Звіт про роботу</option>
+                    <option value="urgent">Термінове завдання</option>
+                </select>
             </div>
-            <div class="form-group">
-                <label for="task_photo">Фото (необов'язково):</label>
-                <input type="file" id="task_photo" name="task_photo" accept="image/*">
+
+            <form id="taskForm">
+                <div id="dynamic-form-fields"></div>
+
+                <div class="form-group">
+                    <label for="task_photo">Фото (необов'язково):</label>
+                    <input type="file" id="task_photo" name="task_photo" accept="image/*">
+                </div>
+                <div class="form-group">
+                    <label for="people_needed">Кількість людей:</label>
+                    <input type="number" id="people_needed" name="people_needed" min="1" value="1">
+                </div>
+
+                <button type="submit">Створити завдання</button>
+            </form>
+            <div id="statusMessage"></div>
+        </div>
+
+        <div class="preview-container">
+            <h2>Попередній перегляд</h2>
+            <div class="telegram-preview">
+                <div class="message-bubble">
+                    <div id="preview-content"></div>
+                </div>
             </div>
-            <div class="form-group">
-                <label for="people_needed">Кількість людей (необов'язково):</label>
-                <input type="number" id="people_needed" name="people_needed" min="1">
-            </div>
-            <button type="submit">Створити завдання</button>
-        </form>
-        <div id="statusMessage"></div>
+        </div>
     </div>
-    <script src="script.js"></script>
+
     <a href="task-list.html" class="nav-link">Переглянути список завдань</a>
-</body>
+
+    <script src="script.js"></script>
 </body>
 </html>
