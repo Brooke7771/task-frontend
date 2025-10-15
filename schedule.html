@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Запланувати Новину</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="main-container">
+        <div class="container creation-form">
+            <h1>Планування нового поста</h1>
+            <div class="form-group">
+                <label for="template-select">Оберіть шаблон новини:</label>
+                <select id="template-select"></select>
+            </div>
+            <form id="postForm">
+                <div id="dynamic-form-fields"></div>
+                <div class="form-group">
+                    <label for="post_photo">Фото (необов'язково):</label>
+                    <input type="file" id="post_photo" name="post_photo" accept="image/*">
+                </div>
+                <div class="form-group">
+                    <label for="post_at">Запланувати на:</label>
+                    <input type="datetime-local" id="post_at" name="post_at" required>
+                </div>
+                <button type="submit">Запланувати пост</button>
+            </form>
+            <div id="statusMessage"></div>
+        </div>
+        <div class="preview-container">
+            <h2>Попередній перегляд</h2>
+            <div class="telegram-preview">
+                <div class="message-bubble">
+                    <div id="preview-content"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="navigation-links">
+        <a href="index.html" class="nav-link">Створення завдань</a>
+        <a href="schedule-list.html" class="nav-link">Керування постами</a>
+    </div>
+    <script src="schedule.js"></script>
+</body>
+</html>
