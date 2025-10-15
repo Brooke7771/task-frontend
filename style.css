@@ -3,10 +3,12 @@ body {
     background-color: #f4f4f9;
     color: #333;
     display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
     height: 100vh;
     margin: 0;
+    box-sizing: border-box;
 }
 
 .container {
@@ -248,7 +250,7 @@ button[type="submit"]:hover {
 .nav-link {
     display: block;
     width: fit-content;
-    margin-top: 2em auto 0;
+    margin-top: 2em;
     padding: 0.8em 1.5em;
     background-color: #6c757d;
     color: white;
