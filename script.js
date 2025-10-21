@@ -7,7 +7,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const previewContent = document.getElementById('preview-content');
     const form = document.getElementById('taskForm');
     const statusMessage = document.getElementById('statusMessage');
-    const backendUrl = 'https://my-telegram-task-bot-5c4258bd3f9b.herokuapp.com/submit_task';
+    
+    // Видалено: const backendUrl = '...'; // Тепер це не потрібно, бо URL є в api.js
 
     // Визначення шаблонів
     const templates = {
@@ -159,15 +160,11 @@ document.addEventListener('DOMContentLoaded', () => {
             submissionData.append('task_photo', formData.get('task_photo'));
         }
 
+        // --- ВИПРАВЛЕНИЙ БЛОК ---
         try {
-            const response = await fetch(backendUrl, {
-                method: 'POST',
-                body: submissionData,
-            });
-            if (!response.ok) {
-                const errorText = await response.text();
-                throw new Error(`Помилка сервера: ${response.status} ${errorText}`);
-            }
+            // Використовуємо імпортовану функцію 'createTask' замість 'fetch'
+            await createTask(submissionData);
+
             statusMessage.textContent = 'Завдання успішно створено!';
             statusMessage.className = 'success';
             form.reset();
@@ -178,6 +175,7 @@ document.addEventListener('DOMContentLoaded', () => {
             statusMessage.textContent = 'Помилка! Не вдалося створити завдання.';
             statusMessage.className = 'error';
         }
+        // --- КІНЕЦЬ ВИПРАВЛЕНОГО БЛОКУ ---
     });
 
     // Ініціалізація
