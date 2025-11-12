@@ -10,12 +10,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const appendMessage = (text, sender) => {
         const msg = document.createElement('div');
         msg.className = `message ${sender}-message`;
-        msg.innerHTML = text.replace(/\n/g, '<br>');
+        // Додано перевірку на випадок невірної відповіді
+        msg.innerHTML = (text || 'Помилка: Не вдалося розпізнати відповідь.').replace(/\n/g, '<br>');
         chatBox.appendChild(msg);
         chatBox.scrollTop = chatBox.scrollHeight;
-    }
+    };
 
-    const handleSendMessage = async () => {
+    // --- ВИПРАВЛЕННЯ 1: Назву змінено на 'handleSend' ---
+    const handleSend = async () => {
         const prompt = messageInput.value.trim();
         if (!prompt) return;
 
@@ -24,9 +26,12 @@ document.addEventListener('DOMContentLoaded', () => {
         sendBtn.disabled = true;
 
         try {
-            // виклик функції API
+            // Виклик функції API
             const response = await sendChatMessage(prompt);
-            appendMessage(response.reply, 'ai');
+            
+            // --- ВИПРАВЛЕННЯ 2: 'response.response' замість 'response.reply' ---
+            appendMessage(response.response, 'ai');
+
         } catch (error) {
             appendMessage('Сталася помилка при отриманні відповіді.', 'ai');
             console.error(error);
@@ -36,6 +41,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
+    // Тепер ці слухачі подій працюватимуть коректно
     sendBtn.addEventListener('click', handleSend);
     messageInput.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') {
