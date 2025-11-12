@@ -30,6 +30,11 @@ export const getScheduledPosts = () => apiFetch('/api/scheduled_posts');
 export const schedulePost = (formData) => apiFetch('/api/schedule_post', { method: 'POST', body: formData });
 export const deleteScheduledPost = (postId) => apiFetch(`/api/scheduled_posts/${postId}/delete`, { method: 'POST' });
 export const postScheduledNow = (postId) => apiFetch(`/api/scheduled_posts/${postId}/post_now`, { method: 'POST' });
-
-// --- Нова функція ---
 export const postNewsNow = (formData) => apiFetch('/api/post_now', { method: 'POST', body: formData });
+export const sendChatMessage = (prompt) => apiFetch('/api/chat', {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ prompt }),
+});
