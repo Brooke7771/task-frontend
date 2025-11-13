@@ -7,13 +7,6 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <nav class="top-nav">
-        <a href="index.html" class="active">Створити Завдання</a>
-        <a href="task-list.html">Список Завдань</a>
-        <a href="schedule.html">Запланувати Пост</a>
-        <a href="schedule-list.html">Список Постів</a>
-        <a href="chat.html">AI Чат</a>
-    </nav>
 
     <div class="container-main">
         <div class="main-container">
@@ -45,6 +38,7 @@
 
                     <button type="submit" class="btn btn-primary">Створити завдання</button>
                 </form>
+                <a href="task-list.html" class="quick-link">Переглянути список завдань →</a>
                 <div id="statusMessage"></div>
             </div>
 
@@ -60,5 +54,44 @@
     </div>
     
     <script type="module" src="script.js"></script>
+
+    <div class="fab-container">
+        <div class="fab-options">
+            <a href="index.html" class="fab-option">Створити Завдання</a>
+            <a href="task-list.html" class="fab-option">Список Завдань</a>
+            <a href="schedule.html" class="fab-option">Запланувати Пост</a>
+            <a href="schedule-list.html" class="fab-option">Список Постів</a>
+            <a href="chat.html" class="fab-option">AI Чат</a>
+        </div>
+        <button class="fab-main" id="fab-toggle">☰</button>
+    </div>
+
+    <script>
+        // 1. Активація кнопки FAB
+        document.getElementById('fab-toggle').addEventListener('click', () => {
+            document.querySelector('.fab-container').classList.toggle('active');
+        });
+        
+        // 2. Закриття меню при кліку будь-де
+        document.addEventListener('click', (e) => {
+            const container = document.querySelector('.fab-container');
+            // Перевіряємо, чи є 'active' і чи клік був НЕ по контейнеру
+            if (container.classList.contains('active') && !container.contains(e.target)) {
+                container.classList.remove('active');
+            }
+        });
+
+        // 3. Виділення активного посилання
+        try {
+            const currentPage = window.location.pathname.split('/').pop() || 'index.html';
+            document.querySelectorAll('.fab-option').forEach(link => {
+                if (link.getAttribute('href') === currentPage) {
+                    link.classList.add('active');
+                }
+            });
+        } catch (e) {
+            console.error("Failed to set active link", e);
+        }
+    </script>
 </body>
 </html>

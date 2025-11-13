@@ -1,8 +1,8 @@
 /* =================================
-   НОВИЙ СУЧАСНИЙ style.css
+   ОНОВЛЕНИЙ style.css
    ================================= */
 
-/* --- Базові налаштування --- */
+/* --- Базові налаштування (без змін) --- */
 :root {
     --color-primary: #007bff;
     --color-primary-dark: #0056b3;
@@ -31,10 +31,11 @@ body {
     background-color: var(--color-bg-light);
     color: var(--color-text-dark);
     margin: 0;
-    padding-top: 60px; /* Відступ для фіксованої навігації */
+    /* ❗️ ВИДАЛЕНО 'padding-top: 60px;' */
+    padding-bottom: 100px; /* Додаємо відступ знизу для FAB */
 }
 
-/* --- Контейнер --- */
+/* --- Контейнер (без змін) --- */
 .container-main {
     width: 100%;
     max-width: 1100px;
@@ -48,51 +49,11 @@ h1, h2 {
     margin-bottom: 1em;
 }
 
-/* =================================
-   НАВІГАЦІЯ (Новий елемент)
-   ================================= */
-
-.top-nav {
-    display: flex;
-    flex-wrap: wrap; /* Для мобільних */
-    justify-content: center;
-    gap: 0.5em;
-    padding: 1em;
-    background-color: var(--color-white);
-    box-shadow: var(--shadow-sm);
-    
-    /* Фіксуємо зверху */
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    z-index: 1000;
-    border-bottom: 1px solid var(--color-border);
-}
-
-.top-nav a {
-    text-decoration: none;
-    color: var(--color-text-light);
-    font-weight: 500;
-    padding: 0.5em 1em;
-    border-radius: var(--border-radius-sm);
-    transition: background-color 0.2s, color 0.2s;
-}
-
-.top-nav a:hover {
-    background-color: var(--color-bg-light);
-    color: var(--color-text-dark);
-}
-
-.top-nav a.active {
-    background-color: var(--color-primary);
-    color: var(--color-white);
-}
+/* ❗️ СТИЛІ '.top-nav' ПОВНІСТЮ ВИДАЛЕНІ */
 
 /* =================================
-   КАРТКИ (Новий базовий стиль)
+   КАРТКИ (без змін)
    ================================= */
-
 .card {
     background: var(--color-white);
     border-radius: var(--border-radius-md);
@@ -100,27 +61,19 @@ h1, h2 {
     padding: 1.5em;
     border: 1px solid var(--color-border);
 }
-
-@media (min-width: 768px) {
-    .card {
-        padding: 2em;
-    }
-}
+@media (min-width: 768px) { .card { padding: 2em; } }
 
 /* =================================
-   ФОРМИ (Стилізація)
+   ФОРМИ (без змін)
    ================================= */
-
 .form-group {
     margin-bottom: 1.5em;
 }
-
 label {
     display: block;
     margin-bottom: 0.5em;
     font-weight: 500;
 }
-
 input[type="text"],
 input[type="file"],
 input[type="number"],
@@ -135,7 +88,6 @@ textarea {
     font-size: 1rem;
     background-color: var(--color-white);
 }
-
 input[type="text"]:focus,
 input[type="file"]:focus,
 input[type="number"]:focus,
@@ -147,8 +99,7 @@ textarea:focus {
     box-shadow: 0 0 0 3px rgba(0,123,255,0.15);
 }
 
-/* --- Кнопки (Стандартизація) --- */
-
+/* --- Кнопки (без змін) --- */
 .btn {
     display: inline-block;
     width: 100%;
@@ -161,32 +112,14 @@ textarea:focus {
     text-align: center;
     transition: background-color 0.2s, transform 0.1s;
 }
-.btn:active {
-    transform: scale(0.98);
-}
-
-.btn-primary {
-    background-color: var(--color-primary);
-    color: white;
-}
+.btn:active { transform: scale(0.98); }
+.btn-primary { background-color: var(--color-primary); color: white; }
 .btn-primary:hover { background-color: var(--color-primary-dark); }
-
-.btn-success {
-    background-color: var(--color-success);
-    color: white;
-}
+.btn-success { background-color: var(--color-success); color: white; }
 .btn-success:hover { background-color: var(--color-success-dark); }
+.btn-danger { background-color: var(--color-danger); color: white; }
+.btn-warning { background-color: var(--color-warning); color: var(--color-text-dark); }
 
-.btn-danger {
-    background-color: var(--color-danger);
-    color: white;
-}
-.btn-warning {
-    background-color: var(--color-warning);
-    color: var(--color-text-dark);
-}
-
-/* Застосовуємо нові стилі до старих кнопок */
 button[type="submit"] {
     display: inline-block;
     width: 100%;
@@ -202,56 +135,34 @@ button[type="submit"] {
     color: white;
 }
 button[type="submit"]:hover { background-color: var(--color-primary-dark); }
-button:disabled {
-    background-color: var(--color-text-light);
-    cursor: not-allowed;
-}
+button:disabled { background-color: var(--color-text-light); cursor: not-allowed; }
 
-.form-actions {
-    display: flex;
-    gap: 1em;
-    margin-top: 1.5em;
-}
-.form-actions button {
-    flex: 1;
-}
-#postNowBtn {
-    background-color: var(--color-success);
-}
-#postNowBtn:hover {
-    background-color: var(--color-success-dark);
-}
-
+.form-actions { display: flex; gap: 1em; margin-top: 1.5em; }
+.form-actions button { flex: 1; }
+#postNowBtn { background-color: var(--color-success); }
+#postNowBtn:hover { background-color: var(--color-success-dark); }
 
 #statusMessage { margin-top: 1em; text-align: center; font-weight: bold; }
 .success { color: var(--color-success); }
 .error { color: var(--color-danger); }
 
-
 /* =================================
-   СТИЛІ ДЛЯ СТОРІНКИ СТВОРЕННЯ (Grid)
+   СТИЛІ СТОРІНКИ СТВОРЕННЯ (без змін)
    ================================= */
-
 .main-container {
     display: grid;
-    grid-template-columns: 1fr; /* 1 колонка на мобільних */
+    grid-template-columns: 1fr;
     gap: 2em;
 }
-
-@media (min-width: 900px) {
-    .main-container {
-        grid-template-columns: 2fr 1fr; /* 2 колонки на десктопі */
-    }
-}
+@media (min-width: 900px) { .main-container { grid-template-columns: 2fr 1fr; } }
 
 /* =================================
-   СТИЛІ ДЛЯ ПРЕДПРОСМОТРУ
+   СТИЛІ ПРЕДПРОСМОТРУ (без змін)
    ================================= */
 .preview-card {
     position: sticky;
-    top: 100px; /* 60px (nav) + 40px (margin) */
+    top: 2em; /* Змінено з 100px */
 }
-
 .telegram-preview {
     background-color: #e5ddd5;
     background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png');
@@ -259,7 +170,6 @@ button:disabled {
     border-radius: var(--border-radius-sm);
     border: 1px solid #ccc;
 }
-
 .message-bubble {
     background-color: var(--color-white);
     padding: 0.8em 1em;
@@ -268,7 +178,6 @@ button:disabled {
     word-wrap: break-word;
     min-height: 50px;
 }
-
 #preview-content {
     line-height: 1.5;
     word-break: break-word;
@@ -291,22 +200,14 @@ button:disabled {
     word-break: break-word;
 }
 
-
 /* =================================
-   СПИСКИ (Завдання та Пости)
+   СПИСКИ (без змін)
    ================================= */
-.task-card { /* Це вже .card, але з дод. стилями */
-    margin-bottom: 1.5em;
-}
-
-.task-card h2 {
-    color: var(--color-primary);
-    text-align: left;
-}
-
+.task-card { margin-bottom: 1.5em; }
+.task-card h2 { color: var(--color-primary); text-align: left; }
 .task-info {
     display: flex;
-    flex-wrap: wrap; /* Для мобільних */
+    flex-wrap: wrap;
     gap: 1em;
     justify-content: space-between;
     align-items: center;
@@ -314,7 +215,6 @@ button:disabled {
     padding-top: 1em;
     border-top: 1px solid var(--color-border);
 }
-
 .task-status {
     font-weight: bold;
     padding: 0.3em 0.8em;
@@ -323,39 +223,22 @@ button:disabled {
 }
 .status-open { color: #28a745; background-color: #e9f7ec; }
 .status-claimed { color: #dc3545; background-color: #fdecea; }
-
 .task-people { font-size: 0.9em; color: var(--color-text-light); }
-
 .user-list {
     margin-top: 1em;
     padding-top: 1em;
     border-top: 1px solid #f2f2f2;
 }
-
-.user-list ul {
-    list-style: none;
-    padding-left: 0;
-    margin-top: 0.5em;
-}
-
-.user-list li {
-    padding: 0.3em 0;
-}
-.user-list em {
-    color: var(--color-text-light);
-    font-size: 0.9em;
-}
-
+.user-list ul { list-style: none; padding-left: 0; margin-top: 0.5em; }
+.user-list li { padding: 0.3em 0; }
+.user-list em { color: var(--color-text-light); font-size: 0.9em; }
 .pending-user {
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 0.5em 0;
 }
-.pending-user .actions {
-    display: flex;
-    gap: 0.5em;
-}
+.pending-user .actions { display: flex; gap: 0.5em; }
 .pending-user .actions button {
     padding: 0.2em 0.5em;
     border: 1px solid var(--color-border);
@@ -365,10 +248,9 @@ button:disabled {
     font-size: 1em;
 }
 .pending-user .actions button:hover { background-color: var(--color-bg-light); }
-
 .post-actions {
     display: flex;
-    flex-wrap: wrap; /* Для мобільних */
+    flex-wrap: wrap;
     gap: 0.5em;
     justify-content: flex-end;
 }
@@ -379,20 +261,16 @@ button:disabled {
     border-radius: var(--border-radius-sm);
     border: 1px solid transparent;
 }
-
-/* Застосовуємо нові .btn класи */
 .post-now-btn { background-color: var(--color-success); color: white; border-color: var(--color-success); }
 .edit-btn { background-color: var(--color-warning); color: #212529; border-color: var(--color-warning); }
 .delete-btn { background-color: var(--color-danger); color: white; border-color: var(--color-danger); }
 
-
 /* =================================
-   СТИЛІ ДЛЯ ЧАТУ (chat.html)
+   СТИЛІ ДЛЯ ЧАТУ (без змін)
    ================================= */
-
 #chatBox {
     border: 1px solid var(--color-border);
-    height: 50vh; /* Змінено на vh для кращої адаптивності */
+    height: 50vh;
     overflow-y: scroll;
     padding: 10px;
     margin-bottom: 1em;
@@ -401,7 +279,6 @@ button:disabled {
     display: flex;
     flex-direction: column;
 }
-
 .message {
     margin-bottom: 8px;
     padding: 10px;
@@ -410,14 +287,12 @@ button:disabled {
     line-height: 1.4;
     word-wrap: break-word;
 }
-
 .user-message {
     background-color: var(--color-primary);
     color: white;
     margin-left: auto;
     border-bottom-right-radius: 4px;
 }
-
 .ai-message {
     background-color: var(--color-bg-light);
     color: var(--color-text-dark);
@@ -425,16 +300,8 @@ button:disabled {
     border-bottom-left-radius: 4px;
     border: 1px solid var(--color-border);
 }
-
-#chatInput {
-    display: flex;
-    gap: 1em;
-}
-
-#messageInput {
-    flex-grow: 1;
-    margin-right: 0; /* 'gap' вже робить відступ */
-}
+#chatInput { display: flex; gap: 1em; }
+#messageInput { flex-grow: 1; margin-right: 0; }
 #sendBtn {
     padding: 0.8em 1.5em;
     min-width: 100px;
@@ -443,10 +310,8 @@ button:disabled {
     color: white;
     border-radius: var(--border-radius-sm);
     cursor: pointer;
-    width: auto; /* Дозволяємо кнопці мати авто-ширину */
+    width: auto;
 }
-
-/* Прибираємо старий неадаптивний .container */
 .container {
     background: none;
     padding: 0;
@@ -455,4 +320,87 @@ button:disabled {
     width: 100%;
     max-width: 100%;
     margin: 0;
+}
+
+/* =================================
+   ❗️ ДОДАНО: НОВА FAB НАВІГАЦІЯ
+   ================================= */
+.fab-container {
+    position: fixed;
+    bottom: 25px;
+    right: 25px;
+    z-index: 1000;
+}
+.fab-main {
+    width: 60px;
+    height: 60px;
+    background-color: var(--color-primary);
+    color: var(--color-white);
+    border: none;
+    border-radius: 50%;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    font-size: 24px;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.2s;
+}
+.fab-main:hover {
+    background-color: var(--color-primary-dark);
+    transform: scale(1.05);
+}
+.fab-options {
+    position: absolute;
+    bottom: 70px; /* 60px кнопка + 10px відступ */
+    right: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    /* Сховано по дефолту */
+    visibility: hidden;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: all 0.2s ease-out;
+}
+/* Активний стан (вмикається через JS) */
+.fab-container.active .fab-options {
+    visibility: visible;
+    opacity: 1;
+    transform: translateY(0);
+}
+.fab-option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 15px;
+    background-color: var(--color-white);
+    color: var(--color-text-dark);
+    text-decoration: none;
+    border-radius: var(--border-radius-sm);
+    box-shadow: var(--shadow-sm);
+    font-weight: 500;
+    white-space: nowrap;
+    transition: background-color 0.2s;
+}
+.fab-option:hover {
+    background-color: var(--color-bg-light);
+}
+.fab-option.active {
+    background-color: var(--color-primary);
+    color: var(--color-white);
+    font-weight: 600;
+}
+
+/* =================================
+   ❗️ ДОДАНО: ШВИДКІ ПОСИЛАННЯ
+   ================================= */
+.quick-link {
+    display: block;
+    text-align: center;
+    margin-top: 1.5em;
+    color: var(--color-text-light);
+    font-size: 0.9em;
+    text-decoration: none;
+}
+.quick-link:hover {
+    color: var(--color-primary);
+    text-decoration: underline;
 }
