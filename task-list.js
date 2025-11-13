@@ -1,12 +1,15 @@
+// frontend/task-list.js
+import { getTasks, handleTaskAction } from './api.js';
+
 document.addEventListener('DOMContentLoaded', () => {
     const taskListContainer = document.getElementById('taskListContainer');
-    const backendUrl = 'https://my-telegram-task-bot-5c4258bd3f9b.herokuapp.com';
+    
+    // const backendUrl = '...'; // ВИДАЛЕНО
 
     const fetchTasks = async () => {
         try {
-            const response = await fetch(`${backendUrl}/api/tasks`);
-            if (!response.ok) throw new Error(`Помилка сервера: ${response.status}`);
-            const tasks = await response.json();
+            // const response = await fetch(...); // ВИДАЛЕНО
+            const tasks = await getTasks(); // ОНОВЛЕНО
             renderTasks(tasks);
         } catch (error) {
             console.error('Не вдалося завантажити завдання:', error);
@@ -26,10 +29,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const card = document.createElement('div');
             card.className = 'task-card';
 
-            const statusText = task.status === 'open' ? '🟢 Вільне' : '🔴 В роботі';
-            const statusClass = task.status === 'open' ? 'status-open' : 'status-claimed';
+            const statusText = task.status === 'Open' ? '🟢 Вільне' : '🔴 В роботі';
+            const statusClass = task.status === 'Open' ? 'status-open' : 'status-claimed';
             
-            // --- ВІДОБРАЖЕННЯ ВИКОНАВЦІВ З ЧАСОМ ---
             let claimedUsersHtml = '';
             if (task.claimedUsers?.length > 0) {
                 const userItems = task.claimedUsers.map(info => {
@@ -39,7 +41,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 claimedUsersHtml = `<div class="user-list"><strong>Виконавці:</strong><ul>${userItems}</ul></div>`;
             }
             
-            // --- ВІДОБРАЖЕННЯ ОЧІКУЮЧИХ З КНОПКАМИ ---
             let pendingUsersHtml = '';
             if (task.pendingUsers?.length > 0) {
                 const userItems = task.pendingUsers.map(user => `
@@ -70,7 +71,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
-    // --- ОБРОБКА НАТИСКАННЯ КНОПОК ---
     taskListContainer.addEventListener('click', async (event) => {
         const target = event.target;
         const taskId = target.dataset.taskId;
@@ -88,13 +88,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         try {
-            target.disabled = true; // Блокуємо кнопку на час запиту
-            const response = await fetch(`${backendUrl}/api/tasks/${taskId}/${action}/${userId}`, {
-                method: 'POST',
-            });
-            if (!response.ok) {
-                throw new Error('Не вдалося виконати дію');
-            }
+            target.disabled = true;
+            // const response = await fetch(...); // ВИДАЛЕНО
+            await handleTaskAction(taskId, action, userId); // ОНОВЛЕНО
+            
             fetchTasks(); // Оновлюємо список завдань
         } catch (error) {
             console.error(`Помилка дії '${action}':`, error);

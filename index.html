@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="uk">
+<html lang="uk" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,7 +7,6 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -16,7 +15,6 @@
         <div class="main-container">
             <div class="card">
                 <h1>Створення нового завдання</h1>
-
                 <div class="form-group">
                     <label for="template-select">Оберіть шаблон завдання:</label>
                     <select id="template-select">
@@ -27,10 +25,8 @@
                         <option value="urgent">Термінове завдання</option>
                     </select>
                 </div>
-
                 <form id="taskForm">
                     <div id="dynamic-form-fields"></div>
-
                     <div class="form-group">
                         <label for="task_photo">Фото (необов'язково):</label>
                         <input type="file" id="task_photo" name="task_photo" accept="image/*">
@@ -39,13 +35,11 @@
                         <label for="people_needed">Кількість людей:</label>
                         <input type="number" id="people_needed" name="people_needed" min="1" value="1">
                     </div>
-
                     <button type="submit" class="btn btn-primary">Створити завдання</button>
                 </form>
                 <a href="task-list.html" class="quick-link">Переглянути список завдань →</a>
                 <div id="statusMessage"></div>
             </div>
-
             <div class="card preview-card">
                 <h2>Попередній перегляд</h2>
                 <div class="telegram-preview">
@@ -62,25 +56,25 @@
     <div class="fab-container">
         <div class="fab-options">
             <a href="index.html" class="fab-option">
-                <i data-feather="plus-circle"></i>
-                <span>Створити Завдання</span>
+                <i data-feather="plus-circle"></i><span>Створити Завдання</span>
             </a>
             <a href="task-list.html" class="fab-option">
-                <i data-feather="list"></i>
-                <span>Список Завдань</span>
+                <i data-feather="list"></i><span>Список Завдань</span>
             </a>
             <a href="schedule.html" class="fab-option">
-                <i data-feather="calendar"></i>
-                <span>Запланувати Пост</span>
+                <i data-feather="calendar"></i><span>Запланувати Пост</span>
             </a>
             <a href="schedule-list.html" class="fab-option">
-                <i data-feather="clock"></i>
-                <span>Список Постів</span>
+                <i data-feather="clock"></i><span>Список Постів</span>
             </a>
             <a href="chat.html" class="fab-option">
-                <i data-feather="message-circle"></i>
-                <span>AI Чат</span>
+                <i data-feather="message-circle"></i><span>AI Чат</span>
             </a>
+            <button class="fab-option-toggle" id="theme-toggle">
+                <i class="icon-moon" data-feather="moon"></i>
+                <i class="icon-sun" data-feather="sun"></i>
+                <span>Змінити тему</span>
+            </button>
         </div>
         <button class="fab-main" id="fab-toggle">
             <i class="fab-main-icon fab-icon-menu" data-feather="menu"></i>
@@ -88,32 +82,47 @@
         </button>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
     <script>
-        // Скрипт для FAB (без змін)
+        feather.replace(); // Активація іконок
+
+        // Скрипт для FAB
         document.getElementById('fab-toggle').addEventListener('click', () => {
             document.querySelector('.fab-container').classList.toggle('active');
         });
         document.addEventListener('click', (e) => {
             const container = document.querySelector('.fab-container');
-            if (container.classList.contains('active') && !container.contains(e.target)) {
+            if (container && container.classList.contains('active') && !container.contains(e.target)) {
                 container.classList.remove('active');
             }
         });
+        
+        // Виділення активного посилання
         try {
             const currentPage = window.location.pathname.split('/').pop() || 'index.html';
-            document.querySelectorAll('.fab-option').forEach(link => {
+            document.querySelectorAll('.fab-option[href]').forEach(link => {
                 if (link.getAttribute('href') === currentPage) {
                     link.classList.add('active');
                 }
             });
-        } catch (e) {
-            console.error("Failed to set active link", e);
-        }
-    </script>
+        } catch (e) { console.error("Failed to set active link", e); }
 
-    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
-    <script>
-        feather.replace(); // Ця команда перетворить 'data-feather' на SVG іконки
+        // Скрипт для теми
+        (function() {
+            const themeToggle = document.getElementById('theme-toggle');
+            const htmlEl = document.documentElement;
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'light') {
+                htmlEl.classList.remove('dark');
+            } else {
+                htmlEl.classList.add('dark');
+            }
+            themeToggle.addEventListener('click', () => {
+                htmlEl.classList.toggle('dark');
+                const isDark = htmlEl.classList.contains('dark');
+                localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            });
+        })();
     </script>
 </body>
 </html>
