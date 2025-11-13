@@ -86,6 +86,16 @@
     <script>
         feather.replace(); // Активація іконок
 
+        // --- ❗️ ОСЬ ЦЕ ВИПРАВЛЕННЯ ❗️ ---
+        // Скидання стану FAB-меню при завантаженні/поверненні на сторінку
+        window.addEventListener('pageshow', (event) => {
+            const container = document.querySelector('.fab-container');
+            if (container && container.classList.contains('active')) {
+                container.classList.remove('active');
+            }
+        });
+        // --- Кінець виправлення ---
+
         // Скрипт для FAB
         document.getElementById('fab-toggle').addEventListener('click', () => {
             document.querySelector('.fab-container').classList.toggle('active');

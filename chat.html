@@ -60,6 +60,16 @@
     <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
     <script>
         feather.replace();
+        
+        // --- ❗️ ОСЬ ЦЕ ВИПРАВЛЕННЯ ❗️ ---
+        window.addEventListener('pageshow', (event) => {
+            const container = document.querySelector('.fab-container');
+            if (container && container.classList.contains('active')) {
+                container.classList.remove('active');
+            }
+        });
+        // --- Кінець виправлення ---
+
         document.getElementById('fab-toggle').addEventListener('click', () => {
             document.querySelector('.fab-container').classList.toggle('active');
         });
