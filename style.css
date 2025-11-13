@@ -1,12 +1,13 @@
 /* =================================
-   ✨ ОНОВЛЕНИЙ ВІЗУАЛ (style.css) ✨
+   💎 FUTURISTIC UI (style.css) 💎
    ================================= */
 
-/* 1. Імпорт шрифту 'Inter' */
+/* 1. Шрифт 'Inter' (без змін) */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
-/* --- 2. Змінні для СВІТЛОЇ ТЕМИ (тепер це не за замовчуванням) --- */
+/* --- Змінні для СВІТЛОЇ ТЕМИ --- */
 :root {
+    --color-primary-rgb: 90, 103, 216; /* 👈 ДОДАНО: для ефектів 'glow' */
     --color-primary: #5A67D8; 
     --color-primary-dark: #4C51BF;
     --color-success: #38A169;
@@ -14,35 +15,39 @@
     --color-danger: #E53E3E;
     --color-warning: #D69E2E;
 
-    --color-text-dark: #2D3748;  /* Основний текст */
-    --color-text-light: #718096; /* Вторинний текст */
-    --color-bg-light: #f7f8fc;   /* Фон сторінки */
-    --color-white: #ffffff;      /* Фон карток */
-    --color-border: #e2e8f0;    /* Рамки */
+    --color-text-dark: #2D3748;
+    --color-text-light: #718096;
+    --color-bg-light: #f7f8fc;
+    --color-white: #ffffff;
+    --color-border: #e2e8f0;
     
     --shadow-sm: 0 1px 3px rgba(0,0,0,0.03);
     --shadow-md: 0 5px 15px rgba(0, 0, 0, 0.08);
+    --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.1); /* 👈 ДОДАНО: для hover-ефектів */
 }
 
-/* --- 3. Змінні для ТЕМНОЇ ТЕМИ --- */
+/* --- 2. 🔥 НОВА, М'ЯКА ТЕМНА ТЕМА 🔥 --- */
+/* (Замість різкої синьої палітри) */
 :root.dark {
-    --color-primary: #7F9CF5; /* Трохи яскравіший синій */
+    --color-primary-rgb: 127, 156, 245; /* 👈 ДОДАНО */
+    --color-primary: #7F9CF5;
     --color-primary-dark: #667EEA;
     --color-success: #48BB78;
     --color-success-dark: #38A169;
     --color-danger: #F56565;
     --color-warning: #ECC94B;
 
-    --color-text-dark: #E2E8F0;  /* Текст стає світлим */
-    --color-text-light: #A0AEC0; /* Вторинний текст */
-    --color-bg-light: #1A202C;   /* Фон стає темним */
-    --color-white: #2D3748;      /* Картки стають сірими */
-    --color-border: #4A5568;    /* Рамки */
+    --color-text-dark: #E4E4E7;    /* (м'який білий) */
+    --color-text-light: #A1A1AA;   /* (м'який сірий) */
+    --color-bg-light: #18181B;     /* (дуже темний сірий) */
+    --color-white: #27272A;        /* (темно-сірий для карток) */
+    --color-border: #3F3F46;      /* (ледь помітна рамка) */
 
-    --shadow-md: 0 5px 15px rgba(0, 0, 0, 0.2); /* Тінь трохи помітніша */
+    --shadow-md: 0 5px 15px rgba(0, 0, 0, 0.2);
+    --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.3);
 }
 
-/* --- 4. Плавна анімація появи --- */
+/* --- Анімація появи (без змін) --- */
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }
@@ -58,13 +63,12 @@ body {
     color: var(--color-text-dark);
     margin: 0;
     padding-bottom: 100px;
-    /* Плавний перехід для самої теми */
-    transition: background-color 0.2s, color 0.2s;
-    /* Анімація появи */
+    /* 3. 🔥 Плавніший перехід теми */
+    transition: background-color 0.3s, color 0.3s;
     animation: fadeIn 0.5s ease-out forwards;
 }
 
-/* --- Контейнер --- */
+/* --- Контейнер (без змін) --- */
 .container-main {
     width: 100%;
     max-width: 1100px;
@@ -77,6 +81,7 @@ h1, h2 {
     margin-top: 0;
     margin-bottom: 1em;
     color: var(--color-text-dark);
+    transition: color 0.3s;
 }
 h1 { font-weight: 700; }
 h2 { font-weight: 600; color: var(--color-text-light); }
@@ -90,9 +95,16 @@ h2 { font-weight: 600; color: var(--color-text-light); }
     border-radius: var(--border-radius-md);
     box-shadow: var(--shadow-md);
     padding: 1.5em;
-    transition: all 0.2s ease-out; /* Плавність для теми */
+    /* 4. 🔥 Плавний перехід + анімація "підняття" */
+    transition: background-color 0.3s, border-color 0.3s, box-shadow 0.2s ease-out, transform 0.2s ease-out;
 }
 @media (min-width: 768px) { .card { padding: 2em; } }
+
+/* 5. 🔥 Ефект "підняття" для карток */
+.card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-lg);
+}
 
 /* =================================
    ФОРМИ
@@ -105,6 +117,7 @@ label {
     margin-bottom: 0.5em;
     font-weight: 500;
     color: var(--color-text-dark);
+    transition: color 0.3s;
 }
 input[type="text"],
 input[type="file"],
@@ -118,11 +131,14 @@ textarea {
     border-radius: var(--border-radius-sm);
     box-sizing: border-box;
     font-size: 1rem;
-    background-color: var(--color-white); /* Для теми */
-    color: var(--color-text-dark); /* Для теми */
+    background-color: var(--color-white);
+    color: var(--color-text-dark);
     font-family: 'Inter', sans-serif;
+    /* 6. 🔥 Плавніший перехід */
     transition: all 0.2s ease-out;
 }
+
+/* 7. 🔥 Ефект "сяйва" при фокусі */
 input[type="text"]:focus,
 input[type="file"]:focus,
 input[type="number"]:focus,
@@ -131,9 +147,9 @@ select:focus,
 textarea:focus {
     outline: none;
     border-color: var(--color-primary);
-    box-shadow: 0 0 0 3px rgba(90, 103, 216, 0.15);
+    /* Використовуємо RGB змінну для прозорості */
+    box-shadow: 0 0 0 3px rgba(var(--color-primary-rgb), 0.25);
 }
-/* Специфічно для темної теми */
 :root.dark input[type="datetime-local"]::-webkit-calendar-picker-indicator {
     filter: invert(1);
 }
@@ -149,19 +165,30 @@ textarea:focus {
     border-radius: var(--border-radius-sm);
     cursor: pointer;
     text-align: center;
+    /* 8. 🔥 Плавний перехід + анімація */
     transition: all 0.2s ease-out;
+}
+.btn:hover {
+    transform: translateY(-2px); /* "Підняття" кнопки */
+    box-shadow: var(--shadow-md);
 }
 .btn:active { transform: scale(0.98); }
 
 .btn-primary { background-color: var(--color-primary); color: var(--color-white); }
-:root.dark .btn-primary { color: var(--color-bg-light); }
+:root.dark .btn-primary { color: #18181B; }
 .btn-primary:hover { background-color: var(--color-primary-dark); }
+
 .btn-success { background-color: var(--color-success); color: var(--color-white); }
-:root.dark .btn-success { color: var(--color-bg-light); }
+:root.dark .btn-success { color: #18181B; }
 .btn-success:hover { background-color: var(--color-success-dark); }
+
 .btn-danger { background-color: var(--color-danger); color: var(--color-white); }
-:root.dark .btn-danger { color: var(--color-bg-light); }
+:root.dark .btn-danger { color: #18181B; }
+.btn-danger:hover { background-color: var(--color-danger); }
+
 .btn-warning { background-color: var(--color-warning); color: var(--color-text-dark); }
+.btn-warning:hover { background-color: var(--color-warning); }
+
 
 button[type="submit"] {
     display: inline-block;
@@ -177,9 +204,18 @@ button[type="submit"] {
     background-color: var(--color-primary);
     color: var(--color-white);
 }
-:root.dark button[type="submit"] { color: var(--color-bg-light); }
-button[type="submit"]:hover { background-color: var(--color-primary-dark); }
-button:disabled { background-color: var(--color-text-light); cursor: not-allowed; }
+:root.dark button[type="submit"] { color: #18181B; }
+button[type="submit"]:hover { 
+    background-color: var(--color-primary-dark);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+button:disabled { 
+    background-color: var(--color-text-light); 
+    cursor: not-allowed; 
+    transform: none;
+    box-shadow: none;
+}
 
 .form-actions { display: flex; gap: 1em; margin-top: 1.5em; }
 .form-actions button { flex: 1; }
@@ -213,15 +249,13 @@ button:disabled { background-color: var(--color-text-light); cursor: not-allowed
     padding: 1em;
     border-radius: var(--border-radius-sm);
     border: 1px solid #ccc;
-    transition: background-color 0.2s;
+    transition: background-color 0.3s, background-image 0.3s;
 }
-/* Покращення для темної теми */
 :root.dark .telegram-preview {
     background-image: none;
-    background-color: #2a2a2a;
-    border-color: #333;
+    background-color: #111113; /* Ще темніший фон для "чату" */
+    border-color: #3F3F46;
 }
-
 .message-bubble {
     background-color: var(--color-white);
     padding: 0.8em 1em;
@@ -229,7 +263,7 @@ button:disabled { background-color: var(--color-text-light); cursor: not-allowed
     box-shadow: var(--shadow-sm);
     word-wrap: break-word;
     min-height: 50px;
-    transition: background-color 0.2s;
+    transition: background-color 0.3s;
 }
 #preview-content {
     line-height: 1.5;
@@ -242,7 +276,7 @@ button:disabled { background-color: var(--color-text-light); cursor: not-allowed
     background-color: var(--color-bg-light);
     padding: 0.1em 0.3em;
     border-radius: 3px;
-    transition: background-color 0.2s;
+    transition: background-color 0.3s;
 }
 .post-preview {
     background: var(--color-bg-light);
@@ -252,7 +286,7 @@ button:disabled { background-color: var(--color-text-light); cursor: not-allowed
     margin-bottom: 1em;
     white-space: pre-wrap;
     word-break: break-word;
-    transition: background-color 0.2s, border-color 0.2s;
+    transition: background-color 0.3s, border-color 0.3s;
 }
 
 /* =================================
@@ -271,17 +305,18 @@ button:disabled { background-color: var(--color-text-light); cursor: not-allowed
     border-top: 1px solid var(--color-border);
 }
 .task-status {
-    font-weight: bold;
+    font-weight: 500;
     padding: 0.3em 0.8em;
     border-radius: 12px;
     font-size: 0.9em;
+    transition: all 0.3s;
 }
-/* Специфічні кольори для світлої теми */
+/* Світла тема */
 .status-open { color: #2F855A; background-color: #C6F6D5; }
 .status-claimed { color: #C53030; background-color: #FED7D7; }
-/* Специфічні кольори для темної теми */
-:root.dark .status-open { color: #9AE6B4; background-color: #2F855A; }
-:root.dark .status-claimed { color: #FEB2B2; background-color: #C53030; }
+/* Темна тема */
+:root.dark .status-open { color: #9AE6B4; background-color: rgba(72, 187, 120, 0.2); }
+:root.dark .status-claimed { color: #FEB2B2; background-color: rgba(245, 101, 101, 0.2); }
 
 .task-people { font-size: 0.9em; color: var(--color-text-light); }
 .user-list {
@@ -310,7 +345,6 @@ button:disabled { background-color: var(--color-text-light); cursor: not-allowed
     transition: all 0.2s;
 }
 .pending-user .actions button:hover { background-color: var(--color-bg-light); }
-
 .post-actions {
     display: flex;
     flex-wrap: wrap;
@@ -324,14 +358,18 @@ button:disabled { background-color: var(--color-text-light); cursor: not-allowed
     border-radius: var(--border-radius-sm);
     border: 1px solid transparent;
 }
+/* Спадкування .btn hover ефектів */
 .post-now-btn { background-color: var(--color-success); color: var(--color-white); border-color: var(--color-success); }
-:root.dark .post-now-btn { color: var(--color-bg-light); }
+:root.dark .post-now-btn { color: #18181B; }
+.post-now-btn:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
 .edit-btn { background-color: var(--color-warning); color: #212529; border-color: var(--color-warning); }
+.edit-btn:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
 .delete-btn { background-color: var(--color-danger); color: var(--color-white); border-color: var(--color-danger); }
-:root.dark .delete-btn { color: var(--color-bg-light); }
+:root.dark .delete-btn { color: #18181B; }
+.delete-btn:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
 
 /* =================================
-   🔥 5. ОНОВЛЕНІ СТИЛІ ДЛЯ ЧАТУ 🔥
+   ОНОВЛЕНІ СТИЛІ ДЛЯ ЧАТУ
    ================================= */
 #chatBox {
     border: 1px solid var(--color-border);
@@ -339,11 +377,11 @@ button:disabled { background-color: var(--color-text-light); cursor: not-allowed
     overflow-y: scroll;
     padding: 10px;
     margin-bottom: 1em;
-    background: var(--color-bg-light); /* Фон чату - фон сторінки */
+    background: var(--color-bg-light);
     border-radius: var(--border-radius-sm);
     display: flex;
     flex-direction: column;
-    transition: all 0.2s;
+    transition: all 0.3s;
 }
 .message {
     margin-bottom: 8px;
@@ -352,64 +390,60 @@ button:disabled { background-color: var(--color-text-light); cursor: not-allowed
     max-width: 80%;
     line-height: 1.4;
     word-wrap: break-word;
+    /* Анімація появи повідомлення */
+    animation: fadeIn 0.3s ease-out forwards;
 }
 .user-message {
     background-color: var(--color-primary);
     color: var(--color-white);
-    :root.dark & { color: var(--color-bg-light); }
+    :root.dark & { color: #18181B; }
     margin-left: auto;
     border-bottom-right-radius: 4px;
 }
 .ai-message {
-    background-color: var(--color-white); /* AI - на фоні картки */
+    background-color: var(--color-white);
     color: var(--color-text-dark);
     margin-right: auto;
     border-bottom-left-radius: 4px;
     border: 1px solid var(--color-border);
 }
-
-/* Нова обертка для поля вводу */
 #chatInput {
     display: flex;
     align-items: center;
     background-color: var(--color-white);
     border: 1px solid var(--color-border);
     border-radius: var(--border-radius-sm);
-    padding: 0.2em 0.5em 0.2em 0.8em; /* Внутрішні відступи */
+    padding: 0.2em 0.5em 0.2em 0.8em;
     transition: all 0.2s ease-out;
 }
 #chatInput:focus-within {
     border-color: var(--color-primary);
-    box-shadow: 0 0 0 3px rgba(90, 103, 216, 0.15);
+    box-shadow: 0 0 0 3px rgba(var(--color-primary-rgb), 0.25);
 }
-
-/* Нове поле вводу */
 #messageInput {
     flex-grow: 1;
-    border: none;  /* Прибираємо власну рамку */
+    border: none;
     padding: 0.8em 0;
     margin-right: 0.5em;
-    background: transparent; /* Робимо прозорим */
-    color: var(--color-text-dark); /* Спадкуємо колір */
+    background: transparent;
+    color: var(--color-text-dark);
     font-family: 'Inter', sans-serif;
     font-size: 1rem;
 }
 #messageInput:focus {
-    outline: none; /* Прибираємо outline */
-    box-shadow: none; /* Прибираємо тінь */
+    outline: none;
+    box-shadow: none;
 }
-
-/* Нова кнопка "Надіслати" */
 #sendBtn {
     background: var(--color-success);
     color: var(--color-white);
-    :root.dark & { color: var(--color-bg-light); }
+    :root.dark & { color: #18181B; }
     border: none;
     width: 40px;
     height: 40px;
     border-radius: 50%;
     cursor: pointer;
-    flex-shrink: 0; /* Запобігаємо стисканню */
+    flex-shrink: 0;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -419,21 +453,24 @@ button:disabled { background-color: var(--color-text-light); cursor: not-allowed
 }
 #sendBtn:hover {
     background: var(--color-success-dark);
+    transform: scale(1.1); /* Анімація кнопки чату */
 }
 #sendBtn:disabled {
     background: var(--color-text-light);
+    transform: scale(1);
+    box-shadow: none;
     cursor: not-allowed;
 }
-#sendBtn svg { /* Стилізуємо саму SVG іконку */
+#sendBtn svg {
     width: 20px;
     height: 20px;
-    stroke: currentColor; /* Наслідує колір */
+    stroke: currentColor;
     stroke-width: 2.5;
-    margin-left: 2px; /* Візуальна корекція */
+    margin-left: 2px;
 }
 
 /* =================================
-   FAB НАВІГАЦІЯ (з перемикачем теми)
+   🔥 9. FAB-МЕНЮ З ЕФЕКТОМ "СКЛА" 🔥
    ================================= */
 .fab-container {
     position: fixed;
@@ -446,7 +483,7 @@ button:disabled { background-color: var(--color-text-light); cursor: not-allowed
     height: 60px;
     background-color: var(--color-primary);
     color: var(--color-white);
-    :root.dark & { color: var(--color-bg-light); }
+    :root.dark & { color: #18181B; }
     border: none;
     border-radius: 50%;
     box-shadow: 0 4px 12px rgba(0,0,0,0.2);
@@ -456,7 +493,7 @@ button:disabled { background-color: var(--color-text-light); cursor: not-allowed
     justify-content: center;
     position: relative;
     overflow: hidden;
-    transition: background-color 0.2s, transform 0.2s, color 0.2s;
+    transition: background-color 0.3s, transform 0.2s, color 0.3s;
 }
 .fab-main:hover {
     background-color: var(--color-primary-dark);
@@ -489,72 +526,66 @@ button:disabled { background-color: var(--color-text-light); cursor: not-allowed
     opacity: 1;
     transform: translateY(0) scale(1);
 }
-.fab-option {
-    display: flex;
-    align-items: center;
-    gap: 12px; 
-    padding: 10px 15px;
-    background-color: var(--color-white);
-    color: var(--color-text-dark);
-    text-decoration: none;
-    border-radius: var(--border-radius-sm);
-    box-shadow: var(--shadow-sm);
-    font-weight: 500;
-    white-space: nowrap;
-    transition: all 0.2s ease-out;
-}
-.fab-option:hover {
-    background-color: var(--color-bg-light);
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
-}
-.fab-option.active {
-    background-color: var(--color-primary);
-    color: var(--color-white);
-    :root.dark & { color: var(--color-bg-light); }
-    font-weight: 600;
-}
-.fab-option svg {
-    width: 20px;
-    height: 20px;
-    stroke: currentColor; 
-}
-
-/* --- 6. Кнопка перемикання теми --- */
-.fab-option-toggle {
+.fab-option, .fab-option-toggle {
     font-family: 'Inter', sans-serif;
     font-size: 1rem;
     border: none;
     cursor: pointer;
     width: 100%;
-    /* копіюємо стилі .fab-option */
     display: flex;
     align-items: center;
     gap: 12px; 
     padding: 10px 15px;
-    background-color: var(--color-white);
-    color: var(--color-text-dark);
     text-decoration: none;
     border-radius: var(--border-radius-sm);
-    box-shadow: var(--shadow-sm);
     font-weight: 500;
     white-space: nowrap;
     transition: all 0.2s ease-out;
+
+    /* Світла тема: звичайна картка */
+    background-color: var(--color-white);
+    color: var(--color-text-dark);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--color-border);
 }
-.fab-option-toggle:hover {
+.fab-option:hover, .fab-option-toggle:hover {
     background-color: var(--color-bg-light);
     transform: translateY(-2px);
     box-shadow: var(--shadow-md);
 }
-.fab-option-toggle svg {
+
+/* 10. 🔥 Ефект "Скла" (Glassmorphism) для темної теми */
+:root.dark .fab-option, :root.dark .fab-option-toggle {
+    background-color: rgba(55, 65, 81, 0.4); /* (напівпрозорий сірий) */
+    backdrop-filter: blur(10px); /* (ефект розмиття) */
+    border: 1px solid rgba(255, 255, 255, 0.1); /* (ледь помітна біла рамка) */
+    color: var(--color-text-dark);
+}
+:root.dark .fab-option:hover, :root.dark .fab-option-toggle:hover {
+    background-color: rgba(55, 65, 81, 0.7);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+/* Активне посилання */
+.fab-option.active {
+    background-color: var(--color-primary);
+    color: var(--color-white);
+    :root.dark & { color: #18181B; }
+    font-weight: 600;
+}
+:root.dark .fab-option.active {
+    background-color: var(--color-primary);
+    border-color: var(--color-primary);
+}
+
+.fab-option svg, .fab-option-toggle svg {
     width: 20px;
     height: 20px;
-    stroke: currentColor;
+    stroke: currentColor; 
 }
-/* Логіка іконок сонце/місяць */
 .fab-option-toggle .icon-sun { display: none; }
 .fab-option-toggle .icon-moon { display: block; }
-
 :root.dark .fab-option-toggle .icon-sun { display: block; }
 :root.dark .fab-option-toggle .icon-moon { display: none; }
 
