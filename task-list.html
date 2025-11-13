@@ -9,17 +9,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     
-    <script>
-        // Скидання стану FAB-меню при завантаженні/поверненні на сторінку
-        // Цей скрипт має бути в <head>, щоб виконатися до першого рендеру
-        window.addEventListener('pageshow', (event) => {
-            const container = document.querySelector('.fab-container');
-            if (container && container.classList.contains('active')) {
-                container.classList.remove('active');
-            }
-        });
-    </script>
-</head>
+    </head>
 <body>
 
     <div class="container-main">
@@ -65,6 +55,15 @@
     <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
     <script>
         feather.replace();
+
+        // --- ❗️ ОСЬ ПРАВИЛЬНЕ МІСЦЕ ДЛЯ ФІКСУ ❗️ ---
+        window.addEventListener('pageshow', (event) => {
+            const container = document.querySelector('.fab-container');
+            if (container && container.classList.contains('active')) {
+                container.classList.remove('active');
+            }
+        });
+        // --- Кінець виправлення ---
 
         document.getElementById('fab-toggle').addEventListener('click', () => {
             document.querySelector('.fab-container').classList.toggle('active');
