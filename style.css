@@ -1,5 +1,5 @@
 /* =================================
-   👽 CYBER-NEUMORPH (style.css) 👽
+   💎 AURORA GLASS UI (style.css) 💎
    ================================= */
 
 /* 1. Шрифт 'Inter' */
@@ -18,20 +18,16 @@
 
     --color-text-dark: #1F2937;
     --color-text-light: #6B7280;
-    --color-bg-light: #f1f1f3; /* Трохи темніший фон для Neumorphism */
-    --color-white: #f9f9fb; /* Трохи темніша картка */
-    --color-border: #e5e7eb;
+    --color-bg-light: #f9fafb;
+    --color-bg-card: rgba(255, 255, 255, 0.75); /* 👈 Скляний фон картки */
+    --color-border: rgba(0, 0, 0, 0.1);
     
     --shadow-sm: 0 1px 3px rgba(0,0,0,0.03);
     --shadow-md: 0 5px 15px rgba(0, 0, 0, 0.08);
     --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.1);
-
-    /* Neumorphism Тіні (Світла тема) */
-    --shadow-neumorph-inset: inset 2px 2px 5px #d4d4d8, inset -3px -3px 7px #ffffff;
-    --shadow-neumorph-pop: 5px 5px 10px #d4d4d8, -5px -5px 10px #ffffff;
 }
 
-/* --- 2. 🔥 ОНОВЛЕНА Темна Тема 🔥 --- */
+/* --- 2. 🔥 НОВА НАСИЧЕНА ТЕМНА ТЕМА 🔥 --- */
 :root.dark {
     --color-primary-rgb: 224, 64, 251;
     --color-primary: #E040FB; 
@@ -44,23 +40,21 @@
 
     --color-text-dark: #F1F5F9;
     --color-text-light: #94A3B8;
-    --color-bg-light: #191724;
-    --color-white: #232130;
-    --color-border: #363344;
+    --color-bg-light: #111017; /* 👈 Глибокий темний фон */
+    --color-bg-card: rgba(30, 28, 42, 0.6); /* 👈 Скляний фон картки */
+    --color-border: rgba(255, 255, 255, 0.1); /* 👈 Скляна рамка */
 
     --shadow-md: 0 5px 15px rgba(0, 0, 0, 0.2);
     --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.3);
-
-    /* Neumorphism Тіні (Темна тема) */
-    --shadow-neumorph-inset: inset 3px 3px 6px #13111c, inset -3px -3px 6px #333144;
-    --shadow-neumorph-pop: 5px 5px 10px #13111c, -5px -5px 10px #333144;
 }
 
-/* --- 3. 🔥 Анімація Scanlines 🔥 --- */
-@keyframes scanline {
-    0% { transform: translateY(0); }
-    100% { transform: translateY(-10px); }
+/* --- 3. 🔥 Анімація "Аврора" (ФОН) 🔥 --- */
+@keyframes aurora {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
 }
+
 body::before {
     content: '';
     position: fixed;
@@ -68,21 +62,24 @@ body::before {
     left: 0;
     width: 100%;
     height: 100%;
-    z-index: -1;
-    opacity: 0.03;
-    pointer-events: none; /* Дозволяє клікати крізь нього */
-    background: linear-gradient(to bottom, transparent 50%, rgba(0,0,0,0.5) 50%);
-    background-size: 100% 10px;
-    animation: scanline 0.2s linear infinite;
-}
-:root.dark body::before {
-    opacity: 0.05;
-    background: linear-gradient(to bottom, transparent 50%, rgba(0,0,0,0.8) 50%);
-    background-size: 100% 8px;
-    animation: scanline 0.3s linear infinite;
+    z-index: -2; /* Позаду всього */
+    pointer-events: none;
+    transition: background 0.3s;
+    
+    /* Світла тема: легка аврора */
+    background: linear-gradient(125deg, #f0f4ff, #e6f0ff, #fdf0f0);
+    background-size: 400% 400%;
+    animation: aurora 15s ease infinite;
 }
 
-/* --- (Кінець Scanlines) --- */
+:root.dark body::before {
+    /* Темна тема: насичена аврора */
+    background: linear-gradient(125deg, #111017, #191724, #2c1a3e, #191724, #111017);
+    background-size: 400% 400%;
+    animation: aurora 20s ease infinite;
+}
+/* --- (Кінець Аврори) --- */
+
 
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(10px); }
@@ -119,28 +116,27 @@ h1, h2 {
 }
 h1 { 
     font-weight: 700; 
-    /* 4. 🔥 Неонове сяйво для заголовків */
     text-shadow: 0 0 10px rgba(var(--color-primary-rgb), 0.3);
 }
 h2 { font-weight: 600; color: var(--color-text-light); }
 
 /* =================================
-   КАРТКИ
+   4. 🔥 КАРТКИ (GLASSMORPHISM) 🔥
    ================================= */
 .card {
-    background: var(--color-white);
-    border: 1px solid var(--color-border);
+    background: var(--color-bg-card); /* 👈 Напівпрозорий фон */
+    backdrop-filter: blur(16px); /* 👈 Ефект розмиття */
+    border: 1px solid var(--color-border); /* 👈 Скляна рамка */
     border-radius: var(--border-radius-md);
     padding: 1.5em;
-    /* 5. 🔥 Оновлена тінь (Neumorphism + Glow) */
-    box-shadow: var(--shadow-neumorph-pop);
+    box-shadow: var(--shadow-md);
     transition: background-color 0.3s, border-color 0.3s, box-shadow 0.2s ease-out, transform 0.2s ease-out;
 }
 @media (min-width: 768px) { .card { padding: 2em; } }
 
 .card:hover {
     transform: translateY(-3px);
-    box-shadow: var(--shadow-lg); /* Залишаємо стару тінь для hover */
+    box-shadow: var(--shadow-lg);
 }
 
 /* =================================
@@ -157,7 +153,7 @@ label {
     transition: color 0.3s;
 }
 
-/* 6. 🔥 "Втиснуті" поля вводу (Neumorphism) */
+/* 5. 🔥 "Втиснуті" скляні поля вводу */
 input[type="text"],
 input[type="file"],
 input[type="number"],
@@ -170,12 +166,22 @@ textarea {
     border-radius: var(--border-radius-sm);
     box-sizing: border-box;
     font-size: 1rem;
-    background-color: var(--color-bg-light); /* Фон як у body */
+    background-color: var(--color-bg-light); /* 👈 Фон як у body */
     color: var(--color-text-dark);
     font-family: 'Inter', sans-serif;
     transition: all 0.2s ease-out;
-    box-shadow: var(--shadow-neumorph-inset); /* Втиснута тінь */
+    box-shadow: var(--shadow-neumorph-inset); /* Зберігаємо "втиснутість" */
 }
+:root.dark input[type="text"],
+:root.dark input[type="file"],
+:root.dark input[type="number"],
+:root.dark input[type="datetime-local"],
+:root.dark select,
+:root.dark textarea {
+    background-color: rgba(0,0,0,0.1); /* 👈 Поле темніше за фон */
+    box-shadow: inset 2px 2px 4px rgba(0,0,0,0.2), inset -2px -2px 4px rgba(255,255,255,0.05);
+}
+
 
 input[type="text"]:focus,
 input[type="file"]:focus,
@@ -191,7 +197,7 @@ textarea:focus {
     filter: invert(1);
 }
 
-/* --- 7. 🔥 "Втиснуті" Кнопки --- */
+/* --- 6. 🔥 Кнопки з сяйвом --- */
 .btn, button[type="submit"], .post-actions button {
     display: inline-block;
     width: 100%;
@@ -201,91 +207,63 @@ textarea:focus {
     border-radius: var(--border-radius-sm);
     cursor: pointer;
     text-align: center;
-    transition: all 0.15s ease-out; /* Швидка анімація "натискання" */
-    
-    background: var(--color-white); /* Фон як у картки */
-    color: var(--color-text-light);
-    border: 1px solid var(--color-border);
-    box-shadow: var(--shadow-neumorph-pop); /* "Випукла" кнопка */
-}
-
-/* Ефект "Поп" при наведенні */
-.btn:hover, button[type="submit"]:hover, .post-actions button:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-lg); /* Яскрава тінь при наведенні */
-}
-/* Ефект "Натискання" */
-.btn:active, button[type="submit"]:active, .post-actions button:active {
-    transform: translateY(1px);
-    box-shadow: var(--shadow-neumorph-inset); /* Втискається */
-}
-
-/* Кольорові кнопки */
-.btn-primary, button[type="submit"] {
+    transition: all 0.15s ease-out;
     background: var(--color-primary);
     color: var(--color-white);
     :root.dark & { color: #191724; }
-    border-color: var(--color-primary);
-    box-shadow: var(--shadow-neumorph-pop), 0 0 10px rgba(var(--color-primary-rgb), 0.3);
+    border: 1px solid var(--color-primary);
+    box-shadow: 0 0 10px rgba(var(--color-primary-rgb), 0.3);
 }
-.btn-primary:hover, button[type="submit"]:hover {
+.btn:hover, button[type="submit"]:hover, .post-actions button:hover {
+    transform: translateY(-2px);
     background: var(--color-primary-dark);
-    box-shadow: var(--shadow-lg), 0 0 15px rgba(var(--color-primary-rgb), 0.5);
+    box-shadow: 0 0 15px rgba(var(--color-primary-rgb), 0.5);
 }
-
+.btn:active, button[type="submit"]:active, .post-actions button:active {
+    transform: translateY(1px);
+    box-shadow: 0 0 5px rgba(var(--color-primary-rgb), 0.3);
+}
 .btn-success, #postNowBtn, .post-now-btn {
     background: var(--color-success);
     color: var(--color-white);
     :root.dark & { color: #191724; }
     border-color: var(--color-success);
-    box-shadow: var(--shadow-neumorph-pop);
+    box-shadow: 0 0 10px rgba(var(--color-success-rgb), 0.3);
 }
 .btn-success:hover, #postNowBtn:hover, .post-now-btn:hover {
     background: var(--color-success-dark);
-    box-shadow: var(--shadow-lg), 0 0 15px rgba(var(--color-success-rgb), 0.5);
+    box-shadow: 0 0 15px rgba(var(--color-success-rgb), 0.5);
 }
-
 .btn-danger, .delete-btn {
     background: var(--color-danger);
+    border-color: var(--color-danger);
     color: var(--color-white);
     :root.dark & { color: #191724; }
-    border-color: var(--color-danger);
-    box-shadow: var(--shadow-neumorph-pop);
+    box-shadow: none;
 }
-.btn-danger:hover, .delete-btn:hover {
-    background: var(--color-danger);
-    box-shadow: var(--shadow-lg);
-}
-
+.btn-danger:hover, .delete-btn:hover { background: var(--color-danger); }
 .btn-warning, .edit-btn {
     background: var(--color-warning);
-    color: #1F2937;
     border-color: var(--color-warning);
-    box-shadow: var(--shadow-neumorph-pop);
+    color: #1F2937;
+    box-shadow: none;
 }
-.btn-warning:hover, .edit-btn:hover {
-    background: var(--color-warning);
-    box-shadow: var(--shadow-lg);
-}
-
+.btn-warning:hover, .edit-btn:hover { background: var(--color-warning); }
 button:disabled { 
     background: var(--color-text-light); 
     cursor: not-allowed; 
     transform: none;
-    box-shadow: var(--shadow-neumorph-inset);
+    box-shadow: none;
     opacity: 0.5;
 }
-
 .form-actions { display: flex; gap: 1em; margin-top: 1.5em; }
 .form-actions button { flex: 1; }
-
 #statusMessage { margin-top: 1em; text-align: center; font-weight: bold; }
 .success { color: var(--color-success); }
 .error { color: var(--color-danger); }
 
-/* =================================
-   (Решта стилів без змін)
-   ================================= */
+/* (Решта стилів без змін) */
+
 .main-container { display: grid; grid-template-columns: 1fr; gap: 2em; }
 @media (min-width: 900px) { .main-container { grid-template-columns: 2fr 1fr; } }
 .preview-card { position: sticky; top: 2em; }
@@ -304,7 +282,8 @@ button:disabled {
     border-color: #363344;
 }
 .message-bubble {
-    background-color: var(--color-white);
+    background-color: var(--color-bg-card); /* Скло */
+    backdrop-filter: blur(10px);
     padding: 0.8em 1em;
     border-radius: var(--border-radius-sm);
     box-shadow: var(--shadow-sm);
@@ -316,7 +295,6 @@ button:disabled {
 #preview-content b { font-weight: bold; }
 #preview-content i { font-style: italic; }
 #preview-content code {
-    font-family: 'Courier New', Courier, monospace;
     background-color: var(--color-bg-light);
     color: var(--color-text-light);
     padding: 0.1em 0.3em;
@@ -380,16 +358,17 @@ button:disabled {
 .pending-user .actions button {
     padding: 0.2em 0.5em;
     border: 1px solid var(--color-border);
-    background-color: var(--color-white);
+    background-color: var(--color-bg-card); /* Скло */
+    backdrop-filter: blur(10px);
     color: var(--color-text-dark);
     cursor: pointer;
     border-radius: 4px;
     font-size: 1em;
     transition: all 0.2s;
-    box-shadow: var(--shadow-neumorph-pop);
+    box-shadow: var(--shadow-md);
 }
 .pending-user .actions button:hover { background-color: var(--color-bg-light); box-shadow: var(--shadow-lg); }
-.pending-user .actions button:active { box-shadow: var(--shadow-neumorph-inset); }
+.pending-user .actions button:active { box-shadow: none; transform: translateY(1px); }
 
 .post-actions {
     display: flex;
@@ -416,7 +395,6 @@ button:disabled {
     display: flex;
     flex-direction: column;
     transition: all 0.3s;
-    box-shadow: var(--shadow-neumorph-inset); /* Втиснутий чат */
 }
 .message {
     margin-bottom: 8px;
@@ -436,7 +414,8 @@ button:disabled {
     border-bottom-right-radius: 4px;
 }
 .ai-message {
-    background-color: var(--color-white);
+    background-color: var(--color-bg-card); /* Скло */
+    backdrop-filter: blur(10px);
     color: var(--color-text-dark);
     margin-right: auto;
     border-bottom-left-radius: 4px;
@@ -445,12 +424,12 @@ button:disabled {
 #chatInput {
     display: flex;
     align-items: center;
-    background-color: var(--color-white);
+    background: var(--color-bg-card); /* Скло */
+    backdrop-filter: blur(10px);
     border: 1px solid var(--color-border);
     border-radius: var(--border-radius-sm);
     padding: 0.2em 0.5em 0.2em 0.8em;
     transition: all 0.2s ease-out;
-    box-shadow: var(--shadow-neumorph-pop); /* Випукле поле вводу */
 }
 #chatInput:focus-within {
     border-color: var(--color-primary);
@@ -465,7 +444,7 @@ button:disabled {
     color: var(--color-text-dark);
     font-family: 'Inter', sans-serif;
     font-size: 1rem;
-    box-shadow: none; /* Скидання тіні */
+    box-shadow: none;
 }
 #messageInput:focus {
     outline: none;
@@ -487,21 +466,21 @@ button:disabled {
     transition: all 0.2s ease-out;
     padding: 0; 
     min-width: auto;
-    box-shadow: var(--shadow-neumorph-pop); /* Випукла кнопка */
+    box-shadow: 0 0 10px rgba(var(--color-success-rgb), 0.3);
 }
 #sendBtn:hover {
     background: var(--color-success-dark);
     transform: scale(1.1);
-    box-shadow: var(--shadow-lg);
+    box-shadow: 0 0 15px rgba(var(--color-success-rgb), 0.5);
 }
 #sendBtn:active {
     transform: scale(0.95);
-    box-shadow: var(--shadow-neumorph-inset);
+    box-shadow: none;
 }
 #sendBtn:disabled {
     background: var(--color-text-light);
     transform: scale(1);
-    box-shadow: var(--shadow-neumorph-inset);
+    box-shadow: none;
     cursor: not-allowed;
 }
 #sendBtn svg {
@@ -520,7 +499,16 @@ button:disabled {
     bottom: 25px;
     right: 25px;
     z-index: 1000;
+    /* 7. 🔥 Логіка прозорості */
+    transition: opacity 0.5s ease-out;
 }
+.fab-container.is-idle {
+    opacity: 0.3; /* 👈 Стає прозорою */
+}
+.fab-container:hover {
+    opacity: 1; /* 👈 Стає яскравою при наведенні */
+}
+
 .fab-main {
     width: 60px;
     height: 60px;
@@ -541,7 +529,7 @@ button:disabled {
 .fab-main:hover {
     background-color: var(--color-primary-dark);
     transform: scale(1.05);
-    box-shadow: 0 0 20px rgba(var(--color-primary-rgb), 0.7); /* Сяйво при наведенні */
+    box-shadow: 0 0 20px rgba(var(--color-primary-rgb), 0.7);
 }
 .fab-main-icon {
     position: absolute;
@@ -573,7 +561,7 @@ button:disabled {
 .fab-option, .fab-option-toggle {
     font-family: 'Inter', sans-serif;
     font-size: 1rem;
-    border: none;
+    border: 1px solid var(--color-border);
     cursor: pointer;
     width: 100%;
     display: flex;
@@ -585,27 +573,24 @@ button:disabled {
     font-weight: 500;
     white-space: nowrap;
     transition: all 0.2s ease-out;
-    background-color: var(--color-white);
+    background-color: var(--color-bg-card); /* Скло */
+    backdrop-filter: blur(16px);
     color: var(--color-text-dark);
-    box-shadow: var(--shadow-sm);
-    border: 1px solid var(--color-border);
+    box-shadow: var(--shadow-md);
 }
 .fab-option:hover, .fab-option-toggle:hover {
     background-color: var(--color-bg-light);
     transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
+    box-shadow: var(--shadow-lg);
 }
 
-/* "Скляний" ефект для темної теми */
 :root.dark .fab-option, :root.dark .fab-option-toggle {
-    background-color: rgba(35, 33, 48, 0.6); /* 8. 🔥 Більш прозоре скло */
-    backdrop-filter: blur(12px);
+    background-color: rgba(30, 28, 42, 0.6);
     border: 1px solid rgba(255, 255, 255, 0.1); 
     color: var(--color-text-dark);
-    box-shadow: var(--shadow-md);
 }
 :root.dark .fab-option:hover, :root.dark .fab-option-toggle:hover {
-    background-color: rgba(35, 33, 48, 0.8);
+    background-color: rgba(30, 28, 42, 0.8);
     transform: translateY(-2px);
     box-shadow: var(--shadow-lg);
 }
@@ -651,4 +636,5 @@ button:disabled {
 .quick-link:hover {
     color: var(--color-primary);
     text-decoration: underline;
+    text-shadow: 0 0 8px rgba(var(--color-primary-rgb), 0.3);
 }

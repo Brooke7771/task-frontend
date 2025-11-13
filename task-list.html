@@ -8,8 +8,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
-    
-    </head>
+</head>
 <body>
 
     <div class="container-main">
@@ -54,26 +53,39 @@
 
     <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
     <script>
-        feather.replace();
+        feather.replace(); 
 
-        // --- ❗️ ОСЬ ПРАВИЛЬНЕ МІСЦЕ ДЛЯ ФІКСУ ❗️ ---
+        const fabContainer = document.querySelector('.fab-container');
+        
+        // --- ❗️ ВИПРАВЛЕННЯ "СТРИБКА" КНОПКИ (pageshow) ❗️ ---
         window.addEventListener('pageshow', (event) => {
-            const container = document.querySelector('.fab-container');
-            if (container && container.classList.contains('active')) {
-                container.classList.remove('active');
+            if (fabContainer && fabContainer.classList.contains('active')) {
+                fabContainer.classList.remove('active');
             }
         });
-        // --- Кінець виправлення ---
 
+        // --- ❗️ НОВА ФІЧА: "ЗГАСАННЯ" КНОПКИ ❗️ ---
+        let idleTimer;
+        const setIdle = () => fabContainer.classList.add('is-idle');
+        const resetIdleTimer = () => {
+            clearTimeout(idleTimer);
+            fabContainer.classList.remove('is-idle');
+            idleTimer = setTimeout(setIdle, 5000);
+        };
+        resetIdleTimer();
+        ['mousemove', 'keypress', 'scroll', 'touchstart'].forEach(event => document.addEventListener(event, resetIdleTimer));
+        fabContainer.addEventListener('mouseenter', () => fabContainer.classList.remove('is-idle'));
+
+        // --- СТАРА ЛОГІКА (без змін) ---
         document.getElementById('fab-toggle').addEventListener('click', () => {
-            document.querySelector('.fab-container').classList.toggle('active');
+            fabContainer.classList.toggle('active');
         });
         document.addEventListener('click', (e) => {
-            const container = document.querySelector('.fab-container');
-            if (container && container.classList.contains('active') && !container.contains(e.target)) {
-                container.classList.remove('active');
+            if (fabContainer && fabContainer.classList.contains('active') && !fabContainer.contains(e.target)) {
+                fabContainer.classList.remove('active');
             }
         });
+        
         try {
             const currentPage = window.location.pathname.split('/').pop() || 'index.html';
             document.querySelectorAll('.fab-option[href]').forEach(link => {
