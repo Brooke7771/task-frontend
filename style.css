@@ -1,23 +1,29 @@
 /* =================================
-   ОНОВЛЕНИЙ style.css
+   ✨ НОВИЙ ВІЗУАЛ (style.css) ✨
    ================================= */
 
-/* --- Базові налаштування (без змін) --- */
+/* 1. Імпорт сучасного шрифту 'Inter' */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+/* --- Оновлена палітра кольорів --- */
 :root {
-    --color-primary: #007bff;
-    --color-primary-dark: #0056b3;
-    --color-success: #28a745;
-    --color-success-dark: #218838;
-    --color-danger: #dc3545;
-    --color-warning: #ffc107;
-    --color-text-dark: #212529;
-    --color-text-light: #6c757d;
-    --color-bg-light: #f8f9fa;
+    /* --color-primary: #007bff; */
+    --color-primary: #5A67D8; /* Новий, більш м'який синій */
+    --color-primary-dark: #4C51BF;
+    --color-success: #38A169;
+    --color-success-dark: #2F855A;
+    --color-danger: #E53E3E;
+    --color-warning: #D69E2E;
+    --color-text-dark: #2D3748;
+    --color-text-light: #718096;
+    /* --color-bg-light: #f8f9fa; */
+    --color-bg-light: #f7f8fc; /* Більш чистий фон */
     --color-white: #ffffff;
-    --color-border: #dee2e6;
+    --color-border: #e2e8f0; /* Світліша рамка */
     
-    --shadow-sm: 0 1px 3px rgba(0,0,0,0.05);
-    --shadow-md: 0 4px 12px rgba(0,0,0,0.05);
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.03);
+    /* --shadow-md: 0 4px 12px rgba(0,0,0,0.05); */
+    --shadow-md: 0 5px 15px rgba(0, 0, 0, 0.08); /* М'якша тінь */
     --border-radius-sm: 0.3rem;
     --border-radius-md: 0.5rem;
 }
@@ -27,12 +33,12 @@
 }
 
 body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    /* 2. Застосування нового шрифту */
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     background-color: var(--color-bg-light);
     color: var(--color-text-dark);
     margin: 0;
-    /* ❗️ ВИДАЛЕНО 'padding-top: 60px;' */
-    padding-bottom: 100px; /* Додаємо відступ знизу для FAB */
+    padding-bottom: 100px;
 }
 
 /* --- Контейнер (без змін) --- */
@@ -47,12 +53,13 @@ h1, h2 {
     text-align: center;
     margin-top: 0;
     margin-bottom: 1em;
+    color: var(--color-text-dark);
 }
-
-/* ❗️ СТИЛІ '.top-nav' ПОВНІСТЮ ВИДАЛЕНІ */
+h1 { font-weight: 700; }
+h2 { font-weight: 600; color: var(--color-text-light); }
 
 /* =================================
-   КАРТКИ (без змін)
+   КАРТКИ
    ================================= */
 .card {
     background: var(--color-white);
@@ -60,11 +67,13 @@ h1, h2 {
     box-shadow: var(--shadow-md);
     padding: 1.5em;
     border: 1px solid var(--color-border);
+    /* 3. Додано плавний перехід */
+    transition: all 0.2s ease-out;
 }
 @media (min-width: 768px) { .card { padding: 2em; } }
 
 /* =================================
-   ФОРМИ (без змін)
+   ФОРМИ
    ================================= */
 .form-group {
     margin-bottom: 1.5em;
@@ -73,6 +82,7 @@ label {
     display: block;
     margin-bottom: 0.5em;
     font-weight: 500;
+    color: var(--color-text-dark);
 }
 input[type="text"],
 input[type="file"],
@@ -87,6 +97,8 @@ textarea {
     box-sizing: border-box;
     font-size: 1rem;
     background-color: var(--color-white);
+    font-family: 'Inter', sans-serif;
+    transition: all 0.2s ease-out;
 }
 input[type="text"]:focus,
 input[type="file"]:focus,
@@ -96,10 +108,10 @@ select:focus,
 textarea:focus {
     outline: none;
     border-color: var(--color-primary);
-    box-shadow: 0 0 0 3px rgba(0,123,255,0.15);
+    box-shadow: 0 0 0 3px rgba(90, 103, 216, 0.15);
 }
 
-/* --- Кнопки (без змін) --- */
+/* --- Кнопки --- */
 .btn {
     display: inline-block;
     width: 100%;
@@ -110,9 +122,10 @@ textarea:focus {
     border-radius: var(--border-radius-sm);
     cursor: pointer;
     text-align: center;
-    transition: background-color 0.2s, transform 0.1s;
+    transition: all 0.2s ease-out;
 }
 .btn:active { transform: scale(0.98); }
+
 .btn-primary { background-color: var(--color-primary); color: white; }
 .btn-primary:hover { background-color: var(--color-primary-dark); }
 .btn-success { background-color: var(--color-success); color: white; }
@@ -130,7 +143,7 @@ button[type="submit"] {
     border-radius: var(--border-radius-sm);
     cursor: pointer;
     text-align: center;
-    transition: background-color 0.2s, transform 0.1s;
+    transition: all 0.2s ease-out;
     background-color: var(--color-primary);
     color: white;
 }
@@ -147,7 +160,7 @@ button:disabled { background-color: var(--color-text-light); cursor: not-allowed
 .error { color: var(--color-danger); }
 
 /* =================================
-   СТИЛІ СТОРІНКИ СТВОРЕННЯ (без змін)
+   СТИЛІ СТОРІНКИ СТВОРЕННЯ
    ================================= */
 .main-container {
     display: grid;
@@ -157,11 +170,11 @@ button:disabled { background-color: var(--color-text-light); cursor: not-allowed
 @media (min-width: 900px) { .main-container { grid-template-columns: 2fr 1fr; } }
 
 /* =================================
-   СТИЛІ ПРЕДПРОСМОТРУ (без змін)
+   СТИЛІ ПРЕДПРОСМОТРУ
    ================================= */
 .preview-card {
     position: sticky;
-    top: 2em; /* Змінено з 100px */
+    top: 2em;
 }
 .telegram-preview {
     background-color: #e5ddd5;
@@ -201,7 +214,7 @@ button:disabled { background-color: var(--color-text-light); cursor: not-allowed
 }
 
 /* =================================
-   СПИСКИ (без змін)
+   СПИСКИ
    ================================= */
 .task-card { margin-bottom: 1.5em; }
 .task-card h2 { color: var(--color-primary); text-align: left; }
@@ -266,7 +279,7 @@ button:disabled { background-color: var(--color-text-light); cursor: not-allowed
 .delete-btn { background-color: var(--color-danger); color: white; border-color: var(--color-danger); }
 
 /* =================================
-   СТИЛІ ДЛЯ ЧАТУ (без змін)
+   СТИЛІ ДЛЯ ЧАТУ
    ================================= */
 #chatBox {
     border: 1px solid var(--color-border);
@@ -323,7 +336,7 @@ button:disabled { background-color: var(--color-text-light); cursor: not-allowed
 }
 
 /* =================================
-   ❗️ ДОДАНО: НОВА FAB НАВІГАЦІЯ
+   ❗️ 4. ОНОВЛЕНА FAB НАВІГАЦІЯ ❗️
    ================================= */
 .fab-container {
     position: fixed;
@@ -339,37 +352,56 @@ button:disabled { background-color: var(--color-text-light); cursor: not-allowed
     border: none;
     border-radius: 50%;
     box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-    font-size: 24px;
     cursor: pointer;
+    /* 5. Додано flex для центрування іконки */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
     transition: background-color 0.2s, transform 0.2s;
 }
 .fab-main:hover {
     background-color: var(--color-primary-dark);
     transform: scale(1.05);
 }
+
+/* 6. Анімація іконок (Меню -> X) */
+.fab-main-icon {
+    position: absolute;
+    transition: transform 0.2s ease-out, opacity 0.2s ease-out;
+}
+.fab-icon-menu { transform: scale(1) rotate(0deg); opacity: 1; }
+.fab-icon-close { transform: scale(0) rotate(-45deg); opacity: 0; }
+
+.fab-container.active .fab-icon-menu { transform: scale(0) rotate(45deg); opacity: 0; }
+.fab-container.active .fab-icon-close { transform: scale(1) rotate(0deg); opacity: 1; }
+
+
 .fab-options {
     position: absolute;
-    bottom: 70px; /* 60px кнопка + 10px відступ */
+    bottom: 70px; 
     right: 0;
     display: flex;
     flex-direction: column;
     gap: 10px;
-    /* Сховано по дефолту */
     visibility: hidden;
     opacity: 0;
-    transform: translateY(10px);
+    /* 7. Покращена анімація "вилітання" */
+    transform: translateY(10px) scale(0.95);
+    transform-origin: bottom right;
     transition: all 0.2s ease-out;
 }
-/* Активний стан (вмикається через JS) */
 .fab-container.active .fab-options {
     visibility: visible;
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
 }
 .fab-option {
     display: flex;
     align-items: center;
-    gap: 10px;
+    /* 8. Змінено gap для іконки */
+    gap: 12px; 
     padding: 10px 15px;
     background-color: var(--color-white);
     color: var(--color-text-dark);
@@ -378,19 +410,29 @@ button:disabled { background-color: var(--color-text-light); cursor: not-allowed
     box-shadow: var(--shadow-sm);
     font-weight: 500;
     white-space: nowrap;
-    transition: background-color 0.2s;
+    transition: all 0.2s ease-out;
 }
 .fab-option:hover {
     background-color: var(--color-bg-light);
+    /* 9. Ефект "підняття" при наведенні */
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
 }
 .fab-option.active {
     background-color: var(--color-primary);
     color: var(--color-white);
     font-weight: 600;
 }
+/* 10. Стилізація іконок в меню */
+.fab-option svg {
+    width: 20px;
+    height: 20px;
+    /* Колір іконки буде наслідувати колір тексту (білий або чорний) */
+    stroke: currentColor; 
+}
 
 /* =================================
-   ❗️ ДОДАНО: ШВИДКІ ПОСИЛАННЯ
+   ШВИДКІ ПОСИЛАННЯ
    ================================= */
 .quick-link {
     display: block;
@@ -399,6 +441,8 @@ button:disabled { background-color: var(--color-text-light); cursor: not-allowed
     color: var(--color-text-light);
     font-size: 0.9em;
     text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s;
 }
 .quick-link:hover {
     color: var(--color-primary);

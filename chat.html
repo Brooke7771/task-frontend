@@ -4,12 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Помічник</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
     <div class="container-main">
-        <div class="card"> <h1>AI Помічник 🤖</h1>
+        <div class="card"> 
+            <h1>AI Помічник 🤖</h1>
             <div id="chatBox">
                 </div>
             <div id="chatInput">
@@ -23,31 +29,44 @@
 
     <div class="fab-container">
         <div class="fab-options">
-            <a href="index.html" class="fab-option">Створити Завдання</a>
-            <a href="task-list.html" class="fab-option">Список Завдань</a>
-            <a href="schedule.html" class="fab-option">Запланувати Пост</a>
-            <a href="schedule-list.html" class="fab-option">Список Постів</a>
-            <a href="chat.html" class="fab-option">AI Чат</a>
+            <a href="index.html" class="fab-option">
+                <i data-feather="plus-circle"></i>
+                <span>Створити Завдання</span>
+            </a>
+            <a href="task-list.html" class="fab-option">
+                <i data-feather="list"></i>
+                <span>Список Завдань</span>
+            </a>
+            <a href="schedule.html" class="fab-option">
+                <i data-feather="calendar"></i>
+                <span>Запланувати Пост</span>
+            </a>
+            <a href="schedule-list.html" class="fab-option">
+                <i data-feather="clock"></i>
+                <span>Список Постів</span>
+            </a>
+            <a href="chat.html" class="fab-option">
+                <i data-feather="message-circle"></i>
+                <span>AI Чат</span>
+            </a>
         </div>
-        <button class="fab-main" id="fab-toggle">☰</button>
+        <button class="fab-main" id="fab-toggle">
+            <i class="fab-main-icon fab-icon-menu" data-feather="menu"></i>
+            <i class="fab-main-icon fab-icon-close" data-feather="x"></i>
+        </button>
     </div>
 
     <script>
-        // 1. Активація кнопки FAB
+        // Скрипт для FAB
         document.getElementById('fab-toggle').addEventListener('click', () => {
             document.querySelector('.fab-container').classList.toggle('active');
         });
-        
-        // 2. Закриття меню при кліку будь-де
         document.addEventListener('click', (e) => {
             const container = document.querySelector('.fab-container');
-            // Перевіряємо, чи є 'active' і чи клік був НЕ по контейнеру
             if (container.classList.contains('active') && !container.contains(e.target)) {
                 container.classList.remove('active');
             }
         });
-
-        // 3. Виділення активного посилання
         try {
             const currentPage = window.location.pathname.split('/').pop() || 'index.html';
             document.querySelectorAll('.fab-option').forEach(link => {
@@ -58,6 +77,11 @@
         } catch (e) {
             console.error("Failed to set active link", e);
         }
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    <script>
+        feather.replace(); // Активація іконок
     </script>
 </body>
 </html>
