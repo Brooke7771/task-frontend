@@ -7,18 +7,25 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="container">
-        <h1>AI Помічник 🤖</h1>
-        <div id="chatBox">
+    <nav class="top-nav">
+        <a href="index.html">Створити Завдання</a>
+        <a href="task-list.html">Список Завдань</a>
+        <a href="schedule.html">Запланувати Пост</a>
+        <a href="schedule-list.html">Список Постів</a>
+        <a href="chat.html" class="active">AI Чат</a>
+    </nav>
+
+    <div class="container-main">
+        <div class="card"> <h1>AI Помічник 🤖</h1>
+            <div id="chatBox">
+                </div>
+            <div id="chatInput">
+                <input type="text" id="messageInput" placeholder="Ваше запитання...">
+                <button id="sendBtn">Надіслати</button>
             </div>
-        <div id="chatInput">
-            <input type="text" id="messageInput" placeholder="Ваше запитання...">
-            <button id="sendBtn">Надіслати</button>
         </div>
     </div>
-    <div class="navigation-links">
-        <a href="index.html" class="nav-link">Створення завдань</a>
-    </div>
+
     <script type="module" src="chat.js"></script>
 </body>
 </html>

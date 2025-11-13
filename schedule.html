@@ -7,43 +7,51 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="main-container">
-        <div class="container creation-form">
-            <h1>Планування нового поста</h1>
-            <div class="form-group">
-                <label for="template-select">Оберіть шаблон новини:</label>
-                <select id="template-select"></select>
-            </div>
-            <form id="postForm">
-                <div id="dynamic-form-fields"></div>
+    <nav class="top-nav">
+        <a href="index.html">Створити Завдання</a>
+        <a href="task-list.html">Список Завдань</a>
+        <a href="schedule.html" class="active">Запланувати Пост</a>
+        <a href="schedule-list.html">Список Постів</a>
+        <a href="chat.html">AI Чат</a>
+    </nav>
+
+    <div class="container-main">
+        <div class="main-container">
+            <div class="card">
+                <h1>Планування нового поста</h1>
                 <div class="form-group">
-                    <label for="post_photo">Фото (необов'язково):</label>
-                    <input type="file" id="post_photo" name="post_photo" accept="image/*">
+                    <label for="template-select">Оберіть шаблон новини:</label>
+                    <select id="template-select"></select>
                 </div>
-                <div class="form-group scheduling-group">
-                    <label for="post_at">Запланувати на:</label>
-                    <input type="datetime-local" id="post_at" name="post_at">
-                </div>
-                <div class="form-actions">
-                    <button type="submit" id="scheduleBtn">Запланувати пост</button>
-                    <button type="button" id="postNowBtn">Опублікувати зараз</button>
-                </div>
-            </form>
-            <div id="statusMessage"></div>
-        </div>
-        <div class="preview-container">
-            <h2>Попередній перегляд</h2>
-            <div class="telegram-preview">
-                <div class="message-bubble">
-                    <div id="preview-content"></div>
+                <form id="postForm">
+                    <div id="dynamic-form-fields"></div>
+                    <div class="form-group">
+                        <label for="post_photo">Фото (необов'язково):</label>
+                        <input type="file" id="post_photo" name="post_photo" accept="image/*">
+                    </div>
+                    <div class="form-group scheduling-group">
+                        <label for="post_at">Запланувати на:</label>
+                        <input type="datetime-local" id="post_at" name="post_at">
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" id="scheduleBtn" class="btn btn-primary">Запланувати пост</button>
+                        <button type="button" id="postNowBtn" class="btn btn-success">Опублікувати зараз</button>
+                    </div>
+                </form>
+                <div id="statusMessage"></div>
+            </div>
+
+            <div class="card preview-card">
+                <h2>Попередній перегляд</h2>
+                <div class="telegram-preview">
+                    <div class="message-bubble">
+                        <div id="preview-content"></div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-    <div class="navigation-links">
-        <a href="index.html" class="nav-link">Створення завдань</a>
-        <a href="schedule-list.html" class="nav-link">Керування постами</a>
-    </div>
+    
     <script type="module" src="schedule.js"></script>
 </body>
 </html>

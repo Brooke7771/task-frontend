@@ -7,20 +7,22 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="container">
-        <h1>Список активних завдань</h1>
-        
-        <div id="taskListContainer">
-            <p>Завантаження завдань...</p>
+    <nav class="top-nav">
+        <a href="index.html">Створити Завдання</a>
+        <a href="task-list.html" class="active">Список Завдань</a>
+        <a href="schedule.html">Запланувати Пост</a>
+        <a href="schedule-list.html">Список Постів</a>
+        <a href="chat.html">AI Чат</a>
+    </nav>
+
+    <div class="container-main">
+        <div class="card"> <h1>Список активних завдань</h1>
+            <div id="taskListContainer">
+                <p>Завантаження завдань...</p>
+            </div>
         </div>
-
-        <a href="index.html" class="nav-link">Створити нове завдання</a>
     </div>
-    <div class="navigation-links">
-        <a href="task-list.html" class="nav-link">Керування завданнями</a>
-        <a href="schedule.html" class="nav-link">Запланувати новину</a>
-    </div>
-
+    
     <script src="task-list.js"></script>
 </body>
 </html>

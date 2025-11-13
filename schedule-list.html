@@ -7,13 +7,22 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="container">
-        <h1>Пости, що очікують публікації</h1>
-        <div id="postListContainer">
-            <p>Завантаження...</p>
+    <nav class="top-nav">
+        <a href="index.html">Створити Завдання</a>
+        <a href="task-list.html">Список Завдань</a>
+        <a href="schedule.html">Запланувати Пост</a>
+        <a href="schedule-list.html" class="active">Список Постів</a>
+        <a href="chat.html">AI Чат</a>
+    </nav>
+
+    <div class="container-main">
+        <div class="card"> <h1>Пости, що очікують публікації</h1>
+            <div id="postListContainer">
+                <p>Завантаження...</p>
+            </div>
         </div>
-        <a href="schedule.html" class="nav-link">Запланувати новий пост</a>
     </div>
+    
     <script src="schedule-list.js"></script>
 </body>
 </html>
