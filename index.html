@@ -8,6 +8,17 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    
+    <script>
+        // Скидання стану FAB-меню при завантаженні/поверненні на сторінку
+        // Цей скрипт має бути в <head>, щоб виконатися до першого рендеру
+        window.addEventListener('pageshow', (event) => {
+            const container = document.querySelector('.fab-container');
+            if (container && container.classList.contains('active')) {
+                container.classList.remove('active');
+            }
+        });
+    </script>
 </head>
 <body>
 
@@ -85,16 +96,6 @@
     <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
     <script>
         feather.replace(); // Активація іконок
-
-        // --- ❗️ ОСЬ ЦЕ ВИПРАВЛЕННЯ ❗️ ---
-        // Скидання стану FAB-меню при завантаженні/поверненні на сторінку
-        window.addEventListener('pageshow', (event) => {
-            const container = document.querySelector('.fab-container');
-            if (container && container.classList.contains('active')) {
-                container.classList.remove('active');
-            }
-        });
-        // --- Кінець виправлення ---
 
         // Скрипт для FAB
         document.getElementById('fab-toggle').addEventListener('click', () => {
