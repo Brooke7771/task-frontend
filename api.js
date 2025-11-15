@@ -30,6 +30,10 @@ export const getScheduledPosts = () => apiFetch('/api/scheduled_posts');
 export const schedulePost = (formData) => apiFetch('/api/schedule_post', { method: 'POST', body: formData });
 export const deleteScheduledPost = (postId) => apiFetch(`/api/scheduled_posts/${postId}/delete`, { method: 'POST' });
 export const postScheduledNow = (postId) => apiFetch(`/api/scheduled_posts/${postId}/post_now`, { method: 'POST' });
+// --- 🔥 НОВІ ФУНКЦІЇ ДЛЯ РЕДАГУВАННЯ ---
+export const getScheduledPostById = (postId) => apiFetch(`/api/scheduled_posts/${postId}`);
+export const updateScheduledPost = (postId, formData) => apiFetch(`/api/scheduled_posts/${postId}/update`, { method: 'POST', body: formData });
+
 
 // --- API для публікації новин ---
 export const postNewsNow = (formData) => apiFetch('/api/post_now', { method: 'POST', body: formData });
