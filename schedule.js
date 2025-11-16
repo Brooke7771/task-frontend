@@ -71,7 +71,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // --- Далі йде логіка, яку можна не змінювати, а просто скопіювати ---
+    // --- (Далі логіка renderFormFields, updatePreview і т.д. без змін) ---
 
     Object.keys(templates).forEach(key => {
         const option = document.createElement('option');
@@ -155,9 +155,25 @@ document.addEventListener('DOMContentLoaded', () => {
             submissionData.append('post_at', new Date(formData.get('post_at')).toISOString());
         }
 
-        if (formData.get('post_photo')?.size > 0) {
-            submissionData.append('post_photo', formData.get('post_photo'));
+        // --- 🔥 ОНОВЛЕНА ЛОГІКА ЗБОРУ ФАЙЛІВ ---
+        const postPhotos = formData.getAll('post_photo');
+        if (postPhotos.length > 0) {
+            for (const photo of postPhotos) {
+                if (photo.size > 0) {
+                    submissionData.append('post_photo', photo, photo.name);
+                }
+            }
         }
+        
+        const postVideos = formData.getAll('post_video');
+        if (postVideos.length > 0) {
+            for (const video of postVideos) {
+                if (video.size > 0) {
+                    submissionData.append('post_video', video, video.name);
+                }
+            }
+        }
+        // --- КІНЕЦЬ ОНОВЛЕНОЇ ЛОГІКИ ---
 
         try {
             if (isScheduling) {

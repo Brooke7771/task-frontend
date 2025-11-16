@@ -38,13 +38,19 @@ document.addEventListener('DOMContentLoaded', () => {
             postTextInput.value = post.text;
             postAtInput.value = formatDateTimeLocal(post.postAt);
 
-            if (post.photoId) {
-                currentMediaPreview.textContent = '[Поточне медіа: ФОТО]';
+            // --- 🔥 ОНОВЛЕНА ЛОГІКА ВІДОБРАЖЕННЯ МЕДІА ---
+            // (Використовуємо 'photoIds' та 'videoIds' з моделі 'ScheduledPost')
+            if (post.photoIds && post.photoIds.length > 0) {
+                currentMediaPreview.textContent = `[Поточне медіа: ФОТО (${post.photoIds.length} шт)]`;
                 currentMediaContainer.style.display = 'block';
-            } else if (post.videoId) {
-                currentMediaPreview.textContent = '[Поточне медіа: ВІДЕО]';
+            } else if (post.videoIds && post.videoIds.length > 0) {
+                currentMediaPreview.textContent = `[Поточне медіа: ВІДЕО (${post.videoIds.length} шт)]`;
                 currentMediaContainer.style.display = 'block';
+            } else {
+                // Ховаємо блок, якщо медіа немає (або якщо це старий пост без 'photoIds')
+                currentMediaContainer.style.display = 'none';
             }
+            // --- КІНЕЦЬ ОНОВЛЕНОЇ ЛОГІКИ ---
 
         } catch (error) {
             statusMessage.textContent = 'Не вдалося завантажити пост для редагування.';
@@ -67,6 +73,9 @@ document.addEventListener('DOMContentLoaded', () => {
         formData.set('post_at', localDate.toISOString());
 
         try {
+            // 'updateScheduledPost' на бекенді вже очікує 'multiple' файли,
+            // оскільки 'new FormData(form)' автоматично їх збирає.
+            // Бекенд-логіка замінить старі медіа, лише якщо нові були завантажені.
             await updateScheduledPost(postId, formData);
             statusMessage.textContent = 'Пост успішно оновлено!';
             statusMessage.className = 'success';
