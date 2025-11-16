@@ -43,6 +43,15 @@
     --color-bg-light: #111017; /* 👈 Глибокий темний фон */
     --color-bg-card: rgba(30, 28, 42, 0.6); /* 👈 Скляний фон картки */
     --color-border: rgba(255, 255, 255, 0.1); /* 👈 Скляна рамка */
+    --color-white: #ffffff;
+
+    /* Border radiuses */
+    --border-radius-sm: 8px;
+    --border-radius-md: 14px;
+    --border-radius-lg: 20px;
+
+    /* subtle inset for form fields */
+    --shadow-neumorph-inset: inset 1px 1px 2px rgba(255,255,255,0.6), inset -1px -1px 2px rgba(0,0,0,0.03);
 
     --shadow-md: 0 5px 15px rgba(0, 0, 0, 0.2);
     --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.3);
@@ -105,6 +114,18 @@ body {
     max-width: 1100px;
     margin: 2em auto;
     padding: 0 1em;
+}
+
+/* Smooth transitions for interactive elements */
+a, button, input, select, textarea { transition: all 0.18s ease; }
+
+/* Telegram preview visual upgrade */
+.telegram-preview {
+    background-color: linear-gradient(180deg, rgba(255,255,255,0.3), rgba(255,255,255,0.1));
+    padding: 1em;
+    border-radius: var(--border-radius-sm);
+    border: 1px solid var(--color-border);
+    transition: background-color 0.3s, background-image 0.3s;
 }
 
 h1, h2 {

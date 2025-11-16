@@ -1,0 +1,30 @@
+/* task-list.css adapted to glass theme */
+
+.task-card {
+    background: var(--color-bg-card);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-md);
+    padding: 16px;
+    margin-bottom: 16px;
+    box-shadow: var(--shadow-md);
+    transition: transform 0.15s ease-out, box-shadow 0.15s ease-out;
+}
+
+.task-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
+
+.task-card h2 {
+    margin: 0 0 8px 0;
+    font-size: 1.15rem;
+    color: var(--color-text-dark);
+}
+
+.task-card p { white-space: pre-wrap; color: var(--color-text-light); margin: 0; }
+
+.task-status { font-weight: 600; padding: 6px 12px; border-radius: 999px; display: inline-block; margin-top: 10px; }
+
+.status-open { color: var(--color-success); background: rgba(var(--color-success-rgb), 0.08); border: 1px solid rgba(var(--color-success-rgb), 0.12); }
+.status-claimed { color: var(--color-danger); background: rgba(220,38,38,0.06); border: 1px solid rgba(220,38,38,0.12); }
+.status-pending { color: var(--color-warning); background: rgba(217,119,6,0.06); border: 1px solid rgba(217,119,6,0.12); }
+
+.nav-link { display: block; text-align: center; margin-top: 18px; text-decoration: none; color: var(--color-primary); font-weight: 600; }
