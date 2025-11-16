@@ -9,16 +9,49 @@ document.addEventListener('DOMContentLoaded', () => {
     const statusMessage = document.getElementById('statusMessage');
     const currentMediaContainer = document.getElementById('currentMedia');
     const currentMediaPreview = document.getElementById('currentMediaPreview');
+    
+    // --- 🔥 ДОДАНО ---
+    const previewContent = document.getElementById('preview-content');
 
     let postId = null;
 
+    // --- 🔥 НОВА ФУНКЦІЯ: форматування для попереднього перегляду ---
+    // (Вона обробляє і старий, і новий Markdown, щоб ви бачили коректний результат)
+    function formatForPreview(text) {
+        if (!text) text = '';
+        let safeText = (text || '').replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        
+        // Спочатку обробляємо екрановані символи
+        safeText = safeText.replace(/\\(.)/g, '$1');
+
+        // Обробляємо і V1, і V2 форматування для коректного прев'ю
+        safeText = safeText
+            .replace(/\*\*(.*?)\*\*/g, '<b>$1</b>') // **bold** (Legacy)
+            .replace(/__(.*?)__/g, '<i>$1</i>')   // __italic__ (Legacy)
+            .replace(/\*(.*?)\*/g, '<b>$1</b>')   // *bold* (V2)
+            .replace(/_(.*?)_/g, '<i>$1</i>')     // _italic_ (V2)
+            .replace(/~(.*?)~/g, '<s>$1</s>')     // ~strikethrough~ (V2)
+            .replace(/`(.*?)`/g, '<code>$1</code>') // `code`
+            .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank">$1</a>') // [link](url)
+            .replace(/\n/g, '<br>'); // Newlines
+        
+        return safeText;
+    }
+
+    // --- 🔥 НОВА ФУНКЦІЯ: оновлення прев'ю ---
+    const updatePreview = () => {
+        const text = postTextInput.value || '';
+        previewContent.innerHTML = formatForPreview(text);
+    };
+    // --- (кінець нових функцій) ---
+
+
     // Функція для форматування дати для <input type="datetime-local">
     const formatDateTimeLocal = (isoString) => {
+        // ... (без змін)
         if (!isoString) return '';
         const date = new Date(isoString);
-        // Віднімаємо часовий зсув, щоб отримати "локальний" час
         date.setMinutes(date.getMinutes() - date.getTimezoneOffset());
-        // Повертаємо у форматі YYYY-MM-DDTHH:MM
         return date.toISOString().slice(0, 16);
     };
 
@@ -37,9 +70,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
             postTextInput.value = post.text;
             postAtInput.value = formatDateTimeLocal(post.postAt);
+            
+            updatePreview(); // <-- 🔥 ОНОВЛЮЄМО ПРЕВ'Ю ПІСЛЯ ЗАВАНТАЖЕННЯ
 
-            // --- 🔥 ОНОВЛЕНА ЛОГІКА ВІДОБРАЖЕННЯ МЕДІА ---
-            // (Використовуємо 'photoIds' та 'videoIds' з моделі 'ScheduledPost')
+            // --- (Логіка відображення медіа без змін) ---
             if (post.photoIds && post.photoIds.length > 0) {
                 currentMediaPreview.textContent = `[Поточне медіа: ФОТО (${post.photoIds.length} шт)]`;
                 currentMediaContainer.style.display = 'block';
@@ -47,10 +81,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 currentMediaPreview.textContent = `[Поточне медіа: ВІДЕО (${post.videoIds.length} шт)]`;
                 currentMediaContainer.style.display = 'block';
             } else {
-                // Ховаємо блок, якщо медіа немає (або якщо це старий пост без 'photoIds')
                 currentMediaContainer.style.display = 'none';
             }
-            // --- КІНЕЦЬ ОНОВЛЕНОЇ ЛОГІКИ ---
 
         } catch (error) {
             statusMessage.textContent = 'Не вдалося завантажити пост для редагування.';
@@ -61,6 +93,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Обробник збереження форми
     form.addEventListener('submit', async (event) => {
+        // ... (логіка submit без змін) ...
         event.preventDefault();
         statusMessage.textContent = 'Збереження змін...';
         statusMessage.className = '';
@@ -68,19 +101,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const formData = new FormData(form);
         
-        // Переконуємось, що дата відправлена у UTC (ISO)
         const localDate = new Date(formData.get('post_at'));
         formData.set('post_at', localDate.toISOString());
 
         try {
-            // 'updateScheduledPost' на бекенді вже очікує 'multiple' файли,
-            // оскільки 'new FormData(form)' автоматично їх збирає.
-            // Бекенд-логіка замінить старі медіа, лише якщо нові були завантажені.
             await updateScheduledPost(postId, formData);
             statusMessage.textContent = 'Пост успішно оновлено!';
             statusMessage.className = 'success';
             
-            // Перенаправляємо назад до списку через 2 секунди
             setTimeout(() => {
                 window.location.href = 'schedule-list.html';
             }, 2000);
@@ -92,6 +120,9 @@ document.addEventListener('DOMContentLoaded', () => {
             saveBtn.disabled = false;
         }
     });
+
+    // --- 🔥 ДОДАНО: Слухач для оновлення прев'ю під час друку ---
+    postTextInput.addEventListener('input', updatePreview);
 
     loadPost();
 });

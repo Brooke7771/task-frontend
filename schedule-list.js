@@ -5,6 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const postListContainer = document.getElementById('postListContainer');
 
     const fetchPosts = async () => {
+        // ... (без змін)
         try {
             const posts = await getScheduledPosts();
             renderPosts(posts);
@@ -15,6 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const renderPosts = (posts) => {
+        // ... (без змін)
         if (!posts || posts.length === 0) {
             postListContainer.innerHTML = '<p>Запланованих постів немає.</p>';
             return;
@@ -25,7 +27,6 @@ document.addEventListener('DOMContentLoaded', () => {
             card.className = 'task-card';
             const postDate = new Date(post.postAt).toLocaleString('uk-UA');
             
-            // --- 🔥 ЗМІНА ТУТ (Додано кнопку "Редагувати") ---
             card.innerHTML = `
                 <h2>Пост на ${postDate}</h2>
                 <div class="post-preview">${formatForPreview(post.text)}</div>
@@ -39,20 +40,29 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
     
+    // --- 🔥 ОНОВЛЕНА ФУНКЦІЯ форматування ---
     function formatForPreview(text) {
-        // Замінюємо \n на <br>, але також екрануємо HTML-теги
+        if (!text) text = '';
         let safeText = (text || '').replace(/</g, "&lt;").replace(/>/g, "&gt;");
         
-        // Форматуємо Markdown *після* екранування
-        safeText = safeText.replace(/\\(.)/g, '$1')
-            .replace(/\*(.*?)\*/g, '<b>$1</b>')
-            .replace(/_(.*?)_/g, '<i>$1</i>')
-            .replace(/`(.*?)`/g, '<code>$1</code>')
-            .replace(/\n/g, '<br>');
+        // Спочатку обробляємо екрановані символи
+        safeText = safeText.replace(/\\(.)/g, '$1');
+
+        // Обробляємо і V1, і V2 форматування
+        safeText = safeText
+            .replace(/\*\*(.*?)\*\*/g, '<b>$1</b>') // **bold** (Legacy)
+            .replace(/__(.*?)__/g, '<i>$1</i>')   // __italic__ (Legacy)
+            .replace(/\*(.*?)\*/g, '<b>$1</b>')   // *bold* (V2)
+            .replace(/_(.*?)_/g, '<i>$1</i>')     // _italic_ (V2)
+            .replace(/~(.*?)~/g, '<s>$1</s>')     // ~strikethrough~ (V2)
+            .replace(/`(.*?)`/g, '<code>$1</code>') // `code`
+            .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank">$1</a>') // [link](url)
+            .replace(/\n/g, '<br>'); // Newlines
+        
         return safeText;
     }
 
-    // --- 🔥 ОНОВЛЕНО: 'click' handler (Додано логіку "Edit") ---
+    // ... (обробник 'click' без змін) ...
     postListContainer.addEventListener('click', async (event) => {
         const target = event.target;
         const postId = target.dataset.postId;
@@ -66,7 +76,6 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (target.classList.contains('post-now-btn')) {
             actionPromise = postScheduledNow(postId);
         } else if (target.classList.contains('edit-btn')) {
-            // Просто переходимо на нову сторінку редагування
             window.location.href = `schedule-edit.html?id=${postId}`;
             return;
         } else {

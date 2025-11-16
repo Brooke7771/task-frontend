@@ -218,6 +218,16 @@ textarea:focus {
     filter: invert(1);
 }
 
+/* 🔥 СТИЛЬ ДЛЯ ПІДКАЗКИ ФОРМАТУВАННЯ */
+.form-hint {
+    display: block;
+    font-size: 0.85em;
+    color: var(--color-text-light);
+    margin-bottom: 1em;
+    margin-top: -1.2em; /* Підтягуємо ближче до label */
+    font-family: monospace;
+}
+
 /* --- 6. 🔥 Кнопки з сяйвом --- */
 .btn, button[type="submit"], .post-actions button {
     display: inline-block;
