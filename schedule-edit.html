@@ -2,13 +2,51 @@
 <html lang="uk" class="dark">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Редагувати Пост</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
-</head>
+
+    <style>
+        .markdown-toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            padding: 8px;
+            margin-bottom: 8px;
+            border: 1px solid var(--color-border);
+            border-radius: var(--border-radius-sm);
+            background: var(--color-bg-light);
+            box-shadow: var(--shadow-neumorph-inset);
+        }
+        :root.dark .markdown-toolbar {
+             background-color: rgba(0,0,0,0.1);
+        }
+        .toolbar-btn {
+            background-color: var(--color-bg-card);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--color-border);
+            color: var(--color-text-dark);
+            border-radius: 6px;
+            padding: 6px 10px;
+            cursor: pointer;
+            font-size: 0.9em;
+            font-weight: 600;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.15s ease-out;
+        }
+        .toolbar-btn:hover {
+            background-color: var(--color-bg-light);
+            border-color: var(--color-primary);
+            color: var(--color-primary);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+        .toolbar-btn svg {
+            width: 16px;
+            height: 16px;
+            stroke: currentColor;
+            vertical-align: middle;
+        }
+    </style>
+    </head>
 <body>
 
     <div class="container-main">
@@ -19,6 +57,16 @@
                     <div class="form-group">
                         <label for="post_text">Текст поста (MarkdownV2):</label>
                         <small class="form-hint">Форматування: *жирний*, _курсив_, ~закреслений~, `код`</small>
+                        
+                        <div class="markdown-toolbar">
+                            <button type="button" class="toolbar-btn" id="toolbar-bold" title="Жирний (Ctrl+B)"><b>B</b></button>
+                            <button type="button" class="toolbar-btn" id="toolbar-italic" title="Курсив (Ctrl+I)"><i>I</i></button>
+                            <button type="button" class="toolbar-btn" id="toolbar-strike" title="Закреслений"><s>S</s></button>
+                            <button type="button" class="toolbar-btn" id="toolbar-code" title="Код">`&lt;/&gt;`</button>
+                            <button type="button" class="toolbar-btn" id="toolbar-link" title="Посилання (Ctrl+K)">
+                                <i data-feather="link"></i>
+                            </button>
+                        </div>
                         <textarea id="post_text" name="post_text" rows="15" required></textarea>
                     </div>
 

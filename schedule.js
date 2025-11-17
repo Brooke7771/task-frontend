@@ -71,6 +71,112 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
+    // 1. Знаходимо нові кнопки
+    const toolbarBold = document.getElementById('toolbar-bold');
+    const toolbarItalic = document.getElementById('toolbar-italic');
+    const toolbarStrike = document.getElementById('toolbar-strike');
+    const toolbarCode = document.getElementById('toolbar-code');
+    const toolbarLink = document.getElementById('toolbar-link');
+
+    /**
+     * Головна функція, що "обгортає" виділений текст тегами Markdown.
+     * @param {string} startTag - Символ(и) на початку (напр. "*")
+     * @param {string} endTag - Символ(и) в кінці (напр. "*")
+     * @param {string} [defaultText=''] - Текст за замовчуванням, якщо нічого не виділено
+     */
+    function wrapText(startTag, endTag, defaultText = '') {
+        const start = postTextInput.selectionStart;
+        const end = postTextInput.selectionEnd;
+        const selectedText = postTextInput.value.substring(start, end);
+        const textToWrap = selectedText || defaultText;
+
+        const newText = 
+            postTextInput.value.substring(0, start) +
+            startTag + textToWrap + endTag +
+            postTextInput.value.substring(end);
+
+        postTextInput.value = newText;
+        postTextInput.focus();
+
+        // Оновлюємо виділення
+        if (selectedText) {
+            // Якщо текст був виділений, виділяємо його знову
+            postTextInput.setSelectionRange(start + startTag.length, start + startTag.length + textToWrap.length);
+        } else {
+            // Якщо вставляли текст за замовчуванням, ставимо курсор всередину
+            postTextInput.setSelectionRange(start + startTag.length, start + startTag.length + defaultText.length);
+        }
+        
+        // Оновлюємо попередній перегляд
+        updatePreview();
+    }
+
+    // 2. Прив'язуємо події до кнопок
+    toolbarBold.addEventListener('click', () => {
+        wrapText('*', '*', 'жирний текст');
+    });
+
+    toolbarItalic.addEventListener('click', () => {
+        wrapText('_', '_', 'курсив');
+    });
+
+    toolbarStrike.addEventListener('click', () => {
+        wrapText('~', '~', 'закреслений');
+    });
+
+    toolbarCode.addEventListener('click', () => {
+        wrapText('`', '`', 'код');
+    });
+
+    toolbarLink.addEventListener('click', () => {
+        const start = postTextInput.selectionStart;
+        const end = postTextInput.selectionEnd;
+        const selectedText = postTextInput.value.substring(start, end);
+
+        const linkText = selectedText || 'текст посилання';
+        const url = prompt('Введіть URL (посилання):', 'https://');
+
+        if (url) { // Якщо користувач не натиснув "Скасувати"
+            const textToInsert = `[${linkText}](${url})`;
+
+            // Вставляємо текст
+            postTextInput.value = 
+                postTextInput.value.substring(0, start) +
+                textToInsert +
+                postTextInput.value.substring(end);
+            
+            postTextInput.focus();
+            
+            // Встановлюємо курсор/виділення
+            if (selectedText) {
+                postTextInput.setSelectionRange(start, start + textToInsert.length);
+            } else {
+                postTextInput.setSelectionRange(start + 1, start + 1 + linkText.length);
+            }
+            updatePreview();
+        }
+    });
+
+    // 3. (Опціонально) Додаємо гарячі клавіші
+    postTextInput.addEventListener('keydown', (e) => {
+        if (e.ctrlKey) {
+            switch (e.key) {
+                case 'b': // Ctrl+B
+                    e.preventDefault();
+                    wrapText('*', '*', 'жирний текст');
+                    break;
+                case 'i': // Ctrl+I
+                    e.preventDefault();
+                    wrapText('_', '_', 'курсив');
+                    break;
+                case 'k': // Ctrl+K (для посилань)
+                    e.preventDefault();
+                    toolbarLink.click(); // Імітуємо клік на кнопку посилання
+                    break;
+            }
+        }
+    });
+
     // --- (Далі логіка renderFormFields, updatePreview і т.д. без змін) ---
 
     Object.keys(templates).forEach(key => {
