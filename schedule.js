@@ -1,6 +1,7 @@
 import { schedulePost, postNewsNow } from './api.js';
 
 document.addEventListener('DOMContentLoaded', () => {
+    try {
     // Елементи DOM
     const templateSelect = document.getElementById('template-select');
     const dynamicFieldsContainer = document.getElementById('dynamic-form-fields');
@@ -13,6 +14,8 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // --- 🔥 ВАЖЛИВО: Оголошення змінної текстового поля ---
     const postTextInput = document.getElementById('post_text'); 
+    // Expose for debugging and external scripts (safe guard)
+    try { window.postTextInput = postTextInput } catch(e) {}
 
     // Кнопки тулбару
     const toolbarBold = document.getElementById('toolbar-bold');
@@ -111,7 +114,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (toolbarStrike) toolbarStrike.addEventListener('click', () => wrapText('~', '~', 'закреслений'));
     if (toolbarCode) toolbarCode.addEventListener('click', () => wrapText('`', '`', 'код'));
 
-    if (toolbarLink) {
+    if (toolbarLink && postTextInput) {
         toolbarLink.addEventListener('click', () => {
             const start = postTextInput.selectionStart;
             const end = postTextInput.selectionEnd;
@@ -300,21 +303,26 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    form.addEventListener('submit', (event) => {
+    if (form) {
+        form.addEventListener('submit', (event) => {
         event.preventDefault();
         handleFormSubmit(true);
     });
+    }
 
-    postNowBtn.addEventListener('click', () => {
+    if (postNowBtn) postNowBtn.addEventListener('click', () => {
         handleFormSubmit(false);
     });
 
-    templateSelect.addEventListener('change', () => {
+    if (templateSelect) templateSelect.addEventListener('change', () => {
         renderFormFields(templateSelect.value);
         updatePreview(false);
     });
 
     // Ініціалізація
-    renderFormFields(templateSelect.value);
-    updatePreview(false);
+    try { renderFormFields(templateSelect.value); } catch (e) { console.error('Failed to render fields at init', e); }
+    try { updatePreview(false) } catch(e) { console.error('Failed to update preview at init', e); }
+    } catch (e) {
+        console.error('Error initializing schedule page:', e);
+    }
 });
