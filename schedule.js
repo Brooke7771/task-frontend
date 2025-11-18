@@ -1,4 +1,3 @@
-// frontend/schedule.js
 import { schedulePost, postNewsNow } from './api.js';
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -12,8 +11,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const postNowBtn = document.getElementById('postNowBtn');
     const postAtInput = document.getElementById('post_at');
     
-    // --- 🔥 ВИПРАВЛЕННЯ 1: Оголошуємо змінну, якої не вистачало ---
-    const postTextInput = document.getElementById('post_text');
+    // --- 🔥 ВАЖЛИВО: Оголошення змінної текстового поля ---
+    const postTextInput = document.getElementById('post_text'); 
+
+    // Кнопки тулбару
+    const toolbarBold = document.getElementById('toolbar-bold');
+    const toolbarItalic = document.getElementById('toolbar-italic');
+    const toolbarStrike = document.getElementById('toolbar-strike');
+    const toolbarCode = document.getElementById('toolbar-code');
+    const toolbarLink = document.getElementById('toolbar-link');
 
     const templates = {
         news_simple: {
@@ -76,18 +82,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // 1. Знаходимо кнопки тулбару
-    const toolbarBold = document.getElementById('toolbar-bold');
-    const toolbarItalic = document.getElementById('toolbar-italic');
-    const toolbarStrike = document.getElementById('toolbar-strike');
-    const toolbarCode = document.getElementById('toolbar-code');
-    const toolbarLink = document.getElementById('toolbar-link');
-
-    /**
-     * Функція для обгортання тексту Markdown тегами.
-     */
+    // --- Логіка тулбару (Markdown) ---
     function wrapText(startTag, endTag, defaultText = '') {
-        // Тепер postTextInput визначений, помилки не буде
+        if (!postTextInput) return;
         const start = postTextInput.selectionStart;
         const end = postTextInput.selectionEnd;
         const selectedText = postTextInput.value.substring(start, end);
@@ -106,50 +103,55 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             postTextInput.setSelectionRange(start + startTag.length, start + startTag.length + defaultText.length);
         }
-        
-        // Оновлюємо прев'ю вручну, бо зміна через JS не викликає подію 'input'
-        updatePreview(true); 
+        updatePreview(true);
     }
 
-    toolbarBold.addEventListener('click', () => wrapText('*', '*', 'жирний текст'));
-    toolbarItalic.addEventListener('click', () => wrapText('_', '_', 'курсив'));
-    toolbarStrike.addEventListener('click', () => wrapText('~', '~', 'закреслений'));
-    toolbarCode.addEventListener('click', () => wrapText('`', '`', 'код'));
+    if (toolbarBold) toolbarBold.addEventListener('click', () => wrapText('*', '*', 'жирний текст'));
+    if (toolbarItalic) toolbarItalic.addEventListener('click', () => wrapText('_', '_', 'курсив'));
+    if (toolbarStrike) toolbarStrike.addEventListener('click', () => wrapText('~', '~', 'закреслений'));
+    if (toolbarCode) toolbarCode.addEventListener('click', () => wrapText('`', '`', 'код'));
 
-    toolbarLink.addEventListener('click', () => {
-        const start = postTextInput.selectionStart;
-        const end = postTextInput.selectionEnd;
-        const selectedText = postTextInput.value.substring(start, end);
-        const linkText = selectedText || 'текст посилання';
-        const url = prompt('Введіть URL (посилання):', 'https://');
+    if (toolbarLink) {
+        toolbarLink.addEventListener('click', () => {
+            const start = postTextInput.selectionStart;
+            const end = postTextInput.selectionEnd;
+            const selectedText = postTextInput.value.substring(start, end);
+            const linkText = selectedText || 'текст посилання';
+            const url = prompt('Введіть URL (посилання):', 'https://');
 
-        if (url) {
-            const textToInsert = `[${linkText}](${url})`;
-            postTextInput.value = 
-                postTextInput.value.substring(0, start) +
-                textToInsert +
-                postTextInput.value.substring(end);
-            
-            postTextInput.focus();
-            if (selectedText) {
-                postTextInput.setSelectionRange(start, start + textToInsert.length);
-            } else {
-                postTextInput.setSelectionRange(start + 1, start + 1 + linkText.length);
+            if (url) {
+                const textToInsert = `[${linkText}](${url})`;
+                postTextInput.value = 
+                    postTextInput.value.substring(0, start) +
+                    textToInsert +
+                    postTextInput.value.substring(end);
+                
+                postTextInput.focus();
+                if (selectedText) {
+                    postTextInput.setSelectionRange(start, start + textToInsert.length);
+                } else {
+                    postTextInput.setSelectionRange(start + 1, start + 1 + linkText.length);
+                }
+                updatePreview(true);
             }
-            updatePreview(true);
-        }
-    });
+        });
+    }
 
-    postTextInput.addEventListener('keydown', (e) => {
-        if (e.ctrlKey) {
-            switch (e.key) {
-                case 'b': e.preventDefault(); wrapText('*', '*', 'жирний текст'); break;
-                case 'i': e.preventDefault(); wrapText('_', '_', 'курсив'); break;
-                case 'k': e.preventDefault(); toolbarLink.click(); break;
+    if (postTextInput) {
+        postTextInput.addEventListener('keydown', (e) => {
+            if (e.ctrlKey) {
+                switch (e.key) {
+                    case 'b': e.preventDefault(); wrapText('*', '*', 'жирний текст'); break;
+                    case 'i': e.preventDefault(); wrapText('_', '_', 'курсив'); break;
+                    case 'k': e.preventDefault(); toolbarLink.click(); break;
+                }
             }
-        }
-    });
+        });
+        // Оновлюємо прев'ю при ручному вводі
+        postTextInput.addEventListener('input', () => updatePreview(true));
+    }
 
+    // --- Логіка шаблонів ---
     Object.keys(templates).forEach(key => {
         const option = document.createElement('option');
         option.value = key;
@@ -170,7 +172,7 @@ document.addEventListener('DOMContentLoaded', () => {
             let inputElement;
             if (field.type === 'textarea') {
                 inputElement = document.createElement('textarea');
-                inputElement.rows = 3; // Менше рядків, бо це ввідні дані
+                inputElement.rows = 3;
             } else {
                 inputElement = document.createElement('input');
                 inputElement.type = 'text';
@@ -178,40 +180,35 @@ document.addEventListener('DOMContentLoaded', () => {
             inputElement.id = field.id;
             inputElement.name = field.id;
             inputElement.placeholder = field.placeholder || '';
-            // Викликаємо updatePreview без аргументів (це означає "від полів шаблону")
-            inputElement.addEventListener('input', () => updatePreview(false)); 
+            inputElement.addEventListener('input', () => updatePreview(false)); // false = оновлення від шаблону
             group.appendChild(label);
             group.appendChild(inputElement);
             dynamicFieldsContainer.appendChild(group);
         });
     }
 
-    // --- 🔥 ВИПРАВЛЕННЯ 2: Покращена логіка оновлення ---
-    // isManualEdit = true, якщо ми друкуємо прямо у великому полі
-    // isManualEdit = false, якщо ми друкуємо в полях шаблону
     function updatePreview(isManualEdit = false) {
+        // Якщо це не ручне редагування, беремо дані з полів шаблону
         if (!isManualEdit) {
-            // Якщо зміни йдуть від полів шаблону -> генеруємо текст і вставляємо у велике поле
             const template = templates[templateSelect.value];
             if (template) {
-                const formData = new FormData(form);
                 const data = {};
-                // Збираємо дані лише з полів, що стосуються шаблону (щоб уникнути сміття)
                 template.fields.forEach(field => {
-                    data[field.id] = document.getElementById(field.id)?.value || '';
+                    const el = document.getElementById(field.id);
+                    data[field.id] = el ? el.value : '';
                 });
-                
                 const markdownText = template.formatter(data);
-                postTextInput.value = markdownText;
+                
+                // Вставляємо згенерований текст у головне поле
+                if (postTextInput) postTextInput.value = markdownText;
             }
         }
 
-        // Оновлюємо візуальне прев'ю завжди на основі вмісту великого поля
-        previewContent.innerHTML = formatForPreview(postTextInput.value);
+        // Формуємо HTML для прев'ю з головного поля
+        if (postTextInput && previewContent) {
+            previewContent.innerHTML = formatForPreview(postTextInput.value);
+        }
     }
-
-    // Слухач для ручного редагування великого поля
-    postTextInput.addEventListener('input', () => updatePreview(true));
 
     function formatForPreview(text) {
         if (!text) return '';
@@ -232,6 +229,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return text.split('').map(char => charsToEscape.includes(char) ? '\\' + char : char).join('');
     }
 
+    // --- Відправка форми ---
     async function handleFormSubmit(isScheduling) {
         statusMessage.textContent = isScheduling ? 'Плануємо пост...' : 'Публікуємо пост...';
         statusMessage.className = '';
@@ -246,10 +244,14 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // --- 🔥 ВИПРАВЛЕННЯ 3: Беремо текст з postTextInput, а не перераховуємо його ---
-        // Це дозволяє зберегти ручні правки користувача (наприклад, жирний шрифт),
-        // які він додав після заповнення шаблону.
-        const finalPostText = postTextInput.value; 
+        // Беремо фінальний текст з великого поля (щоб врахувати ручні правки)
+        const finalPostText = postTextInput ? postTextInput.value : '';
+        if (!finalPostText) {
+             alert('Текст поста порожній!');
+             scheduleBtn.disabled = false;
+             postNowBtn.disabled = false;
+             return;
+        }
 
         const submissionData = new FormData();
         submissionData.append('post_text', finalPostText);
@@ -258,22 +260,20 @@ document.addEventListener('DOMContentLoaded', () => {
             submissionData.append('post_at', new Date(postAtInput.value).toISOString());
         }
 
+        // Збір файлів
         const formData = new FormData(form);
         const postPhotos = formData.getAll('post_photo');
         if (postPhotos.length > 0) {
             for (const photo of postPhotos) {
-                if (photo.size > 0) {
-                    submissionData.append('post_photo', photo, photo.name);
-                }
+                if (photo.size > 0) submissionData.append('post_photo', photo, photo.name);
             }
         }
         
+        // Якщо у вас є поле для відео (хоча в HTML його не видно, але в логіці було)
         const postVideos = formData.getAll('post_video');
         if (postVideos.length > 0) {
             for (const video of postVideos) {
-                if (video.size > 0) {
-                    submissionData.append('post_video', video, video.name);
-                }
+                if (video.size > 0) submissionData.append('post_video', video, video.name);
             }
         }
 
@@ -286,9 +286,9 @@ document.addEventListener('DOMContentLoaded', () => {
             statusMessage.textContent = isScheduling ? 'Пост успішно заплановано!' : 'Пост успішно опубліковано!';
             statusMessage.className = 'success';
             form.reset();
+            // Скидаємо вибір шаблону і поля
             renderFormFields(templateSelect.value);
-            // Очищаємо також і велике поле та прев'ю
-            postTextInput.value = '';
+            if (postTextInput) postTextInput.value = '';
             updatePreview(true);
         } catch (error) {
             statusMessage.textContent = 'Помилка! Не вдалося виконати дію.';
@@ -302,7 +302,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     form.addEventListener('submit', (event) => {
         event.preventDefault();
-        handleFormSubmit(true); 
+        handleFormSubmit(true);
     });
 
     postNowBtn.addEventListener('click', () => {
@@ -311,10 +311,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     templateSelect.addEventListener('change', () => {
         renderFormFields(templateSelect.value);
-        // Одразу оновлюємо прев'ю при зміні шаблону
         updatePreview(false);
     });
 
+    // Ініціалізація
     renderFormFields(templateSelect.value);
     updatePreview(false);
 });
