@@ -249,19 +249,16 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        const template = templates[templateSelect.value];
-        const formData = new FormData(form);
-        const data = {};
-        template.fields.forEach(field => data[field.id] = formData.get(field.id));
-        const finalPostText = template.formatter(data);
+        const finalPostText = postTextInput.value;
+        
         const submissionData = new FormData();
         submissionData.append('post_text', finalPostText);
 
         if (isScheduling) {
-            submissionData.append('post_at', new Date(formData.get('post_at')).toISOString());
+            submissionData.append('post_at', new Date(postAtInput.value).toISOString());
         }
 
-        // --- 🔥 ОНОВЛЕНА ЛОГІКА ЗБОРУ ФАЙЛІВ ---
+        const formData = new FormData(form);
         const postPhotos = formData.getAll('post_photo');
         if (postPhotos.length > 0) {
             for (const photo of postPhotos) {
@@ -279,7 +276,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
         }
-        // --- КІНЕЦЬ ОНОВЛЕНОЇ ЛОГІКИ ---
+       
 
         try {
             if (isScheduling) {
@@ -291,6 +288,7 @@ document.addEventListener('DOMContentLoaded', () => {
             statusMessage.className = 'success';
             form.reset();
             renderFormFields(templateSelect.value);
+            postTextInput.value = '';
             updatePreview();
         } catch (error) {
             statusMessage.textContent = 'Помилка! Не вдалося виконати дію.';
@@ -313,9 +311,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     templateSelect.addEventListener('change', () => {
         renderFormFields(templateSelect.value);
-        updatePreview();
+        updatePreview(false);
     });
 
     renderFormFields(templateSelect.value);
-    updatePreview();
+    updatePreview(false);
 });
