@@ -121,7 +121,7 @@ a, button, input, select, textarea { transition: all 0.18s ease; }
 
 /* Telegram preview visual upgrade */
 .telegram-preview {
-    background-color: linear-gradient(180deg, rgba(255,255,255,0.3), rgba(255,255,255,0.1));
+    background: linear-gradient(180deg, rgba(255,255,255,0.3), rgba(255,255,255,0.1));
     padding: 1em;
     border-radius: var(--border-radius-sm);
     border: 1px solid var(--color-border);
@@ -299,48 +299,132 @@ button:disabled {
 @media (min-width: 900px) { .main-container { grid-template-columns: 2fr 1fr; } }
 .preview-card { position: sticky; top: 2em; }
 
+/* =================================
+   📱 TELEGRAM NATIVE PREVIEW
+   ================================= */
+
+/* Фон чату (імітація стандартного фону) */
 .telegram-preview {
-    background-color: #e5ddd5;
-    background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png');
-    padding: 1em;
+    /* Дефолтний фон Telegram (світлий) */
+    background-color: var(--color-bg-light);
+    background-image: url('https://web.telegram.org/img/bg_0.png'); /* Або градієнт */
+    background-size: cover;
+    padding: 20px;
     border-radius: var(--border-radius-sm);
-    border: 1px solid #ccc;
-    transition: background-color 0.3s, background-image 0.3s;
+    border: 1px solid var(--color-border);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    font-family: -apple-system, BlinkMacSystemFont, "Roboto", "Helvetica", "Arial", sans-serif;
 }
+
 :root.dark .telegram-preview {
-    background-image: none;
-    background-color: #0F0E17;
+    /* Темний фон Telegram */
+    background-color: #182533; 
+    background-image: url('https://web.telegram.org/img/bg_1.png'); /* Темний патерн */
     border-color: #363344;
 }
+
+/* Бульбашка повідомлення */
 .message-bubble {
-    background-color: var(--color-bg-card); /* Скло */
-    backdrop-filter: blur(10px);
-    padding: 0.8em 1em;
-    border-radius: var(--border-radius-sm);
-    box-shadow: var(--shadow-sm);
+    background-color: #ffffff;
+    color: #000000;
+    padding: 6px 10px 8px 10px;
+    border-radius: 12px 12px 12px 0;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.15);
+    max-width: 480px; /* Обмеження ширини як в TG */
+    width: fit-content;
+    position: relative;
+    font-size: 16px;
+    line-height: 1.4;
     word-wrap: break-word;
-    min-height: 50px;
-    transition: background-color 0.3s;
 }
-#preview-content { line-height: 1.5; word-break: break-word; }
-#preview-content b { font-weight: bold; }
-#preview-content i { font-style: italic; }
-#preview-content code {
-    background-color: var(--color-bg-light);
-    color: var(--color-text-light);
-    padding: 0.1em 0.3em;
-    border-radius: 3px;
-    transition: background-color 0.3s, color 0.3s;
+
+:root.dark .message-bubble {
+    background-color: #212121;
+    color: #ffffff;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.3);
 }
-.post-preview {
-    background: var(--color-bg-light);
-    border: 1px solid var(--color-border);
-    padding: 1em;
-    border-radius: 4px;
-    margin-bottom: 1em;
+
+/* Стилізація тексту всередині */
+#preview-content {
     white-space: pre-wrap;
-    word-break: break-word;
-    transition: background-color 0.3s, border-color 0.3s;
+}
+
+/* Markdown elements imitation */
+#preview-content b, #preview-content strong { font-weight: 700; }
+#preview-content i, #preview-content em { font-style: italic; }
+#preview-content s, #preview-content strike { text-decoration: line-through; }
+#preview-content u { text-decoration: underline; }
+
+/* Посилання */
+#preview-content a {
+    color: #3390ec;
+    text-decoration: none;
+    cursor: pointer;
+}
+#preview-content a:hover { text-decoration: underline; }
+
+/* Моноширинний код (inline) */
+#preview-content code {
+    font-family: monospace;
+    background-color: rgba(0,0,0,0.06);
+    color: #e53935; /* Червоний відтінок як в TG */
+    padding: 2px 4px;
+    border-radius: 4px;
+    font-size: 0.9em;
+}
+:root.dark #preview-content code {
+    background-color: rgba(255,255,255,0.1);
+    color: #6ab7ff;
+}
+
+/* Блок коду (pre) */
+#preview-content pre {
+    display: block;
+    font-family: monospace;
+    background-color: rgba(0,0,0,0.06);
+    padding: 8px;
+    border-radius: 6px;
+    margin: 5px 0;
+    overflow-x: auto;
+    font-size: 0.9em;
+}
+:root.dark #preview-content pre {
+    background-color: rgba(255,255,255,0.1);
+}
+
+/* Спойлер (приховування тексту) */
+.tg-spoiler {
+    background-color: #888;
+    color: transparent;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: color 0.2s, background-color 0.2s;
+    user-select: none;
+}
+.tg-spoiler.revealed {
+    background-color: rgba(0,0,0,0.1);
+    color: inherit;
+    user-select: text;
+}
+:root.dark .tg-spoiler.revealed {
+    background-color: rgba(255,255,255,0.15);
+}
+
+/* Прев'ю медіа (картинка зверху) */
+.media-preview-container {
+    display: none; /* Ховаємо за замовчуванням */
+    margin-bottom: 6px;
+    border-radius: 8px;
+    overflow: hidden;
+}
+.media-preview-container img, 
+.media-preview-container video {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    border-radius: 8px;
 }
 
 /* =================================

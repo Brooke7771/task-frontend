@@ -16,6 +16,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const postTextInput = document.getElementById('post_text'); 
     // Expose for debugging and external scripts (safe guard)
     try { window.postTextInput = postTextInput } catch(e) {}
+    // Фото/відео (для прев'ю медіа)
+    const postPhotoInput = document.getElementById('post_photo');
+
+    // 1. Створюємо контейнер для медіа в прев'ю, якщо його немає в HTML
+    let mediaContainer = document.querySelector('.media-preview-container');
+    if (!mediaContainer && previewContent) {
+        mediaContainer = document.createElement('div');
+        mediaContainer.className = 'media-preview-container';
+        // Вставляємо перед текстом у message-bubble
+        previewContent.parentNode.insertBefore(mediaContainer, previewContent);
+    }
 
     // Кнопки тулбару
     const toolbarBold = document.getElementById('toolbar-bold');
@@ -154,6 +165,36 @@ document.addEventListener('DOMContentLoaded', () => {
         postTextInput.addEventListener('input', () => updatePreview(true));
     }
 
+    // --- 🔥 ФУНКЦІЯ: Прев'ю завантажених фото/відео ---
+    if (postPhotoInput) {
+        postPhotoInput.addEventListener('change', function() {
+            if (!mediaContainer) return;
+            mediaContainer.innerHTML = ''; // Очистити старе
+            mediaContainer.style.display = 'none';
+
+            const files = this.files;
+            if (files && files.length > 0) {
+                const file = files[0]; // Беремо перше для прев'ю
+                const reader = new FileReader();
+
+                reader.onload = function(e) {
+                    mediaContainer.style.display = 'block';
+                    if (file.type.startsWith('video/')) {
+                        const video = document.createElement('video');
+                        video.src = e.target.result;
+                        video.controls = true;
+                        mediaContainer.appendChild(video);
+                    } else {
+                        const img = document.createElement('img');
+                        img.src = e.target.result;
+                        mediaContainer.appendChild(img);
+                    }
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+    }
+
     // --- Логіка шаблонів ---
     Object.keys(templates).forEach(key => {
         const option = document.createElement('option');
@@ -215,15 +256,44 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function formatForPreview(text) {
         if (!text) return '';
-        let safeText = text.replace(/</g, "&lt;").replace(/>/g, "&gt;");
-        safeText = safeText.replace(/\\(.)/g, '$1');
-        return safeText
-            .replace(/\*(.*?)\*/g, '<b>$1</b>')
-            .replace(/_(.*?)_/g, '<i>$1</i>')
-            .replace(/~(.*?)~/g, '<s>$1</s>')
-            .replace(/`(.*?)`/g, '<code>$1</code>')
-            .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank">$1</a>')
-            .replace(/\n/g, '<br>');
+
+        // 1. Escape HTML tags to avoid XSS
+        let html = text
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;");
+
+        // 2. Telegram-like MarkdownV2 handling
+        // Spoiler: ||text||
+        html = html.replace(/\|\|(.*?)\|\|/g, '<span class="tg-spoiler" onclick="this.classList.toggle(\'revealed\')">$1</span>');
+
+        // Bold: **text** and *text*
+        html = html.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
+        html = html.replace(/(?<!\\)\*(.*?)(?<!\\)\*/g, '<b>$1</b>');
+
+        // Italic: __text__ and _text_
+        html = html.replace(/__(.*?)__/g, '<i>$1</i>');
+        html = html.replace(/(?<!\\)_(.*?)(?<!\\)_/g, '<i>$1</i>');
+
+        // Strike-through: ~text~
+        html = html.replace(/(?<!\\)~(.*?)(?<!\\)~/g, '<s>$1</s>');
+
+        // Inline code: `text`
+        html = html.replace(/(?<!\\)`(.*?)(?<!\\)`/g, '<code>$1</code>');
+
+        // Code block: ```lang code```
+        html = html.replace(/```(.*?)```/gs, '<pre>$1</pre>');
+
+        // Links: [text](url)
+        html = html.replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank">$1</a>');
+
+        // 3. Unescape escaped symbols: \x => x
+        html = html.replace(/\\(.)/g, '$1');
+
+        // 4. New lines -> <br>
+        html = html.replace(/\n/g, '<br>');
+
+        return html;
     }
 
     function escapeMarkdown(text) {

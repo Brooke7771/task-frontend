@@ -12,6 +12,8 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // --- 🔥 ДОДАНО ---
     const previewContent = document.getElementById('preview-content');
+    const postPhotoInput = document.getElementById('post_photo');
+    const postVideoInput = document.getElementById('post_video');
     // 1. Знаходимо нові кнопки
     const toolbarBold = document.getElementById('toolbar-bold');
     const toolbarItalic = document.getElementById('toolbar-italic');
@@ -119,28 +121,69 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     let postId = null;
 
-    // --- 🔥 НОВА ФУНКЦІЯ: форматування для попереднього перегляду ---
+    // --- 🔥 НОВА ФУНКЦІЯ: форматування для попереднього перегляду (Telegram-like MarkdownV2) ---
     // (Вона обробляє і старий, і новий Markdown, щоб ви бачили коректний результат)
     function formatForPreview(text) {
-        if (!text) text = '';
-        let safeText = (text || '').replace(/</g, "&lt;").replace(/>/g, "&gt;");
-        
-        // Спочатку обробляємо екрановані символи
-        safeText = safeText.replace(/\\(.)/g, '$1');
+        if (!text) return '';
+        // 1. Escape HTML tags to avoid XSS
+        let html = text
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;");
 
-        // Обробляємо і V1, і V2 форматування для коректного прев'ю
-        safeText = safeText
-            .replace(/\*\*(.*?)\*\*/g, '<b>$1</b>') // **bold** (Legacy)
-            .replace(/__(.*?)__/g, '<i>$1</i>')   // __italic__ (Legacy)
-            .replace(/\*(.*?)\*/g, '<b>$1</b>')   // *bold* (V2)
-            .replace(/_(.*?)_/g, '<i>$1</i>')     // _italic_ (V2)
-            .replace(/~(.*?)~/g, '<s>$1</s>')     // ~strikethrough~ (V2)
-            .replace(/`(.*?)`/g, '<code>$1</code>') // `code`
-            .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank">$1</a>') // [link](url)
-            .replace(/\n/g, '<br>'); // Newlines
-        
-        return safeText;
+        // 2. Telegram-like MarkdownV2 handling (spoiler, bold, italic, strike, code, code block, links)
+        html = html.replace(/\|\|(.*?)\|\|/g, '<span class="tg-spoiler" onclick="this.classList.toggle(\'revealed\')">$1</span>');
+        html = html.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
+        html = html.replace(/(?<!\\)\*(.*?)(?<!\\)\*/g, '<b>$1</b>');
+        html = html.replace(/__(.*?)__/g, '<i>$1</i>');
+        html = html.replace(/(?<!\\)_(.*?)(?<!\\)_/g, '<i>$1</i>');
+        html = html.replace(/(?<!\\)~(.*?)(?<!\\)~/g, '<s>$1</s>');
+        html = html.replace(/(?<!\\)`(.*?)(?<!\\)`/g, '<code>$1</code>');
+        html = html.replace(/```(.*?)```/gs, '<pre>$1</pre>');
+        html = html.replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank">$1</a>');
+        html = html.replace(/\\(.)/g, '$1');
+        html = html.replace(/\n/g, '<br>');
+        return html;
     }
+
+    // === Медійний preview: створюємо контейнер та обробник завантаження файлів ===
+    let mediaContainer = document.querySelector('.media-preview-container');
+    if (!mediaContainer && previewContent) {
+        mediaContainer = document.createElement('div');
+        mediaContainer.className = 'media-preview-container';
+        previewContent.parentNode.insertBefore(mediaContainer, previewContent);
+    }
+
+    const handleFilePreview = (input) => {
+        if (!input) return;
+        input.addEventListener('change', function() {
+            if (currentMediaPreview) currentMediaPreview.style.display = 'none';
+            if (!mediaContainer) return;
+            mediaContainer.innerHTML = '';
+            mediaContainer.style.display = 'none';
+            if (this.files && this.files.length > 0) {
+                const file = this.files[0];
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    mediaContainer.style.display = 'block';
+                    if (file.type.startsWith('video/')) {
+                        const video = document.createElement('video');
+                        video.src = e.target.result;
+                        video.controls = true;
+                        mediaContainer.appendChild(video);
+                    } else {
+                        const img = document.createElement('img');
+                        img.src = e.target.result;
+                        mediaContainer.appendChild(img);
+                    }
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+    };
+
+    if (postPhotoInput) handleFilePreview(postPhotoInput);
+    if (postVideoInput) handleFilePreview(postVideoInput);
 
     // --- 🔥 НОВА ФУНКЦІЯ: оновлення прев'ю ---
     const updatePreview = () => {
