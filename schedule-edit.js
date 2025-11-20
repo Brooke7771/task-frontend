@@ -9,6 +9,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const statusMessage = document.getElementById('statusMessage');
     const currentMediaContainer = document.getElementById('currentMedia');
     const currentMediaPreview = document.getElementById('currentMediaPreview');
+    // Видаляємо/ховаємо старий блок "Поточне медіа" — прев'ю показуємо в inline preview
+    if (currentMediaContainer) currentMediaContainer.style.display = 'none';
     
     // --- 🔥 ДОДАНО ---
     const previewContent = document.getElementById('preview-content');
@@ -32,25 +34,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const end = postTextInput.selectionEnd;
         const selectedText = postTextInput.value.substring(start, end);
         const textToWrap = selectedText || defaultText;
-
-        const newText = 
-            postTextInput.value.substring(0, start) +
-            startTag + textToWrap + endTag +
-            postTextInput.value.substring(end);
-
-        postTextInput.value = newText;
+        postTextInput.value = postTextInput.value.substring(0, start) + startTag + textToWrap + endTag + postTextInput.value.substring(end);
         postTextInput.focus();
-
-        // Оновлюємо виділення
-        if (selectedText) {
-            // Якщо текст був виділений, виділяємо його знову
-            postTextInput.setSelectionRange(start + startTag.length, start + startTag.length + textToWrap.length);
-        } else {
-            // Якщо вставляли текст за замовчуванням, ставимо курсор всередину
-            postTextInput.setSelectionRange(start + startTag.length, start + startTag.length + defaultText.length);
-        }
-        
-        // Оновлюємо попередній перегляд
+        postTextInput.setSelectionRange(start + startTag.length, start + startTag.length + textToWrap.length);
         updatePreview();
     }
 
@@ -72,32 +58,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     toolbarLink.addEventListener('click', () => {
-        const start = postTextInput.selectionStart;
-        const end = postTextInput.selectionEnd;
-        const selectedText = postTextInput.value.substring(start, end);
-
-        const linkText = selectedText || 'текст посилання';
-        const url = prompt('Введіть URL (посилання):', 'https://');
-
-        if (url) { // Якщо користувач не натиснув "Скасувати"
-            const textToInsert = `[${linkText}](${url})`;
-
-            // Вставляємо текст
-            postTextInput.value = 
-                postTextInput.value.substring(0, start) +
-                textToInsert +
-                postTextInput.value.substring(end);
-            
-            postTextInput.focus();
-            
-            // Встановлюємо курсор/виділення
-            if (selectedText) {
-                postTextInput.setSelectionRange(start, start + textToInsert.length);
-            } else {
-                postTextInput.setSelectionRange(start + 1, start + 1 + linkText.length);
-            }
-            updatePreview();
-        }
+        const url = prompt('URL:', 'https://');
+        if (url) wrapText('[', `](${url})`, 'текст');
     });
 
     // 3. (Опціонально) Додаємо гарячі клавіші
@@ -244,13 +206,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // --- (Логіка відображення медіа без змін) ---
             if (post.photoIds && post.photoIds.length > 0) {
-                currentMediaPreview.textContent = `[Поточне медіа: ФОТО (${post.photoIds.length} шт)]`;
-                currentMediaContainer.style.display = 'block';
+                // show placeholder in inline preview instead of old block
+                // currentMediaPreview.textContent = `[Поточне медіа: ФОТО (${post.photoIds.length} шт)]`;
+                if (currentMediaContainer) currentMediaContainer.style.display = 'none';
             } else if (post.videoIds && post.videoIds.length > 0) {
-                currentMediaPreview.textContent = `[Поточне медіа: ВІДЕО (${post.videoIds.length} шт)]`;
-                currentMediaContainer.style.display = 'block';
+                // currentMediaPreview.textContent = `[Поточне медіа: ВІДЕО (${post.videoIds.length} шт)]`;
+                if (currentMediaContainer) currentMediaContainer.style.display = 'none';
             } else {
-                currentMediaContainer.style.display = 'none';
+                if (currentMediaContainer) currentMediaContainer.style.display = 'none';
             }
 
         } catch (error) {
