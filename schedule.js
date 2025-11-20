@@ -241,25 +241,25 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function updatePreview(isManualEdit = false) {
-        // Якщо це не ручне редагування, беремо дані з полів шаблону
-        if (!isManualEdit) {
-            const template = templates[templateSelect.value];
-            if (template) {
-                const data = {};
-                template.fields.forEach(field => {
-                    const el = document.getElementById(field.id);
-                    data[field.id] = el ? el.value : '';
-                });
-                const markdownText = template.formatter(data);
-                
-                // Вставляємо згенерований текст у головне поле
-                if (postTextInput) postTextInput.value = markdownText;
-            }
-        }
+        // ... код отримання шаблону ...
 
-        // Формуємо HTML для прев'ю з головного поля
+        // 1. Оновлюємо текст
         if (postTextInput && previewContent) {
             previewContent.innerHTML = formatForPreview(postTextInput.value);
+        }
+
+        // 2. 🔥 ДОДАНО: Керування класами для медіа
+        const textIsEmpty = !postTextInput.value || postTextInput.value.trim() === '';
+        const hasMedia = mediaContainer.style.display !== 'none' && mediaContainer.innerHTML !== '';
+        
+        if (hasMedia && textIsEmpty) {
+            // Якщо є тільки фото без тексту, ховаємо блок тексту, щоб фото мало правильні кути знизу
+            document.querySelector('.tg-text-content').style.display = 'none';
+            mediaContainer.style.borderRadius = '12px'; // Скруглюємо все фото
+        } else {
+            // Якщо є текст, показуємо його
+            document.querySelector('.tg-text-content').style.display = 'block';
+            mediaContainer.style.borderRadius = '12px 12px 0 0'; // Скруглюємо тільки верх
         }
     }
 

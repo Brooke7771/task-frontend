@@ -300,78 +300,88 @@ button:disabled {
 .preview-card { position: sticky; top: 2em; }
 
 /* =================================
-   📱 TELEGRAM REALISTIC PREVIEW (1:1)
+   📱 TELEGRAM REALISTIC PREVIEW (1:1) - FINAL POLISH
    ================================= */
 
 .preview-card {
-    padding: 0 !important; /* Прибираємо падінги картки, щоб прев'ю було на всю ширину */
-    overflow: hidden;
+    padding: 0 !important;
     border: none !important;
     background: transparent !important;
-    box-shadow: var(--shadow-lg);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5) !important;
 }
 
-/* Обгортка "Екрану" */
+/* Вікно */
 .tg-window {
-    background-color: #0e1621; /* Темний фон Telegram */
-    font-family: -apple-system, BlinkMacSystemFont, "Roboto", "Helvetica", "Arial", sans-serif;
-    height: 600px; /* 1) ЗБІЛЬШЕНО ВИСОТУ */
+    background-color: #0e1621;
+    font-family: "Roboto", -apple-system, BlinkMacSystemFont, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
+    height: 600px;
     display: flex;
     flex-direction: column;
-    border-radius: var(--border-radius-md);
+    border-radius: 12px;
     overflow: hidden;
     position: relative;
+    border: 1px solid #000; /* Тонка рамка для контрасту */
 }
 
-/* --- Шапка каналу (Header) --- */
+/* --- Шапка (Header) --- */
 .tg-header {
     background-color: #17212b;
-    padding: 10px 15px;
+    padding: 10px 18px;
     display: flex;
     align-items: center;
-    gap: 12px;
-    border-bottom: 1px solid #000000;
+    gap: 15px;
+    border-bottom: 1px solid #0e1621;
     flex-shrink: 0;
-    cursor: default;
+    cursor: pointer;
+    transition: background-color 0.2s;
 }
+.tg-header:hover { background-color: #202b36; }
 
 .tg-avatar {
     width: 42px;
     height: 42px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #ffafbd, #ffc3a0); /* Градієнт заглушка */
+    background: linear-gradient(135deg, #6a5acd, #8a2be2); /* Фіолетовий градієнт */
     display: flex;
     align-items: center;
     justify-content: center;
     font-weight: bold;
     color: #fff;
     font-size: 18px;
+    flex-shrink: 0;
 }
 
 .tg-header-info {
     display: flex;
     flex-direction: column;
+    justify-content: center;
+    overflow: hidden;
 }
 
 .tg-name {
     color: #fff;
     font-weight: 600;
-    font-size: 16px;
+    font-size: 15px;
     line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .tg-subs {
-    color: #6c7883;
+    color: #7c8b9a;
     font-size: 13px;
+    margin-top: 2px;
 }
 
 /* --- Область чату --- */
 .tg-chat-area {
     flex-grow: 1;
     background-color: #0e1621;
-    /* Патерн фону Telegram */
     background-image: url('https://web.telegram.org/img/bg_0.png'); 
-    background-size: cover; 
+    background-size: 450px; /* Оптимальний розмір патерну */
+    /* 🔥 Робимо фон темним через змішування кольорів */
+    background-blend-mode: overlay; 
     padding: 10px 16px;
     overflow-y: auto;
     display: flex;
@@ -379,141 +389,165 @@ button:disabled {
     gap: 8px;
 }
 
-/* Темна тема для патерну */
-:root.dark .tg-chat-area {
-   background-image: url('https://web.telegram.org/img/bg_1.png');
-}
+/* Смуга прокрутки як в Telegram */
+.tg-chat-area::-webkit-scrollbar { width: 5px; }
+.tg-chat-area::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.3); border-radius: 10px; }
+.tg-chat-area::-webkit-scrollbar-track { background: transparent; }
 
-/* Роздільник дати */
+/* Бейдж дати */
 .tg-date-badge {
     align-self: center;
     background-color: rgba(0, 0, 0, 0.3);
     color: #fff;
-    font-size: 12px;
+    font-size: 13px;
     padding: 4px 12px;
-    border-radius: 14px;
+    border-radius: 16px;
     font-weight: 500;
-    margin: 10px 0;
+    margin: 12px 0;
+    backdrop-filter: blur(2px);
+    position: sticky;
+    top: 5px;
+    z-index: 10;
 }
 
-/* --- Повідомлення (Бульбашка) --- */
+/* --- Повідомлення --- */
 .tg-message {
-    background-color: #182533; /* Колір повідомлення в темній темі */
+    background-color: #182533;
     color: #fff;
-    border-radius: 10px 10px 10px 10px;
-    padding: 0; /* Падінг всередині контролюється контентом */
+    border-radius: 12px 12px 12px 0; /* Хвостик зліва знизу (стиль каналу) */
+    padding: 0;
     max-width: 460px;
+    min-width: 120px;
     width: fit-content;
     position: relative;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.2);
     margin-bottom: 5px;
-    overflow: hidden; /* Щоб картинка не вилазила */
+    align-self: flex-start; /* Канали завжди зліва */
 }
 
-/* Контейнер для медіа (фото/відео) */
+/* Медіа */
 .tg-media-wrapper {
-    display: none; /* Ховаємо, якщо пусто */
+    display: none;
     width: 100%;
-    max-width: 460px;
+    max-width: 480px; /* Трохи ширше */
+    overflow: hidden;
+    border-radius: 12px 12px 0 0; /* Скруглення тільки зверху */
 }
+/* Якщо є медіа, а тексту немає - скруглюємо все */
+.tg-media-wrapper:last-child { border-radius: 12px; }
+
 .tg-media-wrapper img, 
 .tg-media-wrapper video {
     display: block;
     width: 100%;
     height: auto;
+    max-height: 400px;
     object-fit: cover;
-    /* Якщо це альбом, тут можна додати логіку грідів, але поки просте */
 }
 
-/* Текстова частина */
+/* Контент тексту */
 .tg-text-content {
     padding: 6px 12px 8px 12px;
-    font-size: 16px;
+    font-size: 15.5px;
     line-height: 1.5;
     word-wrap: break-word;
     white-space: pre-wrap;
+    position: relative;
 }
 
-/* Стилізація Markdown */
+/* Markdown Styles */
 .tg-text-content b { font-weight: 700; }
 .tg-text-content i { font-style: italic; }
 .tg-text-content s { text-decoration: line-through; }
 .tg-text-content u { text-decoration: underline; }
-.tg-text-content a { color: #64b5ef; text-decoration: none; }
+.tg-text-content a { color: #5eb5f7; text-decoration: none; word-break: break-all; }
 .tg-text-content a:hover { text-decoration: underline; }
 .tg-text-content code {
-    font-family: 'Consolas', 'Monaco', monospace;
-    color: #64b5ef;
+    font-family: 'Roboto Mono', monospace;
+    color: #5eb5f7;
     font-size: 0.9em;
+    background: rgba(0,0,0,0.2);
+    padding: 2px 4px;
+    border-radius: 4px;
 }
 .tg-text-content pre {
-    background: rgba(0,0,0,0.2);
-    padding: 6px;
-    border-radius: 4px;
+    background: #0e1621; /* Темніший фон для блоків коду */
+    padding: 8px;
+    border-radius: 6px;
     overflow-x: auto;
+    font-family: 'Roboto Mono', monospace;
+    font-size: 13px;
+    margin: 5px 0;
+    border: 1px solid rgba(255,255,255,0.05);
 }
-/* Спойлер */
 .tg-spoiler {
-    background-color: #5e6873;
+    background-color: #3e4955;
     color: transparent;
-    border-radius: 3px;
+    border-radius: 4px;
     cursor: pointer;
-    user-select: none;
+    transition: 0.2s;
 }
 .tg-spoiler.revealed {
-    background-color: rgba(255,255,255,0.1);
+    background-color: rgba(62, 73, 85, 0.3);
     color: inherit;
 }
 
-/* --- Метадані (Час та перегляди) --- */
+/* --- Метадані (час та око) --- */
 .tg-meta {
     float: right;
-    margin-top: 6px;
-    margin-left: 8px;
-    position: relative;
-    top: 2px;
-    display: flex;
+    margin-top: 8px;
+    margin-left: 6px;
+    margin-bottom: -3px; /* Підтягуємо до низу */
+    display: inline-flex;
     align-items: center;
     gap: 4px;
-    color: #6c7883; /* Сірий колір метаданих */
+    color: #717c87;
     font-size: 11px;
     user-select: none;
-    cursor: default;
+    background: rgba(24, 37, 51, 0.6); /* Легкий фон для читабельності на картинках, якщо треба */
+    border-radius: 10px;
+    padding: 0 4px;
 }
 
 .tg-views-icon {
-    width: 14px;
-    height: 10px;
+    width: 15px;
+    height: 15px;
     background: no-repeat center/contain;
-    /* SVG іконка ока */
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 18 12' fill='%236c7883'%3E%3Cpath d='M9 0C4 0 0 4.5 0 6s4 12 9 12 9-4.5 9-6-4-12-9-12zm0 10c-2.2 0-4-1.8-4-4s1.8-4 4-4 4 1.8 4 4-1.8 4-4 4z'/%3E%3Ccircle cx='9' cy='6' r='2'/%3E%3C/svg%3E");
-    opacity: 0.7;
+    /* SVG ока в кольорі #717c87 */
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke-width='1.5' stroke='%23717c87'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z' /%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M15 12a3 3 0 11-6 0 3 3 0 016 0z' /%3E%3C/svg%3E");
 }
 
-/* --- Нижній бар (Імітація вводу) --- */
+/* --- Нижній бар --- */
 .tg-footer-bar {
     background-color: #17212b;
-    padding: 8px 15px;
+    padding: 10px 15px;
     display: flex;
     align-items: center;
-    gap: 15px;
-    border-top: 1px solid #000;
+    gap: 12px;
+    border-top: 1px solid #0e1621;
     flex-shrink: 0;
 }
+
 .tg-input-fake {
     flex-grow: 1;
     background: #0e1621;
-    color: #6c7883;
-    padding: 10px 12px;
-    border-radius: 20px;
+    color: #7c8b9a;
+    padding: 12px 15px;
+    border-radius: 8px; /* Більш квадратні кути як в десктопі */
     font-size: 15px;
+    cursor: text;
+    transition: color 0.2s;
 }
+.tg-input-fake:hover { color: #9aa9b8; }
+
 .tg-icon {
     width: 24px;
     height: 24px;
-    color: #6c7883;
+    color: #7c8b9a;
     cursor: pointer;
+    transition: color 0.2s;
 }
+.tg-icon:hover { color: #9aa9b8; }
 
 /* =================================
    СПИСКИ

@@ -190,10 +190,28 @@ document.addEventListener('DOMContentLoaded', () => {
     if (postVideoInput) handleFilePreview(postVideoInput);
 
     // --- 🔥 НОВА ФУНКЦІЯ: оновлення прев'ю ---
-    const updatePreview = () => {
-        const text = postTextInput.value || '';
-        previewContent.innerHTML = formatForPreview(text);
-    };
+    function updatePreview(isManualEdit = false) {
+        // ... код отримання шаблону ...
+
+        // 1. Оновлюємо текст
+        if (postTextInput && previewContent) {
+            previewContent.innerHTML = formatForPreview(postTextInput.value);
+        }
+
+        // 2. 🔥 ДОДАНО: Керування класами для медіа
+        const textIsEmpty = !postTextInput.value || postTextInput.value.trim() === '';
+        const hasMedia = mediaContainer.style.display !== 'none' && mediaContainer.innerHTML !== '';
+        
+        if (hasMedia && textIsEmpty) {
+            // Якщо є тільки фото без тексту, ховаємо блок тексту, щоб фото мало правильні кути знизу
+            document.querySelector('.tg-text-content').style.display = 'none';
+            mediaContainer.style.borderRadius = '12px'; // Скруглюємо все фото
+        } else {
+            // Якщо є текст, показуємо його
+            document.querySelector('.tg-text-content').style.display = 'block';
+            mediaContainer.style.borderRadius = '12px 12px 0 0'; // Скруглюємо тільки верх
+        }
+    }
     // --- (кінець нових функцій) ---
 
 
