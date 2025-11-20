@@ -420,13 +420,14 @@ button:disabled {
     color: #fff;
     border-radius: 12px 12px 12px 0;
     padding: 0;
-    /* 🔥 Дозволяємо повідомленню займати ширину, але не більше макс. */
-    max-width: 100%; 
+    
+    /* 🔥 ПОВЕРТАЄМО ЖОРСТКЕ ОБМЕЖЕННЯ ШИРИНИ */
+    max-width: 460px; 
     width: fit-content;
     min-width: 120px; 
+    
     position: relative;
     box-shadow: 0 1px 2px rgba(0,0,0,0.2);
-    box-sizing: border-box;
     margin-bottom: 5px;
 }
 
@@ -474,14 +475,19 @@ button:disabled {
 
 /* Контент тексту */
 .tg-text-content {
-    /* 🔥 1. Виправляємо зміщення першого рядка */
-    padding: 6px 12px 8px 12px; /* Зменшили верхній відступ */
+    padding: 6px 12px 8px 12px;
     font-size: 15.5px;
-    line-height: 1.4; /* Трохи щільніше, як в Telegram */
-    word-wrap: break-word;
+    line-height: 1.4;
+    
+    /* 🔥 МАГІЯ ПЕРЕНЕСЕННЯ ТЕКСТУ ЯК В ТЕЛЕГРАМ */
+    white-space: pre-wrap;      /* Зберігає пробіли і ентери */
+    word-wrap: break-word;      /* Стандартний перенос */
+    overflow-wrap: break-word;  /* Сучасний стандарт */
+    word-break: break-word;     /* Агресивний перенос довгих слів (WebKit) */
+    
     position: relative;
     display: block;
-    min-height: 1.4em; /* Мінімальна висота для однієї строки */
+    min-height: 1.4em;
 }
 .tg-text-content > * {
     margin-top: 0;
@@ -492,6 +498,8 @@ button:disabled {
 #preview-content {
     white-space: pre-wrap;
     word-wrap: break-word;
+    overflow-wrap: break-word;
+    word-break: break-word;
 }
 
 /* Markdown Styles */
