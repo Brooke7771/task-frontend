@@ -106,9 +106,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!template) return;
 
         if (postTextInput && previewContent) {
-            // 🔥 .trimStart() видаляє порожні рядки на початку, які зсувають текст вниз
-            const rawText = postTextInput.value || '';
-            previewContent.innerHTML = formatForPreview(rawText.trimStart());
+            // .trimStart() видаляє порожні рядки на самому початку тексту
+            const text = (postTextInput.value || '').trimStart(); 
+            previewContent.innerHTML = formatForPreview(text);
         }
 
         const formData = new FormData(form);

@@ -174,9 +174,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // 1. Оновлюємо текст
         if (postTextInput && previewContent) {
-            // 🔥 .trimStart() видаляє порожні рядки на початку, які зсувають текст вниз
-            const rawText = postTextInput.value || '';
-            previewContent.innerHTML = formatForPreview(rawText.trimStart());
+            // .trimStart() видаляє порожні рядки на самому початку тексту
+            const text = (postTextInput.value || '').trimStart(); 
+            previewContent.innerHTML = formatForPreview(text);
         }
         // 2. 🔥 ДОДАНО: Керування класами для медіа
         const textIsEmpty = !postTextInput.value || postTextInput.value.trim() === '';
