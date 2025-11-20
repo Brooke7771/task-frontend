@@ -41,10 +41,36 @@
                 <div id="statusMessage"></div>
             </div>
             <div class="card preview-card">
-                <h2>Попередній перегляд</h2>
-                <div class="telegram-preview">
-                    <div class="message-bubble">
-                        <div id="preview-content"></div>
+                <div class="tg-window">
+                    <div class="tg-header">
+                        <div class="tg-avatar">A</div>
+                        <div class="tg-header-info">
+                            <span class="tg-name">Channel Name</span>
+                            <span class="tg-subs">1 042 підписників</span>
+                        </div>
+                    </div>
+
+                    <div class="tg-chat-area">
+                        <div class="tg-date-badge">Сьогодні</div>
+
+                        <div class="tg-message">
+                            <div id="preview-media" class="tg-media-wrapper"></div>
+                            
+                            <div class="tg-text-content">
+                                <span id="preview-content"></span>
+                                <span class="tg-meta">
+                                    <span class="tg-views-icon"></span>
+                                    <span class="tg-views-count">1.2K</span>
+                                    <span class="tg-time" id="preview-time">14:05</span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tg-footer-bar">
+                        <i data-feather="paperclip" class="tg-icon"></i>
+                        <div class="tg-input-fake">Транслювати...</div>
+                        <i data-feather="mic" class="tg-icon"></i>
                     </div>
                 </div>
             </div>

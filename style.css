@@ -300,131 +300,219 @@ button:disabled {
 .preview-card { position: sticky; top: 2em; }
 
 /* =================================
-   📱 TELEGRAM NATIVE PREVIEW
+   📱 TELEGRAM REALISTIC PREVIEW (1:1)
    ================================= */
 
-/* Фон чату (імітація стандартного фону) */
-.telegram-preview {
-    /* Дефолтний фон Telegram (світлий) */
-    background-color: var(--color-bg-light);
-    background-image: url('https://web.telegram.org/img/bg_0.png'); /* Або градієнт */
-    background-size: cover;
-    padding: 20px;
-    border-radius: var(--border-radius-sm);
-    border: 1px solid var(--color-border);
+.preview-card {
+    padding: 0 !important; /* Прибираємо падінги картки, щоб прев'ю було на всю ширину */
+    overflow: hidden;
+    border: none !important;
+    background: transparent !important;
+    box-shadow: var(--shadow-lg);
+}
+
+/* Обгортка "Екрану" */
+.tg-window {
+    background-color: #0e1621; /* Темний фон Telegram */
+    font-family: -apple-system, BlinkMacSystemFont, "Roboto", "Helvetica", "Arial", sans-serif;
+    height: 600px; /* 1) ЗБІЛЬШЕНО ВИСОТУ */
     display: flex;
     flex-direction: column;
-    gap: 10px;
-    font-family: -apple-system, BlinkMacSystemFont, "Roboto", "Helvetica", "Arial", sans-serif;
+    border-radius: var(--border-radius-md);
+    overflow: hidden;
+    position: relative;
 }
 
-:root.dark .telegram-preview {
-    /* Темний фон Telegram */
-    background-color: #182533; 
-    background-image: url('https://web.telegram.org/img/bg_1.png'); /* Темний патерн */
-    border-color: #363344;
+/* --- Шапка каналу (Header) --- */
+.tg-header {
+    background-color: #17212b;
+    padding: 10px 15px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-bottom: 1px solid #000000;
+    flex-shrink: 0;
+    cursor: default;
 }
 
-/* Бульбашка повідомлення */
-.message-bubble {
-    background-color: #ffffff;
-    color: #000000;
-    padding: 6px 10px 8px 10px;
-    border-radius: 12px 12px 12px 0;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.15);
-    max-width: 480px; /* Обмеження ширини як в TG */
+.tg-avatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #ffafbd, #ffc3a0); /* Градієнт заглушка */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    color: #fff;
+    font-size: 18px;
+}
+
+.tg-header-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.tg-name {
+    color: #fff;
+    font-weight: 600;
+    font-size: 16px;
+    line-height: 1.2;
+}
+
+.tg-subs {
+    color: #6c7883;
+    font-size: 13px;
+}
+
+/* --- Область чату --- */
+.tg-chat-area {
+    flex-grow: 1;
+    background-color: #0e1621;
+    /* Патерн фону Telegram */
+    background-image: url('https://web.telegram.org/img/bg_0.png'); 
+    background-size: cover; 
+    padding: 10px 16px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+/* Темна тема для патерну */
+:root.dark .tg-chat-area {
+   background-image: url('https://web.telegram.org/img/bg_1.png');
+}
+
+/* Роздільник дати */
+.tg-date-badge {
+    align-self: center;
+    background-color: rgba(0, 0, 0, 0.3);
+    color: #fff;
+    font-size: 12px;
+    padding: 4px 12px;
+    border-radius: 14px;
+    font-weight: 500;
+    margin: 10px 0;
+}
+
+/* --- Повідомлення (Бульбашка) --- */
+.tg-message {
+    background-color: #182533; /* Колір повідомлення в темній темі */
+    color: #fff;
+    border-radius: 10px 10px 10px 10px;
+    padding: 0; /* Падінг всередині контролюється контентом */
+    max-width: 460px;
     width: fit-content;
     position: relative;
-    font-size: 16px;
-    line-height: 1.4;
-    word-wrap: break-word;
-}
-
-:root.dark .message-bubble {
-    background-color: #212121;
-    color: #ffffff;
     box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+    margin-bottom: 5px;
+    overflow: hidden; /* Щоб картинка не вилазила */
 }
 
-/* Стилізація тексту всередині */
-#preview-content {
+/* Контейнер для медіа (фото/відео) */
+.tg-media-wrapper {
+    display: none; /* Ховаємо, якщо пусто */
+    width: 100%;
+    max-width: 460px;
+}
+.tg-media-wrapper img, 
+.tg-media-wrapper video {
+    display: block;
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+    /* Якщо це альбом, тут можна додати логіку грідів, але поки просте */
+}
+
+/* Текстова частина */
+.tg-text-content {
+    padding: 6px 12px 8px 12px;
+    font-size: 16px;
+    line-height: 1.5;
+    word-wrap: break-word;
     white-space: pre-wrap;
 }
 
-/* Markdown elements imitation */
-#preview-content b, #preview-content strong { font-weight: 700; }
-#preview-content i, #preview-content em { font-style: italic; }
-#preview-content s, #preview-content strike { text-decoration: line-through; }
-#preview-content u { text-decoration: underline; }
-
-/* Посилання */
-#preview-content a {
-    color: #3390ec;
-    text-decoration: none;
-    cursor: pointer;
+/* Стилізація Markdown */
+.tg-text-content b { font-weight: 700; }
+.tg-text-content i { font-style: italic; }
+.tg-text-content s { text-decoration: line-through; }
+.tg-text-content u { text-decoration: underline; }
+.tg-text-content a { color: #64b5ef; text-decoration: none; }
+.tg-text-content a:hover { text-decoration: underline; }
+.tg-text-content code {
+    font-family: 'Consolas', 'Monaco', monospace;
+    color: #64b5ef;
+    font-size: 0.9em;
 }
-#preview-content a:hover { text-decoration: underline; }
-
-/* Моноширинний код (inline) */
-#preview-content code {
-    font-family: monospace;
-    background-color: rgba(0,0,0,0.06);
-    color: #e53935; /* Червоний відтінок як в TG */
-    padding: 2px 4px;
+.tg-text-content pre {
+    background: rgba(0,0,0,0.2);
+    padding: 6px;
     border-radius: 4px;
-    font-size: 0.9em;
-}
-:root.dark #preview-content code {
-    background-color: rgba(255,255,255,0.1);
-    color: #6ab7ff;
-}
-
-/* Блок коду (pre) */
-#preview-content pre {
-    display: block;
-    font-family: monospace;
-    background-color: rgba(0,0,0,0.06);
-    padding: 8px;
-    border-radius: 6px;
-    margin: 5px 0;
     overflow-x: auto;
-    font-size: 0.9em;
 }
-:root.dark #preview-content pre {
-    background-color: rgba(255,255,255,0.1);
-}
-
-/* Спойлер (приховування тексту) */
+/* Спойлер */
 .tg-spoiler {
-    background-color: #888;
+    background-color: #5e6873;
     color: transparent;
     border-radius: 3px;
     cursor: pointer;
-    transition: color 0.2s, background-color 0.2s;
     user-select: none;
 }
 .tg-spoiler.revealed {
-    background-color: rgba(0,0,0,0.1);
+    background-color: rgba(255,255,255,0.1);
     color: inherit;
-    user-select: text;
-}
-:root.dark .tg-spoiler.revealed {
-    background-color: rgba(255,255,255,0.15);
 }
 
-/* Прев'ю медіа (картинка зверху) */
-.media-preview-container {
-    display: none; /* Ховаємо за замовчуванням */
-    margin-bottom: 6px;
-    border-radius: 8px;
-    overflow: hidden;
+/* --- Метадані (Час та перегляди) --- */
+.tg-meta {
+    float: right;
+    margin-top: 6px;
+    margin-left: 8px;
+    position: relative;
+    top: 2px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: #6c7883; /* Сірий колір метаданих */
+    font-size: 11px;
+    user-select: none;
+    cursor: default;
 }
-.media-preview-container img, 
-.media-preview-container video {
-    max-width: 100%;
-    height: auto;
-    display: block;
-    border-radius: 8px;
+
+.tg-views-icon {
+    width: 14px;
+    height: 10px;
+    background: no-repeat center/contain;
+    /* SVG іконка ока */
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 18 12' fill='%236c7883'%3E%3Cpath d='M9 0C4 0 0 4.5 0 6s4 12 9 12 9-4.5 9-6-4-12-9-12zm0 10c-2.2 0-4-1.8-4-4s1.8-4 4-4 4 1.8 4 4-1.8 4-4 4z'/%3E%3Ccircle cx='9' cy='6' r='2'/%3E%3C/svg%3E");
+    opacity: 0.7;
+}
+
+/* --- Нижній бар (Імітація вводу) --- */
+.tg-footer-bar {
+    background-color: #17212b;
+    padding: 8px 15px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    border-top: 1px solid #000;
+    flex-shrink: 0;
+}
+.tg-input-fake {
+    flex-grow: 1;
+    background: #0e1621;
+    color: #6c7883;
+    padding: 10px 12px;
+    border-radius: 20px;
+    font-size: 15px;
+}
+.tg-icon {
+    width: 24px;
+    height: 24px;
+    color: #6c7883;
+    cursor: pointer;
 }
 
 /* =================================

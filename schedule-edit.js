@@ -146,13 +146,17 @@ document.addEventListener('DOMContentLoaded', () => {
         return html;
     }
 
-    // === Медійний preview: створюємо контейнер та обробник завантаження файлів ===
-    let mediaContainer = document.querySelector('.media-preview-container');
-    if (!mediaContainer && previewContent) {
-        mediaContainer = document.createElement('div');
-        mediaContainer.className = 'media-preview-container';
-        previewContent.parentNode.insertBefore(mediaContainer, previewContent);
-    }
+    // === Медійний preview: використовуємо контейнер з HTML і оновлюємо час ===
+    const mediaContainer = document.getElementById('preview-media');
+    const timeBadge = document.getElementById('preview-time');
+    const updateTime = () => {
+        if (timeBadge) {
+            const now = new Date();
+            timeBadge.textContent = now.toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' });
+        }
+    };
+    updateTime();
+    setInterval(updateTime, 60000);
 
     const handleFilePreview = (input) => {
         if (!input) return;

@@ -19,14 +19,19 @@ document.addEventListener('DOMContentLoaded', () => {
     // Фото/відео (для прев'ю медіа)
     const postPhotoInput = document.getElementById('post_photo');
 
-    // 1. Створюємо контейнер для медіа в прев'ю, якщо його немає в HTML
-    let mediaContainer = document.querySelector('.media-preview-container');
-    if (!mediaContainer && previewContent) {
-        mediaContainer = document.createElement('div');
-        mediaContainer.className = 'media-preview-container';
-        // Вставляємо перед текстом у message-bubble
-        previewContent.parentNode.insertBefore(mediaContainer, previewContent);
-    }
+    // Використовуємо готовий контейнер у HTML для медіа-прев'ю
+    const mediaContainer = document.getElementById('preview-media');
+    const timeBadge = document.getElementById('preview-time');
+
+    // Функція для оновлення часу у прев'ю
+    const updateTime = () => {
+        if (timeBadge) {
+            const now = new Date();
+            timeBadge.textContent = now.toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' });
+        }
+    };
+    updateTime();
+    setInterval(updateTime, 60000);
 
     // Кнопки тулбару
     const toolbarBold = document.getElementById('toolbar-bold');
@@ -178,11 +183,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 const reader = new FileReader();
 
                 reader.onload = function(e) {
-                    mediaContainer.style.display = 'block';
+                    if (mediaContainer) mediaContainer.style.display = 'block';
                     if (file.type.startsWith('video/')) {
                         const video = document.createElement('video');
                         video.src = e.target.result;
-                        video.controls = true;
+                        video.controls = false;
+                        video.autoplay = true;
+                        video.muted = true;
+                        video.loop = true;
+                        video.playsInline = true;
                         mediaContainer.appendChild(video);
                     } else {
                         const img = document.createElement('img');
@@ -359,6 +368,10 @@ document.addEventListener('DOMContentLoaded', () => {
             statusMessage.textContent = isScheduling ? 'Пост успішно заплановано!' : 'Пост успішно опубліковано!';
             statusMessage.className = 'success';
             form.reset();
+            if (mediaContainer) {
+                mediaContainer.innerHTML = '';
+                mediaContainer.style.display = 'none';
+            }
             // Скидаємо вибір шаблону і поля
             renderFormFields(templateSelect.value);
             if (postTextInput) postTextInput.value = '';
