@@ -476,16 +476,22 @@ button:disabled {
 .tg-text-content {
     /* 🔥 1. Виправляємо зміщення першого рядка */
     padding: 6px 12px 8px 12px; /* Зменшили верхній відступ */
-    font-size: 15px;
+    font-size: 15.5px;
     line-height: 1.4; /* Трохи щільніше, як в Telegram */
     word-wrap: break-word;
-    white-space: pre-wrap;
     position: relative;
     display: block;
+    min-height: 1.4em; /* Мінімальна висота для однієї строки */
 }
 .tg-text-content > * {
     margin-top: 0;
     margin-bottom: 0;
+}
+
+/* 🔥 Стиль для самого тексту (щоб працювали Markdown переноси) */
+#preview-content {
+    white-space: pre-wrap;
+    word-wrap: break-word;
 }
 
 /* Markdown Styles */
@@ -529,10 +535,11 @@ button:disabled {
 .tg-meta {
     float: right;
     margin-left: 8px;
+    margin-top: 4px; /* Додатковий відступ, опускаємо блок трохи нижче */
     
     /* Використовуємо transform замість top, щоб не ламати потік документу */
     position: relative;
-    top: 6px; 
+    top: 8px; 
     
     display: inline-flex;
     align-items: center;
