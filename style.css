@@ -389,6 +389,8 @@ button:disabled {
     display: flex;
     flex-direction: column;
     gap: 8px;
+    overflow-y: auto; /* Повертаємо авто, але скрол буде тільки якщо вікно замале */
+    align-items: flex-start; /* Притискаємо повідомлення до верху */
 }
 
 /* Смуга прокрутки як в Telegram */
@@ -424,6 +426,7 @@ button:disabled {
     min-width: 120px; 
     position: relative;
     box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+    box-sizing: border-box;
     margin-bottom: 5px;
 }
 
@@ -471,14 +474,18 @@ button:disabled {
 
 /* Контент тексту */
 .tg-text-content {
-    /* 🔥 1. Виправлення зміщення 100% (зменшено padding-top) */
-    padding: 8px 12px 10px 12px; 
-    font-size: 15.5px;
-    line-height: 1.5;
+    /* 🔥 1. Виправляємо зміщення першого рядка */
+    padding: 6px 12px 8px 12px; /* Зменшили верхній відступ */
+    font-size: 15px;
+    line-height: 1.4; /* Трохи щільніше, як в Telegram */
     word-wrap: break-word;
-    white-space: pre-wrap; /* Зберігає пробіли та переноси */
+    white-space: pre-wrap;
     position: relative;
-    display: block; /* Гарантує блочне відображення */
+    display: block;
+}
+.tg-text-content > * {
+    margin-top: 0;
+    margin-bottom: 0;
 }
 
 /* Markdown Styles */
@@ -521,23 +528,25 @@ button:disabled {
 /* --- Метадані (час та око) --- */
 .tg-meta {
     float: right;
-    margin-left: 10px;
-    position: relative;
+    margin-left: 8px;
     
-    /* Зсуваємо вниз, щоб було як в Telegram */
-    top: 8px; 
-    margin-bottom: -5px; 
+    /* Використовуємо transform замість top, щоб не ламати потік документу */
+    position: relative;
+    top: 6px; 
     
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    color: #717c87;
+    color: #7c8b9a; /* Трохи світліший сірий */
     font-size: 11px;
+    line-height: 1;
     user-select: none;
-    background: rgba(24, 37, 51, 0.4); /* Легкий фон для читабельності */
-    border-radius: 10px;
-    padding: 2px 6px;
     cursor: default;
+    
+    /* Фон для кращої читабельності, якщо напливає на текст */
+    background: rgba(14, 22, 33, 0.2); 
+    border-radius: 10px;
+    padding: 2px 5px;
 }
 
 .tg-views-icon {

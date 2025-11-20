@@ -100,10 +100,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     // Функція для оновлення попереднього перегляду
-    function updatePreview() {
+    function updatePreview(isManualEdit = false) {
         const templateId = templateSelect.value;
         const template = templates[templateId];
         if (!template) return;
+
+        if (postTextInput && previewContent) {
+            // 🔥 .trimStart() видаляє порожні рядки на початку, які зсувають текст вниз
+            const rawText = postTextInput.value || '';
+            previewContent.innerHTML = formatForPreview(rawText.trimStart());
+        }
 
         const formData = new FormData(form);
         const data = {};
