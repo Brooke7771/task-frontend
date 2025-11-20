@@ -314,15 +314,18 @@ button:disabled {
 .tg-window {
     background-color: #0e1621;
     font-family: "Roboto", -apple-system, BlinkMacSystemFont, sans-serif;
-    /* 🔥 ЗМІНА 1: Дозволяємо вікну рости */
-    min-height: 600px; 
-    height: auto;      
+    min-height: 500px; /* Стартова висота */
+    height: auto;
     display: flex;
     flex-direction: column;
     border-radius: 12px;
     overflow: hidden;
     position: relative;
     border: 1px solid #000;
+    
+    /* 🔥 3. Додаємо можливість розтягувати вікно */
+    resize: vertical; 
+    overflow-y: auto; /* Необхідно для роботи resize */
 }
 /* --- Шапка (Header) --- */
 .tg-header {
@@ -382,9 +385,7 @@ button:disabled {
     background-image: url('https://web.telegram.org/img/bg_0.png'); 
     background-size: 450px; 
     background-blend-mode: overlay; 
-    padding: 10px 16px 20px 16px; /* Трохи більше відступу знизу */
-    /* 🔥 ЗМІНА 2: Прибираємо внутрішній скрол, щоб ріс контейнер */
-    overflow: visible; 
+    padding: 10px 16px 20px 16px;
     display: flex;
     flex-direction: column;
     gap: 8px;
@@ -415,15 +416,15 @@ button:disabled {
 .tg-message {
     background-color: #182533;
     color: #fff;
-    border-radius: 12px 12px 12px 0; /* Хвостик зліва знизу (стиль каналу) */
+    border-radius: 12px 12px 12px 0;
     padding: 0;
-    max-width: 460px;
-    min-width: 120px;
+    /* 🔥 Дозволяємо повідомленню займати ширину, але не більше макс. */
+    max-width: 100%; 
     width: fit-content;
+    min-width: 120px; 
     position: relative;
     box-shadow: 0 1px 2px rgba(0,0,0,0.2);
     margin-bottom: 5px;
-    align-self: flex-start; /* Канали завжди зліва */
 }
 
 /* Медіа */
@@ -470,12 +471,14 @@ button:disabled {
 
 /* Контент тексту */
 .tg-text-content {
-    padding: 6px 12px 8px 12px;
+    /* 🔥 1. Виправлення зміщення 100% (зменшено padding-top) */
+    padding: 8px 12px 10px 12px; 
     font-size: 15.5px;
     line-height: 1.5;
     word-wrap: break-word;
-    white-space: pre-wrap;
+    white-space: pre-wrap; /* Зберігає пробіли та переноси */
     position: relative;
+    display: block; /* Гарантує блочне відображення */
 }
 
 /* Markdown Styles */
@@ -518,18 +521,23 @@ button:disabled {
 /* --- Метадані (час та око) --- */
 .tg-meta {
     float: right;
-    margin-top: 8px;
-    margin-left: 6px;
-    margin-bottom: -3px; /* Підтягуємо до низу */
+    margin-left: 10px;
+    position: relative;
+    
+    /* Зсуваємо вниз, щоб було як в Telegram */
+    top: 8px; 
+    margin-bottom: -5px; 
+    
     display: inline-flex;
     align-items: center;
     gap: 4px;
     color: #717c87;
     font-size: 11px;
     user-select: none;
-    background: rgba(24, 37, 51, 0.6); /* Легкий фон для читабельності на картинках, якщо треба */
+    background: rgba(24, 37, 51, 0.4); /* Легкий фон для читабельності */
     border-radius: 10px;
-    padding: 0 4px;
+    padding: 2px 6px;
+    cursor: default;
 }
 
 .tg-views-icon {

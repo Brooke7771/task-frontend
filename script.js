@@ -116,19 +116,46 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     // Функція для перетворення Markdown в HTML для прев'ю
+    // 🔥 Оновлена функція форматування (Виправляє баг №2)
     function formatForPreview(text) {
-        // Спочатку екрануємо HTML символи, а потім замінюємо Markdown
-        let safeText = text.replace(/</g, "&lt;").replace(/>/g, "&gt;");
-        
-        // Замінюємо екрановані символи для коректного відображення в прев'ю
-        safeText = safeText.replace(/\\(.)/g, '$1');
+        if (!text) return '';
 
-        return safeText
-            .replace(/\*(.*?)\*/g, '<b>$1</b>') // Bold
-            .replace(/_(.*?)_/g, '<i>$1</i>')   // Italic
-            .replace(/`(.*?)`/g, '<code>$1</code>') // Monospace
-            .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2">$1</a>') // Link
-            .replace(/\n/g, '<br>'); // Newlines
+        // 1. Спочатку екрануємо HTML, щоб уникнути ін'єкцій, 
+        // але НЕ чіпаємо поки що символи Markdown
+        let html = text
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;");
+
+        // 2. Обробка MarkdownV2
+        // Використовуємо [\s\S] замість ., щоб захоплювати переноси рядків
+        
+        // Code Block: ```code```
+        html = html.replace(/```([\s\S]*?)```/g, '<pre>$1</pre>');
+
+        // Inline Code: `code`
+        html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+
+        // Bold: *text* (Telegram style) та **text** (Markdown style)
+        // Важливо: спочатку обробляємо жирний, потім курсив
+        html = html.replace(/\*([\s\S]+?)\*/g, '<b>$1</b>'); 
+        
+        // Italic: _text_ та __text__
+        html = html.replace(/_([\s\S]+?)_/g, '<i>$1</i>');
+
+        // Strikethrough: ~text~
+        html = html.replace(/~([\s\S]+?)~/g, '<s>$1</s>');
+
+        // Spoiler: ||text||
+        html = html.replace(/\|\|([\s\S]+?)\|\|/g, '<span class="tg-spoiler" onclick="this.classList.toggle(\'revealed\')">$1</span>');
+
+        // Links: [text](url)
+        html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>');
+
+        // 3. Обробка переносів рядків
+        html = html.replace(/\n/g, '<br>');
+
+        return html;
     }
 
     // Функція для екранування символів MarkdownV2

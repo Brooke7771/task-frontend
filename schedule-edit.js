@@ -83,28 +83,45 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     let postId = null;
 
-    // --- 🔥 НОВА ФУНКЦІЯ: форматування для попереднього перегляду (Telegram-like MarkdownV2) ---
-    // (Вона обробляє і старий, і новий Markdown, щоб ви бачили коректний результат)
+   // 🔥 Оновлена функція форматування (Виправляє баг №2)
     function formatForPreview(text) {
         if (!text) return '';
-        // 1. Escape HTML tags to avoid XSS
+
+        // 1. Спочатку екрануємо HTML, щоб уникнути ін'єкцій, 
+        // але НЕ чіпаємо поки що символи Markdown
         let html = text
             .replace(/&/g, "&amp;")
             .replace(/</g, "&lt;")
             .replace(/>/g, "&gt;");
 
-        // 2. Telegram-like MarkdownV2 handling (spoiler, bold, italic, strike, code, code block, links)
-        html = html.replace(/\|\|(.*?)\|\|/g, '<span class="tg-spoiler" onclick="this.classList.toggle(\'revealed\')">$1</span>');
-        html = html.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
-        html = html.replace(/(?<!\\)\*(.*?)(?<!\\)\*/g, '<b>$1</b>');
-        html = html.replace(/__(.*?)__/g, '<i>$1</i>');
-        html = html.replace(/(?<!\\)_(.*?)(?<!\\)_/g, '<i>$1</i>');
-        html = html.replace(/(?<!\\)~(.*?)(?<!\\)~/g, '<s>$1</s>');
-        html = html.replace(/(?<!\\)`(.*?)(?<!\\)`/g, '<code>$1</code>');
-        html = html.replace(/```(.*?)```/gs, '<pre>$1</pre>');
-        html = html.replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank">$1</a>');
-        html = html.replace(/\\(.)/g, '$1');
+        // 2. Обробка MarkdownV2
+        // Використовуємо [\s\S] замість ., щоб захоплювати переноси рядків
+        
+        // Code Block: ```code```
+        html = html.replace(/```([\s\S]*?)```/g, '<pre>$1</pre>');
+
+        // Inline Code: `code`
+        html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+
+        // Bold: *text* (Telegram style) та **text** (Markdown style)
+        // Важливо: спочатку обробляємо жирний, потім курсив
+        html = html.replace(/\*([\s\S]+?)\*/g, '<b>$1</b>'); 
+        
+        // Italic: _text_ та __text__
+        html = html.replace(/_([\s\S]+?)_/g, '<i>$1</i>');
+
+        // Strikethrough: ~text~
+        html = html.replace(/~([\s\S]+?)~/g, '<s>$1</s>');
+
+        // Spoiler: ||text||
+        html = html.replace(/\|\|([\s\S]+?)\|\|/g, '<span class="tg-spoiler" onclick="this.classList.toggle(\'revealed\')">$1</span>');
+
+        // Links: [text](url)
+        html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>');
+
+        // 3. Обробка переносів рядків
         html = html.replace(/\n/g, '<br>');
+
         return html;
     }
 
