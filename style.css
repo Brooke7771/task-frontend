@@ -781,133 +781,149 @@ button:disabled {
 }
 
 /* =================================
-   🔥 FAB-МЕНЮ (Glassmorphism) 🔥
+   🔥 FAB-МЕНЮ (Fixed & Always on Top) 🔥
    ================================= */
 .fab-container {
     position: fixed;
-    bottom: 25px;
-    right: 25px;
-    z-index: 1000;
-    /* 7. 🔥 Логіка прозорості */
-    transition: opacity 0.5s ease-out;
-}
-.fab-container.is-idle {
-    opacity: 0.3; /* 👈 Стає прозорою */
-}
-.fab-container:hover {
-    opacity: 1; /* 👈 Стає яскравою при наведенні */
+    bottom: 30px;
+    right: 30px;
+    z-index: 10000; /* 🔥 Завжди поверх усього */
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    
+    /* Анімація руху */
+    transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), opacity 0.4s ease;
+    transform: translateX(0); /* Нормальний стан */
+    opacity: 1;
 }
 
+/* Стан "Спокою" (Idle):
+   Кнопка ховається вправо, залишається видною тільки частину.
+*/
+.fab-container.is-idle {
+    opacity: 0.8;
+    /* Зсуваємо вправо на 60px (ховаємо в "бокове меню") */
+    transform: translateX(60px); 
+}
+
+/* Якщо меню відкрите (.active) - воно НЕ повинно ховатися, 
+   навіть якщо спрацював таймер idle 
+*/
+.fab-container.active.is-idle {
+    transform: translateX(0);
+    opacity: 1;
+}
+
+/* При наведенні мишки - виїжджає назад */
+.fab-container:hover {
+    transform: translateX(0) !important;
+    opacity: 1 !important;
+}
+
+/* Стиль самої кнопки */
 .fab-main {
     width: 60px;
     height: 60px;
-    background-color: var(--color-primary);
+    background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
     color: var(--color-white);
-    :root.dark & { color: #191724; }
     border: none;
     border-radius: 50%;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    /* Тінь щоб виділятися */
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
     position: relative;
     overflow: hidden;
-    transition: background-color 0.3s, transform 0.2s, color 0.3s, box-shadow 0.2s;
+    transition: transform 0.2s, box-shadow 0.2s;
 }
+
+:root.dark .fab-main {
+    background: linear-gradient(135deg, #7c3aed, #4c1d95);
+    color: #fff;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+}
+
+/* Ефект пульсації або збільшення при наведенні */
 .fab-main:hover {
-    background-color: var(--color-primary-dark);
-    transform: scale(1.05);
-    box-shadow: 0 0 20px rgba(var(--color-primary-rgb), 0.7);
+    transform: scale(1.1);
+    box-shadow: 0 0 25px rgba(var(--color-primary-rgb), 0.6);
 }
+
 .fab-main-icon {
     position: absolute;
-    transition: transform 0.2s ease-out, opacity 0.2s ease-out;
+    transition: transform 0.3s ease-out, opacity 0.3s ease-out;
 }
 .fab-icon-menu { transform: scale(1) rotate(0deg); opacity: 1; }
-.fab-icon-close { transform: scale(0) rotate(-45deg); opacity: 0; }
-.fab-container.active .fab-icon-menu { transform: scale(0) rotate(45deg); opacity: 0; }
+.fab-icon-close { transform: scale(0) rotate(-90deg); opacity: 0; }
+
+/* Анімація іконок при відкритті */
+.fab-container.active .fab-icon-menu { transform: scale(0) rotate(90deg); opacity: 0; }
 .fab-container.active .fab-icon-close { transform: scale(1) rotate(0deg); opacity: 1; }
 
+/* Список опцій */
 .fab-options {
     position: absolute;
-    bottom: 70px; 
+    bottom: 75px; 
     right: 0;
     display: flex;
     flex-direction: column;
     gap: 10px;
+    
+    /* Сховано за замовчуванням */
     visibility: hidden;
     opacity: 0;
-    transform: translateY(10px) scale(0.95);
+    transform: translateY(20px) scale(0.8);
     transform-origin: bottom right;
-    transition: all 0.2s ease-out;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Ефект пружини */
+    
+    /* Щоб опції не обрізалися при хованні кнопки */
+    width: max-content;
+    padding-right: 5px; 
 }
+
 .fab-container.active .fab-options {
     visibility: visible;
     opacity: 1;
     transform: translateY(0) scale(1);
 }
+
+/* Стиль кнопок в меню */
 .fab-option, .fab-option-toggle {
     font-family: 'Inter', sans-serif;
-    font-size: 1rem;
+    font-size: 0.95rem;
     border: 1px solid var(--color-border);
     cursor: pointer;
-    width: 100%;
     display: flex;
     align-items: center;
     gap: 12px; 
-    padding: 10px 15px;
+    padding: 10px 16px;
     text-decoration: none;
-    border-radius: var(--border-radius-sm);
+    border-radius: 12px;
     font-weight: 500;
     white-space: nowrap;
-    transition: all 0.2s ease-out;
-    background-color: var(--color-bg-card); /* Скло */
-    backdrop-filter: blur(16px);
+    
+    background-color: var(--color-bg-card);
+    backdrop-filter: blur(20px); /* Сильніше розмиття */
+    -webkit-backdrop-filter: blur(20px);
     color: var(--color-text-dark);
-    box-shadow: var(--shadow-md);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    transition: transform 0.2s;
 }
+
 .fab-option:hover, .fab-option-toggle:hover {
+    transform: translateX(-5px); /* Легкий зсув вліво при наведенні */
     background-color: var(--color-bg-light);
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-lg);
 }
 
-:root.dark .fab-option, :root.dark .fab-option-toggle {
-    background-color: rgba(30, 28, 42, 0.6);
-    border: 1px solid rgba(255, 255, 255, 0.1); 
-    color: var(--color-text-dark);
-}
-:root.dark .fab-option:hover, :root.dark .fab-option-toggle:hover {
-    background-color: rgba(30, 28, 42, 0.8);
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-lg);
-}
-
-/* Активне посилання */
+/* Активний пункт меню */
 .fab-option.active {
     background-color: var(--color-primary);
-    color: var(--color-white);
-    :root.dark & { color: #191724; }
-    font-weight: 600;
-    box-shadow: 0 0 15px rgba(var(--color-primary-rgb), 0.5);
-}
-:root.dark .fab-option.active {
+    color: #fff;
     border-color: var(--color-primary);
 }
-.fab-option.active:hover {
-    background-color: var(--color-primary-dark);
-}
-
-.fab-option svg, .fab-option-toggle svg {
-    width: 20px;
-    height: 20px;
-    stroke: currentColor; 
-}
-.fab-option-toggle .icon-sun { display: none; }
-.fab-option-toggle .icon-moon { display: block; }
-:root.dark .fab-option-toggle .icon-sun { display: block; }
-:root.dark .fab-option-toggle .icon-moon { display: none; }
 
 /* =================================
    ШВИДКІ ПОСИЛАННЯ

@@ -64,57 +64,92 @@
 
         const fabContainer = document.querySelector('.fab-container');
         
-        // --- ❗️ ВИПРАВЛЕННЯ "СТРИБКА" КНОПКИ (pageshow) ❗️ ---
+        // --- Виправлення "стрибка" кнопки при завантаженні ---
         window.addEventListener('pageshow', (event) => {
-            if (fabContainer && fabContainer.classList.contains('active')) {
-                fabContainer.classList.remove('active');
+            if (fabContainer) fabContainer.classList.remove('active');
+        });
+
+        // --- Логіка "Ховання" в бік ---
+        let idleTimer;
+        
+        // Функція: ховаємо кнопку (додаємо клас .is-idle)
+        const setIdle = () => {
+            // Ховаємо, тільки якщо меню НЕ відкрите
+            if (fabContainer && !fabContainer.classList.contains('active')) {
+                fabContainer.classList.add('is-idle');
+            }
+        };
+
+        // Функція: показуємо кнопку (скидаємо таймер)
+        const resetIdleTimer = () => {
+            clearTimeout(idleTimer);
+            if (fabContainer) fabContainer.classList.remove('is-idle');
+            // Через 4 секунди бездіяльності - ховаємо
+            idleTimer = setTimeout(setIdle, 4000);
+        };
+
+        // Запускаємо таймер одразу
+        resetIdleTimer();
+
+        // --- ВАЖЛИВО: Прибираємо 'mousemove' з глобальних подій ---
+        // Тепер кнопка не вилазить, якщо ви просто водите мишкою по центру екрану.
+        // Вона вилізе тільки якщо ви наведете на неї (CSS :hover) або почнете скролити/писати.
+        ['scroll', 'touchstart', 'click', 'keypress'].forEach(event => 
+            document.addEventListener(event, resetIdleTimer)
+        );
+
+        // Якщо навели мишку саме на кнопку - вона прокидається і не ховається
+        if (fabContainer) {
+            fabContainer.addEventListener('mouseenter', () => {
+                clearTimeout(idleTimer);
+                fabContainer.classList.remove('is-idle');
+            });
+            
+            // Коли мишка йде з кнопки - запускаємо таймер знову
+            fabContainer.addEventListener('mouseleave', resetIdleTimer);
+        }
+
+        // --- Логіка кліку (відкриття меню) ---
+        document.getElementById('fab-toggle').addEventListener('click', (e) => {
+            e.stopPropagation(); // Щоб не спрацював клік на document
+            fabContainer.classList.toggle('active');
+            
+            // Якщо відкрили - прибираємо idle
+            if (fabContainer.classList.contains('active')) {
+                fabContainer.classList.remove('is-idle');
+                clearTimeout(idleTimer);
+            } else {
+                resetIdleTimer();
             }
         });
 
-        // --- ❗️ НОВА ФІЧА: "ЗГАСАННЯ" КНОПКИ ❗️ ---
-        let idleTimer;
-        const setIdle = () => fabContainer.classList.add('is-idle');
-        const resetIdleTimer = () => {
-            clearTimeout(idleTimer);
-            fabContainer.classList.remove('is-idle');
-            idleTimer = setTimeout(setIdle, 5000);
-        };
-        resetIdleTimer();
-        ['mousemove', 'keypress', 'scroll', 'touchstart'].forEach(event => document.addEventListener(event, resetIdleTimer));
-        fabContainer.addEventListener('mouseenter', () => fabContainer.classList.remove('is-idle'));
-
-        // --- СТАРА ЛОГІКА (без змін) ---
-        document.getElementById('fab-toggle').addEventListener('click', () => {
-            fabContainer.classList.toggle('active');
-        });
+        // Закриття при кліку поза кнопкою
         document.addEventListener('click', (e) => {
             if (fabContainer && fabContainer.classList.contains('active') && !fabContainer.contains(e.target)) {
                 fabContainer.classList.remove('active');
+                resetIdleTimer();
             }
         });
         
+        // ... (код активного посилання та теми залишається без змін) ...
         try {
             const currentPage = window.location.pathname.split('/').pop() || 'index.html';
             document.querySelectorAll('.fab-option[href]').forEach(link => {
-                if (link.getAttribute('href') === (currentPage || 'chat.html')) {
+                // Спрощена перевірка
+                if (link.getAttribute('href') === currentPage) {
                     link.classList.add('active');
                 }
             });
-        } catch (e) { console.error("Failed to set active link", e); }
+        } catch (e) { console.error(e); }
 
         (function() {
             const themeToggle = document.getElementById('theme-toggle');
             const htmlEl = document.documentElement;
             const savedTheme = localStorage.getItem('theme');
-            if (savedTheme === 'light') {
-                htmlEl.classList.remove('dark');
-            } else {
-                htmlEl.classList.add('dark');
-            }
-            themeToggle.addEventListener('click', () => {
-                htmlEl.classList.toggle('dark');
-                const isDark = htmlEl.classList.contains('dark');
-                localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            if (savedTheme === 'light') htmlEl.classList.remove('dark'); else htmlEl.classList.add('dark');
+            themeToggle.addEventListener('click', () => { 
+                htmlEl.classList.toggle('dark'); 
+                localStorage.setItem('theme', htmlEl.classList.contains('dark') ? 'dark' : 'light'); 
             });
         })();
     </script>
