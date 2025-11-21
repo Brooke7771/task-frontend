@@ -8,8 +8,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById('taskForm');
     const statusMessage = document.getElementById('statusMessage');
     
-    // Видалено: const backendUrl = '...'; // Тепер це не потрібно, бо URL є в api.js
-
     // Визначення шаблонів
     const templates = {
         simple: {
@@ -35,12 +33,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 { id: 'details', label: 'Додаткова інформація', type: 'textarea', placeholder: 'Будь-які деталі...' }
             ],
             formatter: (data) => {
-                // --- ОСНОВНА ЗМІНА ТУТ ---
-                // Додаємо екранування для дефіса, який створює список
                 const itemsList = (data.items || '')
                     .split('\n')
-                    .filter(item => item.trim() !== '') // Ігноруємо порожні рядки
-                    .map(item => `\\- ${escapeMarkdown(item.trim())}`) // Додаємо \\-
+                    .filter(item => item.trim() !== '') 
+                    .map(item => `\\- ${escapeMarkdown(item.trim())}`) 
                     .join('\n');
                 return `*${escapeMarkdown(data.topic || 'Завдання')}*\n\n${itemsList}\n\n_${escapeMarkdown(data.details || '')}_`;
             }
@@ -91,7 +87,9 @@ document.addEventListener('DOMContentLoaded', () => {
             inputElement.name = field.id;
             inputElement.placeholder = field.placeholder || '';
             inputElement.required = true;
-            inputElement.addEventListener('input', updatePreview);
+            
+            // Додаємо слухач для оновлення прев'ю при введенні
+            inputElement.addEventListener('input', () => updatePreview());
 
             group.appendChild(label);
             group.appendChild(inputElement);
@@ -99,72 +97,54 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     
-    // Функція для оновлення попереднього перегляду
-    function updatePreview(isManualEdit = false) {
+    // --- 🔥 ВИПРАВЛЕНА ФУНКЦІЯ updatePreview ---
+    function updatePreview() {
         const templateId = templateSelect.value;
         const template = templates[templateId];
         if (!template) return;
 
-        if (postTextInput && previewContent) {
-            // .trimStart() видаляє порожні рядки на самому початку тексту
-            const text = (postTextInput.value || '').trimStart(); 
-            previewContent.innerHTML = formatForPreview(text);
-        }
-
+        // Збираємо дані з форми
         const formData = new FormData(form);
         const data = {};
-        for (const [key, value] of formData.entries()) {
-            data[key] = value;
-        }
+        // Важливо: проходимося по полях шаблону, щоб взяти значення за ID
+        template.fields.forEach(field => {
+            const input = document.getElementById(field.id);
+            if (input) data[field.id] = input.value;
+        });
         
+        // Генеруємо Markdown текст
         const markdownText = template.formatter(data);
-        previewContent.innerHTML = formatForPreview(markdownText);
+        
+        // Оновлюємо HTML прев'ю
+        if (previewContent) {
+            previewContent.innerHTML = formatForPreview(markdownText);
+        }
     }
     
-    // Функція для перетворення Markdown в HTML для прев'ю
-    // 🔥 Оновлена функція форматування (Виправляє баг №2)
+    // Функція форматування для HTML-прев'ю
     function formatForPreview(text) {
         if (!text) return '';
 
-        // 1. Спочатку екрануємо HTML, щоб уникнути ін'єкцій, 
-        // але НЕ чіпаємо поки що символи Markdown
         let html = text
             .replace(/&/g, "&amp;")
             .replace(/</g, "&lt;")
             .replace(/>/g, "&gt;");
 
-        // 2. Обробка MarkdownV2
-        // Використовуємо [\s\S] замість ., щоб захоплювати переноси рядків
-        
-        // Code Block: ```code```
+        // Обробка MarkdownV2
         html = html.replace(/```([\s\S]*?)```/g, '<pre>$1</pre>');
-
-        // Inline Code: `code`
         html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
-
-        // Bold: *text* (Telegram style) та **text** (Markdown style)
-        // Важливо: спочатку обробляємо жирний, потім курсив
         html = html.replace(/\*([\s\S]+?)\*/g, '<b>$1</b>'); 
-        
-        // Italic: _text_ та __text__
         html = html.replace(/_([\s\S]+?)_/g, '<i>$1</i>');
-
-        // Strikethrough: ~text~
         html = html.replace(/~([\s\S]+?)~/g, '<s>$1</s>');
-
-        // Spoiler: ||text||
         html = html.replace(/\|\|([\s\S]+?)\|\|/g, '<span class="tg-spoiler" onclick="this.classList.toggle(\'revealed\')">$1</span>');
-
-        // Links: [text](url)
         html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>');
-
-        // 3. Обробка переносів рядків
+        html = html.replace(/\\([-.!])/g, '$1'); // Прибираємо екранування символів для прев'ю
         html = html.replace(/\n/g, '<br>');
 
         return html;
     }
 
-    // Функція для екранування символів MarkdownV2
+    // Функція для екранування символів MarkdownV2 (для відправки на сервер)
     function escapeMarkdown(text) {
         if (!text) return '';
         const charsToEscape = '_*[]()~`>#+-=|{}.!';
@@ -180,6 +160,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const templateId = templateSelect.value;
         const template = templates[templateId];
 
+        // Збираємо фінальний текст
         const formData = new FormData(form);
         const data = {};
         template.fields.forEach(field => data[field.id] = formData.get(field.id));
@@ -193,9 +174,7 @@ document.addEventListener('DOMContentLoaded', () => {
             submissionData.append('task_photo', formData.get('task_photo'));
         }
 
-        // --- ВИПРАВЛЕНИЙ БЛОК ---
         try {
-            // Використовуємо імпортовану функцію 'createTask' замість 'fetch'
             await createTask(submissionData);
 
             statusMessage.textContent = 'Завдання успішно створено!';
@@ -208,7 +187,6 @@ document.addEventListener('DOMContentLoaded', () => {
             statusMessage.textContent = 'Помилка! Не вдалося створити завдання.';
             statusMessage.className = 'error';
         }
-        // --- КІНЕЦЬ ВИПРАВЛЕНОГО БЛОКУ ---
     });
 
     // Ініціалізація
