@@ -46,3 +46,11 @@ export const sendChatMessage = (prompt) => apiFetch('/api/chat', {
     },
     body: JSON.stringify({ prompt }),
 });
+
+// --- API для Налаштувань ---
+export const getSettings = () => apiFetch('/api/settings');
+export const updateSettings = (data) => apiFetch('/api/settings', { 
+    method: 'POST', 
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data) 
+});

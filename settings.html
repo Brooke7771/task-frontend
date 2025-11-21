@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="uk" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Налаштування Бота</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="container-main">
+        <div class="card"> 
+            <h1>Налаштування AI 🧠</h1>
+            <p style="color: var(--color-text-light); margin-bottom: 20px;">
+                Тут ви можете налаштувати системний промпт, який використовує нейромережа для переписування новин.
+            </p>
+            
+            <form id="settingsForm">
+                <div class="form-group">
+                    <label for="system_prompt">Системний Промпт:</label>
+                    <textarea id="system_prompt" name="system_prompt" rows="12" required></textarea>
+                    <small class="form-hint">Використовуйте цей текст, щоб задати тон, стиль та правила форматування.</small>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="submit" id="saveBtn" class="btn btn-primary">Зберегти налаштування</button>
+                    <button type="button" id="resetBtn" class="btn btn-warning">Скинути до базового</button>
+                </div>
+            </form>
+            <div id="statusMessage"></div>
+        </div>
+    </div>
+
+    <script type="module" src="settings.js"></script>
+
+    <div class="fab-container">
+        <div class="fab-options">
+            <a href="index.html" class="fab-option"><i data-feather="plus-circle"></i><span>Створити Завдання</span></a>
+            <a href="task-list.html" class="fab-option"><i data-feather="list"></i><span>Список Завдань</span></a>
+            <a href="schedule.html" class="fab-option"><i data-feather="calendar"></i><span>Запланувати Пост</span></a>
+            <a href="schedule-list.html" class="fab-option"><i data-feather="clock"></i><span>Список Постів</span></a>
+            <a href="chat.html" class="fab-option"><i data-feather="message-circle"></i><span>AI Чат</span></a>
+            <a href="settings.html" class="fab-option active"><i data-feather="settings"></i><span>Налаштування</span></a>
+            <button class="fab-option-toggle" id="theme-toggle">
+                <i class="icon-moon" data-feather="moon"></i>
+                <i class="icon-sun" data-feather="sun"></i>
+                <span>Змінити тему</span>
+            </button>
+        </div>
+        <button class="fab-main" id="fab-toggle">
+            <i class="fab-main-icon fab-icon-menu" data-feather="menu"></i>
+            <i class="fab-main-icon fab-icon-close" data-feather="x"></i>
+        </button>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    <script>
+        feather.replace(); 
+        const fabContainer = document.querySelector('.fab-container');
+        // (Код FAB меню такий самий, як і на інших сторінках)
+        window.addEventListener('pageshow', () => fabContainer.classList.remove('active'));
+        let idleTimer;
+        const setIdle = () => fabContainer.classList.add('is-idle');
+        const resetIdleTimer = () => { clearTimeout(idleTimer); fabContainer.classList.remove('is-idle'); idleTimer = setTimeout(setIdle, 5000); };
+        resetIdleTimer();
+        ['mousemove', 'keypress', 'scroll', 'touchstart'].forEach(e => document.addEventListener(e, resetIdleTimer));
+        fabContainer.addEventListener('mouseenter', () => fabContainer.classList.remove('is-idle'));
+        document.getElementById('fab-toggle').addEventListener('click', () => fabContainer.classList.toggle('active'));
+        document.addEventListener('click', (e) => { if (fabContainer.classList.contains('active') && !fabContainer.contains(e.target)) fabContainer.classList.remove('active'); });
+        
+        (function() {
+            const themeToggle = document.getElementById('theme-toggle');
+            const htmlEl = document.documentElement;
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'light') htmlEl.classList.remove('dark'); else htmlEl.classList.add('dark');
+            themeToggle.addEventListener('click', () => { htmlEl.classList.toggle('dark'); localStorage.setItem('theme', htmlEl.classList.contains('dark') ? 'dark' : 'light'); });
+        })();
+    </script>
+</body>
+</html>
