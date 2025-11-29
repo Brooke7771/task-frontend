@@ -8,6 +8,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    <script src="auth-guard.js"></script>
 </head>
 <body>
 
@@ -38,6 +39,9 @@
 
     <div class="fab-container">
         <div class="fab-options">
+            <a href="#" onclick="logout(); return false;" class="fab-option" style="color: var(--color-danger);">
+    <i data-feather="log-out"></i><span>Вийти</span>
+</a>
             <a href="index.html" class="fab-option"><i data-feather="plus-circle"></i><span>Створити Завдання</span></a>
             <a href="task-list.html" class="fab-option"><i data-feather="list"></i><span>Список Завдань</span></a>
             <a href="schedule.html" class="fab-option"><i data-feather="calendar"></i><span>Запланувати Пост</span></a>
