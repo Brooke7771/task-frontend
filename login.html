@@ -63,6 +63,9 @@
         const usernameInput = document.getElementById('username');
         const passwordInput = document.getElementById('password');
 
+        // 🔥 ВАЖЛИВО: Вказуємо повну адресу бекенду на Heroku
+        const backendUrl = 'https://my-telegram-task-bot-5c4258bd3f9b.herokuapp.com';
+
         let isLoginMode = true;
 
         // Перевірка, чи ми вже залогінені
@@ -90,7 +93,10 @@
             message.className = '';
             message.textContent = 'Обробка...';
 
-            const endpoint = isLoginMode ? '/api/auth/login' : '/api/auth/register';
+            // 🔥 ВИПРАВЛЕННЯ: Додаємо backendUrl до шляху
+            const path = isLoginMode ? '/api/auth/login' : '/api/auth/register';
+            const endpoint = `${backendUrl}${path}`;
+
             const data = {
                 username: usernameInput.value,
                 password: passwordInput.value
@@ -123,6 +129,7 @@
                     const errorText = await response.text();
                     message.className = 'error';
                     message.textContent = isLoginMode ? 'Невірний логін або пароль' : 'Помилка реєстрації (логін зайнятий?)';
+                    console.error('Server error:', errorText);
                 }
             } catch (error) {
                 console.error(error);
