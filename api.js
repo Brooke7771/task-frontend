@@ -55,12 +55,15 @@ export const updateSettings = (data) => apiFetch('/api/settings', {
     body: JSON.stringify(data) 
 });
 
-// --- API для Білого списку ---
+// --- 🔥 ДОДАНО: API для Білого Списку ---
 export const getWhitelist = () => apiFetch('/api/whitelist');
-export const addWhitelistUser = (id, note) => apiFetch('/api/whitelist', { 
-    method: 'POST', 
+
+export const addWhitelistUser = (telegram_id, note) => apiFetch('/api/whitelist', {
+    method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ telegram_id: parseInt(telegram_id), note: note }) 
+    body: JSON.stringify({ telegram_id: parseInt(telegram_id), note: note })
 });
 
-export const deleteWhitelistUser = (id) => apiFetch(`/api/whitelist/${id}/delete`, { method: 'POST' });
+export const deleteWhitelistUser = (telegram_id) => apiFetch(`/api/whitelist/${telegram_id}/delete`, { 
+    method: 'POST' 
+});

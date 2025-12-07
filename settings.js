@@ -8,9 +8,8 @@ import {
 } from './api.js';
 
 document.addEventListener('DOMContentLoaded', () => {
-    // --- backendUrl визначено в settings.js ---
-    const backendUrl = 'https://my-telegram-task-bot-5c4258bd3f9b.herokuapp.com'
 
+    const backendUrl = 'https://my-telegram-task-bot-5c4258bd3f9b.herokuapp.com'
     // --- Елементи для Налаштувань AI ---
     const promptInput = document.getElementById('system_prompt');
     const settingsForm = document.getElementById('settingsForm');
