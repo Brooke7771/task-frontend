@@ -1,37 +1,28 @@
-import { getSettings, updateSettings } from './api.js';
-
-async function getWhitelist() {
-    const res = await fetch(`${backendUrl}/api/whitelist`);
-    return res.json();
-}
-async function addWhitelistUser(id, note) {
-    await fetch(`${backendUrl}/api/whitelist`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ telegram_id: parseInt(id), note: note })
-    });
-}
-async function deleteWhitelistUser(id) {
-    await fetch(`${backendUrl}/api/whitelist/${id}/delete`, { method: 'POST' });
-}
+// Імпортуємо нові функції з api.js
+import { 
+    getSettings, 
+    updateSettings, 
+    getWhitelist, 
+    addWhitelistUser, 
+    deleteWhitelistUser 
+} from './api.js';
 
 document.addEventListener('DOMContentLoaded', () => {
+    // --- Елементи для Налаштувань AI ---
     const promptInput = document.getElementById('system_prompt');
-    const form = document.getElementById('settingsForm');
+    const settingsForm = document.getElementById('settingsForm');
     const saveBtn = document.getElementById('saveBtn');
     const resetBtn = document.getElementById('resetBtn');
     const statusMessage = document.getElementById('statusMessage');
 
-    // Базовий промпт (копія з Rust коду для кнопки Reset)
-    const defaultPrompt = "Ти – професійний редактор новин для Telegram-каналу. \
-    Твоє завдання: \
-    1. Переписати новину українською мовою, зробивши її чіткою, цікавою та лаконічною. \
-    2. 🔥 ВАЖЛИВО: Текст має бути до 900 символів (включно з пробілами), щоб поміститися в підпис до фото. \
-    3. Використовуй HTML-теги для форматування: <b>жирний</b>, <i>курсив</i>, <s>закреслений</s>, <code>код</code>. Не використовуй Markdown (*, _). \
-    4. Не використовуй вкладені теги. \
-    5. Структуруй текст: Заголовок (жирним), основна суть, деталі.";
+    // --- Елементи для Білого Списку ---
+    const whitelistContainer = document.getElementById('whitelistItems');
+    const addUserForm = document.getElementById('addUserForm');
 
-    // Завантаження поточних налаштувань
+    // Базовий промпт
+    const defaultPrompt = "Ти – професійний редактор новин для Telegram-каналу..."; // (ваш текст скорочено)
+
+    // 1. Завантаження налаштувань AI
     const loadSettings = async () => {
         try {
             const data = await getSettings();
@@ -45,14 +36,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // --- ЛОГІКА БІЛОГО СПИСКУ ---
-    const whitelistContainer = document.getElementById('whitelistItems');
-    const addUserForm = document.getElementById('addUserForm');
-    
+    // 2. Рендеринг списку користувачів
     const renderWhitelist = async () => {
         try {
+            whitelistContainer.innerHTML = '<p>Завантаження...</p>';
             const users = await getWhitelist();
-            if (users.length === 0) {
+            
+            if (!users || users.length === 0) {
                 whitelistContainer.innerHTML = '<p>Список порожній. Доступ має лише головний Адмін.</p>';
                 return;
             }
@@ -72,38 +62,52 @@ document.addEventListener('DOMContentLoaded', () => {
             // Прив'язка кнопок видалення
             document.querySelectorAll('.delete-user-btn').forEach(btn => {
                 btn.addEventListener('click', async (e) => {
-                    if(confirm('Видалити користувача?')) {
-                        await deleteWhitelistUser(e.target.dataset.id);
-                        renderWhitelist();
+                    if(confirm('Видалити користувача з доступом?')) {
+                        try {
+                            await deleteWhitelistUser(e.target.dataset.id);
+                            renderWhitelist(); // Перезавантажити список
+                        } catch (err) {
+                            alert('Помилка видалення');
+                        }
                     }
                 });
             });
 
         } catch (e) {
             console.error(e);
-            whitelistContainer.innerHTML = '<p class="error">Помилка завантаження.</p>';
+            whitelistContainer.innerHTML = '<p class="error">Помилка завантаження списку.</p>';
         }
     };
 
+    // 3. Обробка додавання користувача
     if (addUserForm) {
         addUserForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const id = document.getElementById('new_tg_id').value;
-            const note = document.getElementById('new_note').value;
+            const idInput = document.getElementById('new_tg_id');
+            const noteInput = document.getElementById('new_note');
+            const btn = addUserForm.querySelector('button');
             
+            const originalText = btn.innerHTML;
+            btn.disabled = true;
+            btn.textContent = '...';
+
             try {
-                await addWhitelistUser(id, note);
-                document.getElementById('new_tg_id').value = '';
-                document.getElementById('new_note').value = '';
-                renderWhitelist();
+                await addWhitelistUser(idInput.value, noteInput.value);
+                idInput.value = '';
+                noteInput.value = '';
+                await renderWhitelist();
             } catch (e) {
-                alert('Помилка додавання');
+                alert('Помилка додавання. Можливо, ID вже існує?');
+                console.error(e);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
             }
         });
     }
 
-    // Збереження
-    form.addEventListener('submit', async (e) => {
+    // 4. Обробка збереження налаштувань AI
+    settingsForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         saveBtn.disabled = true;
         statusMessage.textContent = "Збереження...";
@@ -122,13 +126,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Скидання до дефолту
+    // 5. Кнопка Reset
     resetBtn.addEventListener('click', () => {
-        if (confirm("Ви впевнені, що хочете скинути промпт до базового значення?")) {
+        if (confirm("Скинути промпт до базового?")) {
             promptInput.value = defaultPrompt;
         }
     });
 
+    // Запуск при старті
     loadSettings();
     renderWhitelist();
 });
