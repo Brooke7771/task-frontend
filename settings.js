@@ -1,4 +1,5 @@
-// Імпортуємо нові функції з api.js
+// TG/frontend/settings.js
+
 import { 
     getSettings, 
     updateSettings, 
@@ -8,23 +9,18 @@ import {
 } from './api.js';
 
 document.addEventListener('DOMContentLoaded', () => {
-
-    const backendUrl = 'https://my-telegram-task-bot-5c4258bd3f9b.herokuapp.com'
-    // --- Елементи для Налаштувань AI ---
+    // Елементи DOM
     const promptInput = document.getElementById('system_prompt');
     const settingsForm = document.getElementById('settingsForm');
     const saveBtn = document.getElementById('saveBtn');
     const resetBtn = document.getElementById('resetBtn');
     const statusMessage = document.getElementById('statusMessage');
-
-    // --- Елементи для Білого Списку ---
     const whitelistContainer = document.getElementById('whitelistItems');
     const addUserForm = document.getElementById('addUserForm');
 
-    // Базовий промпт
-    const defaultPrompt = "Ти – професійний редактор новин для Telegram-каналу..."; // (ваш текст скорочено)
+    const defaultPrompt = "Ти – професійний редактор новин для Telegram-каналу...";
 
-    // 1. Завантаження налаштувань AI
+    // 1. Завантаження налаштувань
     const loadSettings = async () => {
         try {
             const data = await getSettings();
@@ -38,7 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // 2. Рендеринг списку користувачів
+    // 2. Завантаження списку користувачів
     const renderWhitelist = async () => {
         try {
             whitelistContainer.innerHTML = '<p>Завантаження...</p>';
@@ -61,13 +57,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 </li>
             `).join('') + '</ul>';
 
-            // Прив'язка кнопок видалення
+            // Кнопки видалення
             document.querySelectorAll('.delete-user-btn').forEach(btn => {
                 btn.addEventListener('click', async (e) => {
-                    if(confirm('Видалити користувача з доступом?')) {
+                    if(confirm('Видалити користувача?')) {
                         try {
                             await deleteWhitelistUser(e.target.dataset.id);
-                            renderWhitelist(); // Перезавантажити список
+                            renderWhitelist(); 
                         } catch (err) {
                             alert('Помилка видалення');
                         }
@@ -81,25 +77,32 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // 3. Обробка додавання користувача
+    // 3. Додавання користувача
     if (addUserForm) {
         addUserForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const idInput = document.getElementById('new_tg_id');
             const noteInput = document.getElementById('new_note');
-            const btn = addUserForm.querySelector('button');
             
+            // Валідація
+            if (!idInput.value) {
+                alert("Введіть ID");
+                return;
+            }
+
+            const btn = addUserForm.querySelector('button');
             const originalText = btn.innerHTML;
             btn.disabled = true;
             btn.textContent = '...';
 
             try {
+                // Використовуємо функцію з api.js
                 await addWhitelistUser(idInput.value, noteInput.value);
                 idInput.value = '';
                 noteInput.value = '';
-                await renderWhitelist();
+                renderWhitelist();
             } catch (e) {
-                alert('Помилка додавання. Можливо, ID вже існує?');
+                alert('Помилка додавання. Перевірте консоль.');
                 console.error(e);
             } finally {
                 btn.disabled = false;
@@ -108,34 +111,37 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // 4. Обробка збереження налаштувань AI
-    settingsForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        saveBtn.disabled = true;
-        statusMessage.textContent = "Збереження...";
-        statusMessage.className = "";
+    // 4. Збереження налаштувань AI
+    if (settingsForm) {
+        settingsForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            saveBtn.disabled = true;
+            statusMessage.textContent = "Збереження...";
+            statusMessage.className = "";
 
-        try {
-            await updateSettings({ system_prompt: promptInput.value });
-            statusMessage.textContent = "Налаштування успішно збережено!";
-            statusMessage.className = "success";
-        } catch (error) {
-            console.error(error);
-            statusMessage.textContent = "Помилка збереження.";
-            statusMessage.className = "error";
-        } finally {
-            saveBtn.disabled = false;
-        }
-    });
+            try {
+                await updateSettings({ system_prompt: promptInput.value });
+                statusMessage.textContent = "Налаштування успішно збережено!";
+                statusMessage.className = "success";
+            } catch (error) {
+                console.error(error);
+                statusMessage.textContent = "Помилка збереження.";
+                statusMessage.className = "error";
+            } finally {
+                saveBtn.disabled = false;
+            }
+        });
+    }
 
-    // 5. Кнопка Reset
-    resetBtn.addEventListener('click', () => {
-        if (confirm("Скинути промпт до базового?")) {
-            promptInput.value = defaultPrompt;
-        }
-    });
+    if (resetBtn) {
+        resetBtn.addEventListener('click', () => {
+            if (confirm("Скинути промпт до базового?")) {
+                promptInput.value = defaultPrompt;
+            }
+        });
+    }
 
-    // Запуск при старті
+    // Старт
     loadSettings();
     renderWhitelist();
 });

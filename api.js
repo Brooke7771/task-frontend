@@ -1,5 +1,6 @@
-// frontend/api.js
+// TG/frontend/api.js
 
+// 🔥 Ваша адреса бекенду
 export const backendUrl = 'https://my-telegram-task-bot-5c4258bd3f9b.herokuapp.com';
 
 async function apiFetch(endpoint, options = {}) {
@@ -25,25 +26,19 @@ export const getTasks = () => apiFetch('/api/tasks');
 export const createTask = (formData) => apiFetch('/submit_task', { method: 'POST', body: formData });
 export const handleTaskAction = (taskId, action, userId) => apiFetch(`/api/tasks/${taskId}/${action}/${userId}`, { method: 'POST' });
 
-// --- API для запланованих постів ---
+// --- API для постів ---
 export const getScheduledPosts = () => apiFetch('/api/scheduled_posts');
 export const schedulePost = (formData) => apiFetch('/api/schedule_post', { method: 'POST', body: formData });
 export const deleteScheduledPost = (postId) => apiFetch(`/api/scheduled_posts/${postId}/delete`, { method: 'POST' });
 export const postScheduledNow = (postId) => apiFetch(`/api/scheduled_posts/${postId}/post_now`, { method: 'POST' });
-// --- 🔥 НОВІ ФУНКЦІЇ ДЛЯ РЕДАГУВАННЯ ---
 export const getScheduledPostById = (postId) => apiFetch(`/api/scheduled_posts/${postId}`);
 export const updateScheduledPost = (postId, formData) => apiFetch(`/api/scheduled_posts/${postId}/update`, { method: 'POST', body: formData });
-
-
-// --- API для публікації новин ---
 export const postNewsNow = (formData) => apiFetch('/api/post_now', { method: 'POST', body: formData });
 
 // --- API для чат-бота ---
 export const sendChatMessage = (prompt) => apiFetch('/api/chat', {
     method: 'POST',
-    headers: {
-        'Content-Type': 'application/json',
-    },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ prompt }),
 });
 
@@ -55,7 +50,7 @@ export const updateSettings = (data) => apiFetch('/api/settings', {
     body: JSON.stringify(data) 
 });
 
-// --- 🔥 ДОДАНО: API для Білого Списку ---
+// --- 🔥 ВАЖЛИВО: API для Білого Списку ---
 export const getWhitelist = () => apiFetch('/api/whitelist');
 
 export const addWhitelistUser = (telegram_id, note) => apiFetch('/api/whitelist', {
