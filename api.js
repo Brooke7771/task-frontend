@@ -62,3 +62,17 @@ export const addWhitelistUser = (telegram_id, note) => apiFetch('/api/whitelist'
 export const deleteWhitelistUser = (telegram_id) => apiFetch(`/api/whitelist/${telegram_id}/delete`, { 
     method: 'POST' 
 });
+export const getChannels = () => apiFetch('/api/channels');
+
+export const addChannel = (telegram_id, title) => apiFetch('/api/channels', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ 
+        telegram_id: parseInt(telegram_id), // Важливо перетворити в число
+        title: title 
+    })
+});
+
+export const deleteChannel = (db_id) => apiFetch(`/api/channels/${db_id}/delete`, { 
+    method: 'POST' 
+});
