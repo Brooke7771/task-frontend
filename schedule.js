@@ -1,9 +1,10 @@
-import { schedulePost, postNewsNow } from './api.js';
+import { schedulePost, postNewsNow, getChannels } from './api.js';
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     try {
         // Елементи DOM
         const templateSelect = document.getElementById('template-select');
+        const channelSelect = document.getElementById('channel_select'); // 🔥 Додано селект каналів
         const dynamicFieldsContainer = document.getElementById('dynamic-form-fields');
         const previewContent = document.getElementById('preview-content');
         const form = document.getElementById('postForm');
@@ -22,6 +23,29 @@ document.addEventListener('DOMContentLoaded', () => {
         // Контейнери прев'ю
         const mediaContainer = document.getElementById('preview-media');
         const timeBadge = document.getElementById('preview-time');
+
+        // --- 🔥 ЛОГІКА ЗАВАНТАЖЕННЯ КАНАЛІВ ---
+        const loadChannelsForSelect = async () => {
+            if (!channelSelect) return;
+            try {
+                const channels = await getChannels();
+                
+                // Очищаємо та додаємо дефолтну опцію
+                channelSelect.innerHTML = '<option value="">За замовчуванням (з конфігу)</option>';
+                
+                if (channels && channels.length > 0) {
+                    channels.forEach(channel => {
+                        const option = document.createElement('option');
+                        option.value = channel.telegram_id; // Важливо: ID каналу для бекенду
+                        option.textContent = channel.title;
+                        channelSelect.appendChild(option);
+                    });
+                }
+            } catch (e) {
+                console.error("Не вдалося завантажити канали:", e);
+                // Можна додати візуальне повідомлення про помилку в консоль або UI
+            }
+        };
 
         // Оновлення часу
         const updateTime = () => {
@@ -249,7 +273,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
 
-        // --- 🔥 ОНОВЛЕНА ФУНКЦІЯ ПРЕВ'Ю З ПІДТРИМКОЮ ШАБЛОНІВ ---
+        // --- ОНОВЛЕНА ФУНКЦІЯ ПРЕВ'Ю ---
         function updatePreview(isManualEdit = false) {
             let finalText = '';
 
@@ -266,7 +290,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     // Форматуємо текст через шаблон
                     finalText = template.formatter(data);
                     
-                    // 🔥 Оновлюємо головне приховане поле, щоб дані відправились на сервер
+                    // 🔥 Оновлюємо головне приховане поле
                     if (postTextInput) postTextInput.value = finalText;
                 }
             } else {
@@ -294,7 +318,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        // --- Форматування (Копія з edit.js) ---
+        // --- Форматування ---
         function formatForPreview(text) {
             if (!text) return '';
             let html = text
@@ -342,6 +366,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const submissionData = new FormData();
             submissionData.append('post_text', finalPostText);
 
+            // 🔥 Додаємо ID каналу, якщо він обраний
+            if (channelSelect && channelSelect.value) {
+                submissionData.append('target_channel_id', channelSelect.value);
+            }
+
             if (isScheduling) {
                 submissionData.append('post_at', new Date(postAtInput.value).toISOString());
             }
@@ -367,6 +396,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 mediaContainer.style.display = 'none';
                 renderFormFields(templateSelect.value);
                 postTextInput.value = '';
+                
+                // Перезавантажуємо канали (щоб скинути вибір)
+                loadChannelsForSelect();
+                
                 updatePreview(false);
             } catch (error) {
                 statusMessage.textContent = 'Помилка!';
@@ -394,9 +427,12 @@ document.addEventListener('DOMContentLoaded', () => {
             updatePreview(false);
         });
 
-        // Ініціалізація
+        // --- 🔥 Ініціалізація ---
         renderFormFields(templateSelect.value);
-        updatePreview(false); // 🔥 Викликаємо оновлення для початкового відображення шаблону
+        updatePreview(false);
+        
+        // Викликаємо завантаження каналів
+        await loadChannelsForSelect();
 
     } catch (e) {
         console.error('Error initializing schedule page:', e);
