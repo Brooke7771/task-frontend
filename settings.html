@@ -33,6 +33,66 @@
             </form>
             <div id="statusMessage"></div>
         </div>
+
+        <hr style="border: 0; border-top: 1px solid var(--color-border); margin: 30px 0;">
+
+        <h2>👥 Довірені користувачі (Редактори)</h2>
+        <p style="color: var(--color-text-light); margin-bottom: 20px;">
+            Ці користувачі можуть пересилати повідомлення боту для обробки AI.
+        </p>
+        <div class="whitelist-container card">
+            <form id="addUserForm" style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px;">
+                <input type="text" id="new_tg_id" placeholder="Telegram ID" required style="flex: 1;">
+                <input type="text" id="new_note" placeholder="Нотатка (Ім'я)" required style="flex: 1;">
+                <button type="submit" class="btn btn-success" style="width: auto;">Додати</button>
+            </form>
+            <div id="whitelistItems" class="user-list">
+                <p>Завантаження...</p>
+            </div>
+        </div>
+
+        <hr style="border: 0; border-top: 1px solid var(--color-border); margin: 30px 0;">
+
+        <h2>📢 Керування Каналами</h2>
+        <div class="whitelist-container card">
+            <form id="addChannelForm" style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px;">
+                <input type="text" id="channel_id" placeholder="ID каналу (-100...)" required style="flex: 1;">
+                <input type="text" id="channel_title" placeholder="Назва каналу" required style="flex: 1;">
+                <button type="submit" class="btn btn-success" style="width: auto;">Додати канал</button>
+            </form>
+            <div id="channelsList" class="user-list"></div>
+        </div>
+
+        <hr style="border: 0; border-top: 1px solid var(--color-border); margin: 30px 0;">
+
+        <h2>🔐 Доступ Редакторів до Каналів</h2>
+        <p style="color: var(--color-text-light); margin-bottom: 20px;">
+            Прив'яжіть редакторів до каналів, у які вони можуть публікувати. Адміністратор завжди має доступ до всіх каналів.
+        </p>
+
+        <div class="whitelist-container card">
+            <form id="grantAccessForm" style="display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 20px;">
+                <div style="flex: 1; min-width: 200px;">
+                    <label for="perm_user_select">Редактор:</label>
+                    <select id="perm_user_select" required style="width: 100%; padding: 10px;">
+                        <option value="">Оберіть користувача...</option>
+                    </select>
+                </div>
+                <div style="flex: 1; min-width: 200px;">
+                    <label for="perm_channel_select">Канал:</label>
+                    <select id="perm_channel_select" required style="width: 100%; padding: 10px;">
+                        <option value="">Оберіть канал...</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: auto; margin-bottom: 2px;">
+                    <i data-feather="link"></i> Надати доступ
+                </button>
+            </form>
+
+            <div id="permissionsList" class="user-list">
+                <p>Завантаження прав...</p>
+            </div>
+        </div>
     </div>
 
     <script type="module" src="settings.js"></script>
@@ -40,8 +100,8 @@
     <div class="fab-container">
         <div class="fab-options">
             <a href="#" onclick="logout(); return false;" class="fab-option" style="color: var(--color-danger);">
-    <i data-feather="log-out"></i><span>Вийти</span>
-</a>
+                <i data-feather="log-out"></i><span>Вийти</span>
+            </a>
             <a href="index.html" class="fab-option"><i data-feather="plus-circle"></i><span>Створити Завдання</span></a>
             <a href="task-list.html" class="fab-option"><i data-feather="list"></i><span>Список Завдань</span></a>
             <a href="schedule.html" class="fab-option"><i data-feather="calendar"></i><span>Запланувати Пост</span></a>
@@ -60,135 +120,28 @@
         </button>
     </div>
 
-    <hr style="border: 0; border-top: 1px solid var(--color-border); margin: 30px 0;">
-
-<h2>👥 Довірені користувачі (Редактори)</h2>
-<p style="color: var(--color-text-light); margin-bottom: 20px;">
-    Ці користувачі можуть пересилати повідомлення боту для обробки AI.
-</p>
-<h2>📢 Керування Каналами</h2>
-<div class="whitelist-container">
-    <form id="addChannelForm">
-        <input type="text" id="channel_id" placeholder="ID каналу (-100...)" required>
-        <input type="text" id="channel_title" placeholder="Назва каналу" required>
-        <button type="submit" class="btn btn-success">Додати канал</button>
-    </form>
-    <div id="channelsList"></div>
-</div>
-
-<h2>🔐 Доступ Редакторів до Каналів</h2>
-<p style="color: var(--color-text-light); margin-bottom: 20px;">
-    Прив'яжіть редакторів до каналів, у які вони можуть публікувати. Адміністратор завжди має доступ до всіх каналів.
-</p>
-
-<div class="whitelist-container">
-    <form id="grantAccessForm" style="display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 20px;">
-        <div style="flex: 1; min-width: 200px;">
-            <label for="perm_user_select">Редактор:</label>
-            <select id="perm_user_select" required style="width: 100%; padding: 10px;">
-                <option value="">Оберіть користувача...</option>
-            </select>
-        </div>
-        <div style="flex: 1; min-width: 200px;">
-            <label for="perm_channel_select">Канал:</label>
-            <select id="perm_channel_select" required style="width: 100%; padding: 10px;">
-                <option value="">Оберіть канал...</option>
-            </select>
-        </div>
-        <button type="submit" class="btn btn-primary" style="width: auto; margin-bottom: 2px;">
-            <i data-feather="link"></i> Надати доступ
-        </button>
-    </form>
-
-    <div id="permissionsList" class="user-list">
-        <p>Завантаження прав...</p>
-    </div>
-</div>
-
     <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
     <script>
         feather.replace(); 
-
+        // ... (ваш скрипт для меню залишається тут, він довгий, тому не дублюю повністю, але він має бути) ...
         const fabContainer = document.querySelector('.fab-container');
-        
-        // --- Виправлення "стрибка" кнопки при завантаженні ---
-        window.addEventListener('pageshow', (event) => {
-            if (fabContainer) fabContainer.classList.remove('active');
-        });
-
-        // --- Логіка "Ховання" в бік ---
+        window.addEventListener('pageshow', (event) => { if (fabContainer) fabContainer.classList.remove('active'); });
         let idleTimer;
-        
-        // Функція: ховаємо кнопку (додаємо клас .is-idle)
-        const setIdle = () => {
-            // Ховаємо, тільки якщо меню НЕ відкрите
-            if (fabContainer && !fabContainer.classList.contains('active')) {
-                fabContainer.classList.add('is-idle');
-            }
-        };
-
-        // Функція: показуємо кнопку (скидаємо таймер)
-        const resetIdleTimer = () => {
-            clearTimeout(idleTimer);
-            if (fabContainer) fabContainer.classList.remove('is-idle');
-            // Через 4 секунди бездіяльності - ховаємо
-            idleTimer = setTimeout(setIdle, 4000);
-        };
-
-        // Запускаємо таймер одразу
+        const setIdle = () => { if (fabContainer && !fabContainer.classList.contains('active')) { fabContainer.classList.add('is-idle'); } };
+        const resetIdleTimer = () => { clearTimeout(idleTimer); if (fabContainer) fabContainer.classList.remove('is-idle'); idleTimer = setTimeout(setIdle, 4000); };
         resetIdleTimer();
-
-        // --- ВАЖЛИВО: Прибираємо 'mousemove' з глобальних подій ---
-        // Тепер кнопка не вилазить, якщо ви просто водите мишкою по центру екрану.
-        // Вона вилізе тільки якщо ви наведете на неї (CSS :hover) або почнете скролити/писати.
-        ['scroll', 'touchstart', 'click', 'keypress'].forEach(event => 
-            document.addEventListener(event, resetIdleTimer)
-        );
-
-        // Якщо навели мишку саме на кнопку - вона прокидається і не ховається
+        ['scroll', 'touchstart', 'click', 'keypress'].forEach(event => document.addEventListener(event, resetIdleTimer));
         if (fabContainer) {
-            fabContainer.addEventListener('mouseenter', () => {
-                clearTimeout(idleTimer);
-                fabContainer.classList.remove('is-idle');
-            });
-            
-            // Коли мишка йде з кнопки - запускаємо таймер знову
+            fabContainer.addEventListener('mouseenter', () => { clearTimeout(idleTimer); fabContainer.classList.remove('is-idle'); });
             fabContainer.addEventListener('mouseleave', resetIdleTimer);
         }
-
-        // --- Логіка кліку (відкриття меню) ---
         document.getElementById('fab-toggle').addEventListener('click', (e) => {
-            e.stopPropagation(); // Щоб не спрацював клік на document
-            fabContainer.classList.toggle('active');
-            
-            // Якщо відкрили - прибираємо idle
-            if (fabContainer.classList.contains('active')) {
-                fabContainer.classList.remove('is-idle');
-                clearTimeout(idleTimer);
-            } else {
-                resetIdleTimer();
-            }
+            e.stopPropagation(); fabContainer.classList.toggle('active');
+            if (fabContainer.classList.contains('active')) { fabContainer.classList.remove('is-idle'); clearTimeout(idleTimer); } else { resetIdleTimer(); }
         });
-
-        // Закриття при кліку поза кнопкою
         document.addEventListener('click', (e) => {
-            if (fabContainer && fabContainer.classList.contains('active') && !fabContainer.contains(e.target)) {
-                fabContainer.classList.remove('active');
-                resetIdleTimer();
-            }
+            if (fabContainer && fabContainer.classList.contains('active') && !fabContainer.contains(e.target)) { fabContainer.classList.remove('active'); resetIdleTimer(); }
         });
-        
-        // ... (код активного посилання та теми залишається без змін) ...
-        try {
-            const currentPage = window.location.pathname.split('/').pop() || 'index.html';
-            document.querySelectorAll('.fab-option[href]').forEach(link => {
-                // Спрощена перевірка
-                if (link.getAttribute('href') === currentPage) {
-                    link.classList.add('active');
-                }
-            });
-        } catch (e) { console.error(e); }
-
         (function() {
             const themeToggle = document.getElementById('theme-toggle');
             const htmlEl = document.documentElement;
