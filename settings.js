@@ -9,7 +9,10 @@ import {
     // 🔥 Імпортуємо нові функції
     getChannels,
     addChannel,
-    deleteChannel
+    deleteChannel,
+    getAllPermissions, 
+    grantPermission, 
+    revokePermission
 } from './api.js';
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -29,6 +32,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const addChannelForm = document.getElementById('addChannelForm');
 
     const defaultPrompt = "Ти – професійний редактор новин для Telegram-каналу...";
+
+    const grantAccessForm = document.getElementById('grantAccessForm');
+    const permUserSelect = document.getElementById('perm_user_select');
+    const permChannelSelect = document.getElementById('perm_channel_select');
+    const permissionsList = document.getElementById('permissionsList');
 
     // 1. Завантаження налаштувань AI
     const loadSettings = async () => {
@@ -83,6 +91,77 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
+    // Функція для заповнення Select-ів (оновлюється при зміні користувачів або каналів)
+    const updateSelects = async () => {
+        if (!permUserSelect || !permChannelSelect) return;
+        
+        try {
+            const [users, channels] = await Promise.all([getWhitelist(), getChannels()]);
+            
+            // Оновлюємо селект юзерів
+            permUserSelect.innerHTML = '<option value="">Оберіть користувача...</option>';
+            users.forEach(u => {
+                const opt = document.createElement('option');
+                opt.value = u.telegram_id;
+                opt.textContent = `${u.note || 'Без імені'} (${u.telegram_id})`;
+                permUserSelect.appendChild(opt);
+            });
+
+            // Оновлюємо селект каналів
+            permChannelSelect.innerHTML = '<option value="">Оберіть канал...</option>';
+            channels.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c.id; // DB ID
+                opt.textContent = c.title;
+                permChannelSelect.appendChild(opt);
+            });
+        } catch (e) {
+            console.error("Помилка оновлення списків:", e);
+        }
+    };
+
+    // 🔥 Рендеринг списку прав
+    const renderPermissions = async () => {
+        if (!permissionsList) return;
+        permissionsList.innerHTML = '<p>Завантаження...</p>';
+        try {
+            const perms = await getAllPermissions();
+            
+            if (!perms || perms.length === 0) {
+                permissionsList.innerHTML = '<p style="color: var(--color-text-light);">Доступи ще не налаштовані.</p>';
+                return;
+            }
+
+            permissionsList.innerHTML = '<ul style="list-style: none; padding: 0;">' + perms.map(p => `
+                <li style="display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid var(--color-border);">
+                    <div>
+                        <strong>👤 ${p.user_note || p.telegram_user_id}</strong>
+                        <span style="margin: 0 10px;">➡️</span>
+                        <strong>📢 ${p.channel_title}</strong>
+                    </div>
+                    <button class="btn btn-danger btn-sm revoke-btn" data-uid="${p.telegram_user_id}" data-cid="${p.channel_db_id}" style="width: auto; padding: 5px 10px;">
+                        Забрати
+                    </button>
+                </li>
+            `).join('') + '</ul>';
+
+            document.querySelectorAll('.revoke-btn').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    if(confirm('Забрати доступ?')) {
+                        try { 
+                            await revokePermission(e.target.dataset.uid, e.target.dataset.cid); 
+                            renderPermissions(); 
+                        } catch (err) { alert('Помилка'); }
+                    }
+                });
+            });
+
+        } catch (e) {
+            console.error(e);
+            permissionsList.innerHTML = '<p class="error">Помилка завантаження прав.</p>';
+        }
+    };
+    
     // 3. 🔥 Рендеринг списку Каналів (НОВЕ)
     const renderChannels = async () => {
         if (!channelsContainer) return;
@@ -119,12 +198,16 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error(e);
             channelsContainer.innerHTML = '<p class="error">Помилка завантаження каналів.</p>';
         }
+        updateSelects();
     };
 
     // 4. Обробка форми додавання каналу (НОВЕ)
     if (addChannelForm) {
-        addChannelForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
+        // Видаляємо попередні слухачі (якщо є клонуванням) або просто вішаємо новий
+        addChannelForm.onsubmit = async (e) => {
+            e.preventDefault(); // 👈 Це найважливіше!
+            console.log("Додавання каналу...");
+            
             const idInput = document.getElementById('channel_id');
             const titleInput = document.getElementById('channel_title');
 
@@ -136,18 +219,45 @@ document.addEventListener('DOMContentLoaded', () => {
             btn.textContent = '...';
 
             try {
-                await addChannel(idInput.value, titleInput.value);
+                await addChannel(idInput.value.trim(), titleInput.value.trim());
                 idInput.value = '';
                 titleInput.value = '';
-                renderChannels(); // Оновлюємо список
-            } catch (e) {
+                
+                // Оновлюємо обидва списки
+                await renderChannels(); 
+                await renderPermissions(); // На всяк випадок, хоча нові канали ще не мають прав
+                
+            } catch (err) {
                 alert('Помилка додавання каналу. Перевірте консоль.');
-                console.error(e);
+                console.error(err);
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = originalText;
             }
-        });
+        };
+    }
+
+    if (grantAccessForm) {
+        grantAccessForm.onsubmit = async (e) => {
+            e.preventDefault();
+            const userVal = permUserSelect.value;
+            const channelVal = permChannelSelect.value;
+
+            if (!userVal || !channelVal) return alert("Оберіть і користувача, і канал.");
+
+            const btn = grantAccessForm.querySelector('button');
+            btn.disabled = true;
+
+            try {
+                await grantPermission(userVal, channelVal);
+                renderPermissions();
+            } catch (err) {
+                alert('Помилка надання доступу');
+                console.error(err);
+            } finally {
+                btn.disabled = false;
+            }
+        };
     }
 
     // 5. Обробка форми додавання користувача
@@ -213,4 +323,6 @@ document.addEventListener('DOMContentLoaded', () => {
     loadSettings();
     renderWhitelist();
     renderChannels();
+    renderPermissions();
+    updateSelects();
 });

@@ -69,30 +69,39 @@
 <h2>📢 Керування Каналами</h2>
 <div class="whitelist-container">
     <form id="addChannelForm">
-        <input type="number" id="channel_id" placeholder="ID каналу (-100...)" required>
+        <input type="text" id="channel_id" placeholder="ID каналу (-100...)" required>
         <input type="text" id="channel_title" placeholder="Назва каналу" required>
         <button type="submit" class="btn btn-success">Додати канал</button>
     </form>
     <div id="channelsList"></div>
 </div>
 
+<h2>🔐 Доступ Редакторів до Каналів</h2>
+<p style="color: var(--color-text-light); margin-bottom: 20px;">
+    Прив'яжіть редакторів до каналів, у які вони можуть публікувати. Адміністратор завжди має доступ до всіх каналів.
+</p>
+
 <div class="whitelist-container">
-    <form id="addUserForm" style="display: flex; gap: 10px; margin-bottom: 20px; align-items: flex-end;">
-        <div style="flex: 1;">
-            <label for="new_tg_id">Telegram ID:</label>
-            <input type="number" id="new_tg_id" required placeholder="123456789">
+    <form id="grantAccessForm" style="display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 20px;">
+        <div style="flex: 1; min-width: 200px;">
+            <label for="perm_user_select">Редактор:</label>
+            <select id="perm_user_select" required style="width: 100%; padding: 10px;">
+                <option value="">Оберіть користувача...</option>
+            </select>
         </div>
-        <div style="flex: 2;">
-            <label for="new_note">Нотатка (Ім'я):</label>
-            <input type="text" id="new_note" placeholder="Напр. Олег">
+        <div style="flex: 1; min-width: 200px;">
+            <label for="perm_channel_select">Канал:</label>
+            <select id="perm_channel_select" required style="width: 100%; padding: 10px;">
+                <option value="">Оберіть канал...</option>
+            </select>
         </div>
-        <button type="submit" class="btn btn-success" style="width: auto; margin-bottom: 2px;">
-            <i data-feather="plus"></i> Додати
+        <button type="submit" class="btn btn-primary" style="width: auto; margin-bottom: 2px;">
+            <i data-feather="link"></i> Надати доступ
         </button>
     </form>
 
-    <div id="whitelistItems" class="user-list">
-        <p>Завантаження списку...</p>
+    <div id="permissionsList" class="user-list">
+        <p>Завантаження прав...</p>
     </div>
 </div>
 

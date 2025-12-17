@@ -68,11 +68,31 @@ export const addChannel = (telegram_id, title) => apiFetch('/api/channels', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ 
-        telegram_id: parseInt(telegram_id), // Важливо перетворити в число
+        telegram_id: String(telegram_id), // Перетворюємо в рядок
         title: title 
     })
 });
 
 export const deleteChannel = (db_id) => apiFetch(`/api/channels/${db_id}/delete`, { 
     method: 'POST' 
+});
+
+export const getAllPermissions = () => apiFetch('/api/permissions');
+
+export const grantPermission = (userTgId, channelDbId) => apiFetch('/api/permissions/grant', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ 
+        user_telegram_id: String(userTgId), 
+        channel_db_id: parseInt(channelDbId)
+    })
+});
+
+export const revokePermission = (userTgId, channelDbId) => apiFetch('/api/permissions/revoke', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ 
+        user_telegram_id: String(userTgId), 
+        channel_db_id: parseInt(channelDbId)
+    })
 });
