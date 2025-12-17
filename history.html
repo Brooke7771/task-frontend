@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="uk" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <title>Історія Публікацій</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="auth-guard.js"></script>
+</head>
+<body>
+    <div class="container-main">
+        <div class="card">
+            <h1>📜 Історія Публікацій</h1>
+            <table style="width: 100%; border-collapse: collapse; color: var(--color-text-dark);">
+                <thead>
+                    <tr style="border-bottom: 1px solid var(--color-border); text-align: left;">
+                        <th style="padding: 10px;">Дата</th>
+                        <th style="padding: 10px;">Канал</th>
+                        <th style="padding: 10px;">Тип</th>
+                        <th style="padding: 10px;">Текст</th>
+                    </tr>
+                </thead>
+                <tbody id="historyTableBody">
+                    <tr><td colspan="4" style="padding:20px; text-align:center">Завантаження...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <script type="module">
+        import { backendUrl } from './api.js';
+        
+        async function loadHistory() {
+            const res = await fetch(`${backendUrl}/api/history`);
+            const items = await res.json();
+            const tbody = document.getElementById('historyTableBody');
+            
+            tbody.innerHTML = items.map(item => `
+                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                    <td style="padding: 10px;">${new Date(item.sent_at).toLocaleString()}</td>
+                    <td style="padding: 10px;">${item.channel_title || item.channel_id}</td>
+                    <td style="padding: 10px;">
+                        <span class="task-status ${item.post_type === 'ad' ? 'status-claimed' : 'status-open'}" style="font-size: 0.8em;">
+                            ${item.post_type}
+                        </span>
+                    </td>
+                    <td style="padding: 10px;">${item.content_preview}...</td>
+                </tr>
+            `).join('');
+        }
+        loadHistory();
+    </script>
+</body>
+</html>

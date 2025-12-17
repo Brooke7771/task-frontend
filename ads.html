@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="uk" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <title>Рекламні Кампанії</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="auth-guard.js"></script>
+</head>
+<body>
+    <div class="container-main">
+        <div class="card">
+            <h1>📢 Рекламні пости</h1>
+            <form id="adForm">
+                <div class="form-group">
+                    <label>Оберіть канал:</label>
+                    <select id="channel_select" name="target_channel_id" required></select>
+                </div>
+                <div class="form-group">
+                    <label>Текст реклами (HTML/Markdown):</label>
+                    <textarea id="post_text" name="post_text" rows="5" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Фото/Відео:</label>
+                    <input type="file" id="post_photo" name="post_photo" multiple>
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <div class="form-group" style="flex:1;">
+                        <label>Інтервал (хвилин):</label>
+                        <input type="number" name="interval" value="60" min="1" required>
+                    </div>
+                    <div class="form-group" style="flex:1;">
+                        <label>Кількість повторів:</label>
+                        <input type="number" name="count" value="5" min="1" required>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary">Запустити кампанію</button>
+            </form>
+        </div>
+
+        <div class="card" style="margin-top: 20px;">
+            <h2>Активні кампанії</h2>
+            <div id="adsList">Завантаження...</div>
+        </div>
+    </div>
+
+    <script type="module" src="ads.js"></script>
+</body>
+</html>
