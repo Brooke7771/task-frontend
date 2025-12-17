@@ -12,17 +12,35 @@
 </head>
 <body>
 
-    <div class="container-main">
-        <div class="card"> 
-            <h1>AI Помічник 🤖</h1>
-            <div id="chatBox">
+    <div class="container-main" style="max-width: 1200px;"> <h1 style="margin-bottom: 20px;">AI Помічник 🤖</h1>
+        
+        <div class="chat-container">
+            <div class="chat-sidebar">
+                <div class="chat-sidebar-header">
+                    <button id="newChatBtn" class="btn btn-primary" style="width: 100%;">
+                        <i data-feather="plus"></i> Новий чат
+                    </button>
                 </div>
-            
-            <div id="chatInput">
-                <input type="text" id="messageInput" placeholder="Ваше запитання...">
-                <button id="sendBtn" class="btn" title="Надіслати">
-                    <i data-feather="send"></i>
-                </button>
+                <ul id="sessionsList" class="chat-list">
+                    <li style="padding: 15px; color: var(--color-text-light); text-align: center;">Завантаження...</li>
+                </ul>
+            </div>
+
+            <div class="chat-main">
+                <div id="chatBox">
+                    <div style="text-align: center; color: var(--color-text-light); margin-top: 50px;">
+                        Оберіть чат або створіть новий 👋
+                    </div>
+                </div>
+                
+                <div id="chatInputContainer">
+                    <div id="chatInput">
+                        <input type="text" id="messageInput" placeholder="Ваше запитання..." disabled>
+                        <button id="sendBtn" class="btn" title="Надіслати" disabled>
+                            <i data-feather="send"></i>
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -41,7 +59,7 @@
             
             <a href="ads.html" class="fab-option"><i data-feather="megaphone"></i><span>Реклама</span></a>
             <a href="history.html" class="fab-option"><i data-feather="archive"></i><span>Історія</span></a>
-            <a href="chat.html" class="fab-option"><i data-feather="message-circle"></i><span>AI Чат</span></a>
+            <a href="chat.html" class="fab-option active"><i data-feather="message-circle"></i><span>AI Чат</span></a>
             <a href="settings.html" class="fab-option"><i data-feather="settings"></i><span>Налаштування</span></a>
             <button class="fab-option-toggle" id="theme-toggle">
                 <i class="icon-moon" data-feather="moon"></i>
@@ -58,87 +76,24 @@
     <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
     <script>
         feather.replace(); 
-
         const fabContainer = document.querySelector('.fab-container');
-        
-        // --- Виправлення "стрибка" кнопки при завантаженні ---
-        window.addEventListener('pageshow', (event) => {
-            if (fabContainer) fabContainer.classList.remove('active');
-        });
-
-        // --- Логіка "Ховання" в бік ---
+        window.addEventListener('pageshow', (event) => { if (fabContainer) fabContainer.classList.remove('active'); });
         let idleTimer;
-        
-        // Функція: ховаємо кнопку (додаємо клас .is-idle)
-        const setIdle = () => {
-            // Ховаємо, тільки якщо меню НЕ відкрите
-            if (fabContainer && !fabContainer.classList.contains('active')) {
-                fabContainer.classList.add('is-idle');
-            }
-        };
-
-        // Функція: показуємо кнопку (скидаємо таймер)
-        const resetIdleTimer = () => {
-            clearTimeout(idleTimer);
-            if (fabContainer) fabContainer.classList.remove('is-idle');
-            // Через 4 секунди бездіяльності - ховаємо
-            idleTimer = setTimeout(setIdle, 4000);
-        };
-
-        // Запускаємо таймер одразу
+        const setIdle = () => { if (fabContainer && !fabContainer.classList.contains('active')) { fabContainer.classList.add('is-idle'); } };
+        const resetIdleTimer = () => { clearTimeout(idleTimer); if (fabContainer) fabContainer.classList.remove('is-idle'); idleTimer = setTimeout(setIdle, 4000); };
         resetIdleTimer();
-
-        // --- ВАЖЛИВО: Прибираємо 'mousemove' з глобальних подій ---
-        // Тепер кнопка не вилазить, якщо ви просто водите мишкою по центру екрану.
-        // Вона вилізе тільки якщо ви наведете на неї (CSS :hover) або почнете скролити/писати.
-        ['scroll', 'touchstart', 'click', 'keypress'].forEach(event => 
-            document.addEventListener(event, resetIdleTimer)
-        );
-
-        // Якщо навели мишку саме на кнопку - вона прокидається і не ховається
+        ['scroll', 'touchstart', 'click', 'keypress'].forEach(event => document.addEventListener(event, resetIdleTimer));
         if (fabContainer) {
-            fabContainer.addEventListener('mouseenter', () => {
-                clearTimeout(idleTimer);
-                fabContainer.classList.remove('is-idle');
-            });
-            
-            // Коли мишка йде з кнопки - запускаємо таймер знову
+            fabContainer.addEventListener('mouseenter', () => { clearTimeout(idleTimer); fabContainer.classList.remove('is-idle'); });
             fabContainer.addEventListener('mouseleave', resetIdleTimer);
         }
-
-        // --- Логіка кліку (відкриття меню) ---
         document.getElementById('fab-toggle').addEventListener('click', (e) => {
-            e.stopPropagation(); // Щоб не спрацював клік на document
-            fabContainer.classList.toggle('active');
-            
-            // Якщо відкрили - прибираємо idle
-            if (fabContainer.classList.contains('active')) {
-                fabContainer.classList.remove('is-idle');
-                clearTimeout(idleTimer);
-            } else {
-                resetIdleTimer();
-            }
+            e.stopPropagation(); fabContainer.classList.toggle('active');
+            if (fabContainer.classList.contains('active')) { fabContainer.classList.remove('is-idle'); clearTimeout(idleTimer); } else { resetIdleTimer(); }
         });
-
-        // Закриття при кліку поза кнопкою
         document.addEventListener('click', (e) => {
-            if (fabContainer && fabContainer.classList.contains('active') && !fabContainer.contains(e.target)) {
-                fabContainer.classList.remove('active');
-                resetIdleTimer();
-            }
+            if (fabContainer && fabContainer.classList.contains('active') && !fabContainer.contains(e.target)) { fabContainer.classList.remove('active'); resetIdleTimer(); }
         });
-        
-        // ... (код активного посилання та теми залишається без змін) ...
-        try {
-            const currentPage = window.location.pathname.split('/').pop() || 'index.html';
-            document.querySelectorAll('.fab-option[href]').forEach(link => {
-                // Спрощена перевірка
-                if (link.getAttribute('href') === currentPage) {
-                    link.classList.add('active');
-                }
-            });
-        } catch (e) { console.error(e); }
-
         (function() {
             const themeToggle = document.getElementById('theme-toggle');
             const htmlEl = document.documentElement;

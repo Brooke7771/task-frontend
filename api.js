@@ -111,3 +111,13 @@ export const revokePermission = (userTgId, channelDbId) => apiFetch('/api/permis
         channel_db_id: parseInt(channelDbId)
     })
 });
+
+export const createChatSession = () => apiFetch('/api/chat/sessions', { method: 'POST' });
+export const getChatSessions = () => apiFetch('/api/chat/sessions');
+export const deleteChatSession = (id) => apiFetch(`/api/chat/sessions/${id}`, { method: 'DELETE' });
+export const getChatMessages = (id) => apiFetch(`/api/chat/sessions/${id}/messages`);
+export const sendChatMessageToSession = (id, content) => apiFetch(`/api/chat/sessions/${id}/messages`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ content })
+});
