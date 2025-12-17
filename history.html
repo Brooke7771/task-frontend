@@ -25,6 +25,31 @@
             </table>
         </div>
     </div>
+    
+    
+    <script type="module">
+        import { backendUrl } from './api.js';
+        
+        async function loadHistory() {
+            const res = await fetch(`${backendUrl}/api/history`);
+            const items = await res.json();
+            const tbody = document.getElementById('historyTableBody');
+            
+            tbody.innerHTML = items.map(item => `
+                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                    <td style="padding: 10px;">${new Date(item.sent_at).toLocaleString()}</td>
+                    <td style="padding: 10px;">${item.channel_title || item.channel_id}</td>
+                    <td style="padding: 10px;">
+                        <span class="task-status ${item.post_type === 'ad' ? 'status-claimed' : 'status-open'}" style="font-size: 0.8em;">
+                            ${item.post_type}
+                        </span>
+                    </td>
+                    <td style="padding: 10px;">${item.content_preview}...</td>
+                </tr>
+            `).join('');
+        }
+        loadHistory();
+    </script>
     <div class="fab-container">
         <div class="fab-options">
             <a href="#" onclick="logout(); return false;" class="fab-option" style="color: var(--color-danger);">
@@ -50,29 +75,5 @@
             <i class="fab-main-icon fab-icon-close" data-feather="x"></i>
         </button>
     </div>
-    
-    <script type="module">
-        import { backendUrl } from './api.js';
-        
-        async function loadHistory() {
-            const res = await fetch(`${backendUrl}/api/history`);
-            const items = await res.json();
-            const tbody = document.getElementById('historyTableBody');
-            
-            tbody.innerHTML = items.map(item => `
-                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-                    <td style="padding: 10px;">${new Date(item.sent_at).toLocaleString()}</td>
-                    <td style="padding: 10px;">${item.channel_title || item.channel_id}</td>
-                    <td style="padding: 10px;">
-                        <span class="task-status ${item.post_type === 'ad' ? 'status-claimed' : 'status-open'}" style="font-size: 0.8em;">
-                            ${item.post_type}
-                        </span>
-                    </td>
-                    <td style="padding: 10px;">${item.content_preview}...</td>
-                </tr>
-            `).join('');
-        }
-        loadHistory();
-    </script>
 </body>
 </html>
