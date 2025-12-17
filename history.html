@@ -2,11 +2,7 @@
 <html lang="uk" class="dark">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Історія Публікацій</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <script src="auth-guard.js"></script>
 </head>
@@ -15,17 +11,17 @@
         <div class="card">
             <h1>📜 Історія Публікацій</h1>
             <div style="overflow-x: auto;">
-                <table style="width: 100%; border-collapse: collapse; color: var(--color-text-dark); min-width: 600px;">
+                <table style="width: 100%; border-collapse: collapse; color: var(--color-text-dark); min-width: 800px;">
                     <thead>
                         <tr style="border-bottom: 1px solid var(--color-border); text-align: left;">
                             <th style="padding: 10px;">Дата</th>
                             <th style="padding: 10px;">Канал</th>
                             <th style="padding: 10px;">Тип</th>
-                            <th style="padding: 10px;">Текст</th>
+                            <th style="padding: 10px;">Створив</th> <th style="padding: 10px;">Запостив</th> <th style="padding: 10px;">Текст</th>
                         </tr>
                     </thead>
                     <tbody id="historyTableBody">
-                        <tr><td colspan="4" style="padding:20px; text-align:center">Завантаження...</td></tr>
+                        <tr><td colspan="6" style="padding:20px; text-align:center">Завантаження...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -42,24 +38,31 @@
                 const tbody = document.getElementById('historyTableBody');
                 
                 if (items.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="4" style="padding:20px; text-align:center">Історія порожня</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="6" style="padding:20px; text-align:center">Історія порожня</td></tr>';
                     return;
                 }
 
-                tbody.innerHTML = items.map(item => `
+                tbody.innerHTML = items.map(item => {
+                    let typeLabel = item.post_type;
+                    let typeClass = 'status-open';
+                    if (item.post_type === 'ad') { typeLabel = 'Реклама'; typeClass = 'status-claimed'; }
+                    else if (item.post_type === 'scheduled') { typeLabel = 'План'; typeClass = 'status-open'; }
+                    else if (item.post_type === 'instant') { typeLabel = 'Миттєво'; typeClass = 'status-pending'; }
+
+                    return `
                     <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
                         <td style="padding: 10px;">${new Date(item.sent_at).toLocaleString()}</td>
                         <td style="padding: 10px;">${item.channel_title || item.channel_id}</td>
                         <td style="padding: 10px;">
-                            <span class="task-status ${item.post_type === 'ad' ? 'status-claimed' : 'status-open'}" style="font-size: 0.8em;">
-                                ${item.post_type === 'ad' ? 'Реклама' : 'Пост'}
-                            </span>
+                            <span class="task-status ${typeClass}" style="font-size: 0.8em;">${typeLabel}</span>
                         </td>
+                        <td style="padding: 10px; font-weight:bold;">${item.created_by || '-'}</td>
+                        <td style="padding: 10px;">${item.posted_by || '-'}</td>
                         <td style="padding: 10px;">${item.content_preview}...</td>
                     </tr>
-                `).join('');
+                `}).join('');
             } catch (e) {
-                document.getElementById('historyTableBody').innerHTML = '<tr><td colspan="4" style="padding:20px; text-align:center; color: var(--color-danger)">Помилка завантаження</td></tr>';
+                document.getElementById('historyTableBody').innerHTML = '<tr><td colspan="6" style="padding:20px; text-align:center; color: var(--color-danger)">Помилка завантаження</td></tr>';
                 console.error(e);
             }
         }
@@ -90,7 +93,6 @@
             <i class="fab-main-icon fab-icon-close" data-feather="x"></i>
         </button>
     </div>
-
     <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
     <script>
         feather.replace(); 
