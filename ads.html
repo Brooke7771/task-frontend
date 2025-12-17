@@ -2,7 +2,11 @@
 <html lang="uk" class="dark">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Рекламні Кампанії</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <script src="auth-guard.js"></script>
 </head>
@@ -17,18 +21,18 @@
                 </div>
                 <div class="form-group">
                     <label>Текст реклами (HTML/Markdown):</label>
-                    <textarea id="post_text" name="post_text" rows="5" required></textarea>
+                    <textarea id="post_text" name="post_text" rows="5" required placeholder="Введіть текст посту..."></textarea>
                 </div>
                 <div class="form-group">
                     <label>Фото/Відео:</label>
                     <input type="file" id="post_photo" name="post_photo" multiple>
                 </div>
-                <div style="display: flex; gap: 10px;">
-                    <div class="form-group" style="flex:1;">
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <div class="form-group" style="flex:1; min-width: 150px;">
                         <label>Інтервал (хвилин):</label>
                         <input type="number" name="interval" value="60" min="1" required>
                     </div>
-                    <div class="form-group" style="flex:1;">
+                    <div class="form-group" style="flex:1; min-width: 150px;">
                         <label>Кількість повторів:</label>
                         <input type="number" name="count" value="5" min="1" required>
                     </div>
@@ -42,9 +46,9 @@
             <div id="adsList">Завантаження...</div>
         </div>
     </div>
-    
 
     <script type="module" src="ads.js"></script>
+
     <div class="fab-container">
         <div class="fab-options">
             <a href="#" onclick="logout(); return false;" class="fab-option" style="color: var(--color-danger);">
@@ -54,8 +58,7 @@
             <a href="task-list.html" class="fab-option"><i data-feather="list"></i><span>Список Завдань</span></a>
             <a href="schedule.html" class="fab-option"><i data-feather="calendar"></i><span>Запланувати Пост</span></a>
             <a href="schedule-list.html" class="fab-option"><i data-feather="clock"></i><span>Список Постів</span></a>
-            
-            <a href="ads.html" class="fab-option"><i data-feather="megaphone"></i><span>Реклама</span></a>
+            <a href="ads.html" class="fab-option active"><i data-feather="megaphone"></i><span>Реклама</span></a>
             <a href="history.html" class="fab-option"><i data-feather="archive"></i><span>Історія</span></a>
             <a href="chat.html" class="fab-option"><i data-feather="message-circle"></i><span>AI Чат</span></a>
             <a href="settings.html" class="fab-option"><i data-feather="settings"></i><span>Налаштування</span></a>
@@ -70,5 +73,38 @@
             <i class="fab-main-icon fab-icon-close" data-feather="x"></i>
         </button>
     </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    <script>
+        feather.replace(); 
+        const fabContainer = document.querySelector('.fab-container');
+        window.addEventListener('pageshow', (event) => { if (fabContainer) fabContainer.classList.remove('active'); });
+        let idleTimer;
+        const setIdle = () => { if (fabContainer && !fabContainer.classList.contains('active')) { fabContainer.classList.add('is-idle'); } };
+        const resetIdleTimer = () => { clearTimeout(idleTimer); if (fabContainer) fabContainer.classList.remove('is-idle'); idleTimer = setTimeout(setIdle, 4000); };
+        resetIdleTimer();
+        ['scroll', 'touchstart', 'click', 'keypress'].forEach(event => document.addEventListener(event, resetIdleTimer));
+        if (fabContainer) {
+            fabContainer.addEventListener('mouseenter', () => { clearTimeout(idleTimer); fabContainer.classList.remove('is-idle'); });
+            fabContainer.addEventListener('mouseleave', resetIdleTimer);
+        }
+        document.getElementById('fab-toggle').addEventListener('click', (e) => {
+            e.stopPropagation(); fabContainer.classList.toggle('active');
+            if (fabContainer.classList.contains('active')) { fabContainer.classList.remove('is-idle'); clearTimeout(idleTimer); } else { resetIdleTimer(); }
+        });
+        document.addEventListener('click', (e) => {
+            if (fabContainer && fabContainer.classList.contains('active') && !fabContainer.contains(e.target)) { fabContainer.classList.remove('active'); resetIdleTimer(); }
+        });
+        (function() {
+            const themeToggle = document.getElementById('theme-toggle');
+            const htmlEl = document.documentElement;
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'light') htmlEl.classList.remove('dark'); else htmlEl.classList.add('dark');
+            themeToggle.addEventListener('click', () => { 
+                htmlEl.classList.toggle('dark'); 
+                localStorage.setItem('theme', htmlEl.classList.contains('dark') ? 'dark' : 'light'); 
+            });
+        })();
+    </script>
 </body>
 </html>

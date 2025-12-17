@@ -2,7 +2,11 @@
 <html lang="uk" class="dark">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Історія Публікацій</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <script src="auth-guard.js"></script>
 </head>
@@ -10,46 +14,58 @@
     <div class="container-main">
         <div class="card">
             <h1>📜 Історія Публікацій</h1>
-            <table style="width: 100%; border-collapse: collapse; color: var(--color-text-dark);">
-                <thead>
-                    <tr style="border-bottom: 1px solid var(--color-border); text-align: left;">
-                        <th style="padding: 10px;">Дата</th>
-                        <th style="padding: 10px;">Канал</th>
-                        <th style="padding: 10px;">Тип</th>
-                        <th style="padding: 10px;">Текст</th>
-                    </tr>
-                </thead>
-                <tbody id="historyTableBody">
-                    <tr><td colspan="4" style="padding:20px; text-align:center">Завантаження...</td></tr>
-                </tbody>
-            </table>
+            <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse; color: var(--color-text-dark); min-width: 600px;">
+                    <thead>
+                        <tr style="border-bottom: 1px solid var(--color-border); text-align: left;">
+                            <th style="padding: 10px;">Дата</th>
+                            <th style="padding: 10px;">Канал</th>
+                            <th style="padding: 10px;">Тип</th>
+                            <th style="padding: 10px;">Текст</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyTableBody">
+                        <tr><td colspan="4" style="padding:20px; text-align:center">Завантаження...</td></tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
-    
     
     <script type="module">
         import { backendUrl } from './api.js';
         
         async function loadHistory() {
-            const res = await fetch(`${backendUrl}/api/history`);
-            const items = await res.json();
-            const tbody = document.getElementById('historyTableBody');
-            
-            tbody.innerHTML = items.map(item => `
-                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-                    <td style="padding: 10px;">${new Date(item.sent_at).toLocaleString()}</td>
-                    <td style="padding: 10px;">${item.channel_title || item.channel_id}</td>
-                    <td style="padding: 10px;">
-                        <span class="task-status ${item.post_type === 'ad' ? 'status-claimed' : 'status-open'}" style="font-size: 0.8em;">
-                            ${item.post_type}
-                        </span>
-                    </td>
-                    <td style="padding: 10px;">${item.content_preview}...</td>
-                </tr>
-            `).join('');
+            try {
+                const res = await fetch(`${backendUrl}/api/history`);
+                const items = await res.json();
+                const tbody = document.getElementById('historyTableBody');
+                
+                if (items.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="4" style="padding:20px; text-align:center">Історія порожня</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = items.map(item => `
+                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                        <td style="padding: 10px;">${new Date(item.sent_at).toLocaleString()}</td>
+                        <td style="padding: 10px;">${item.channel_title || item.channel_id}</td>
+                        <td style="padding: 10px;">
+                            <span class="task-status ${item.post_type === 'ad' ? 'status-claimed' : 'status-open'}" style="font-size: 0.8em;">
+                                ${item.post_type === 'ad' ? 'Реклама' : 'Пост'}
+                            </span>
+                        </td>
+                        <td style="padding: 10px;">${item.content_preview}...</td>
+                    </tr>
+                `).join('');
+            } catch (e) {
+                document.getElementById('historyTableBody').innerHTML = '<tr><td colspan="4" style="padding:20px; text-align:center; color: var(--color-danger)">Помилка завантаження</td></tr>';
+                console.error(e);
+            }
         }
         loadHistory();
     </script>
+
     <div class="fab-container">
         <div class="fab-options">
             <a href="#" onclick="logout(); return false;" class="fab-option" style="color: var(--color-danger);">
@@ -59,9 +75,8 @@
             <a href="task-list.html" class="fab-option"><i data-feather="list"></i><span>Список Завдань</span></a>
             <a href="schedule.html" class="fab-option"><i data-feather="calendar"></i><span>Запланувати Пост</span></a>
             <a href="schedule-list.html" class="fab-option"><i data-feather="clock"></i><span>Список Постів</span></a>
-            
             <a href="ads.html" class="fab-option"><i data-feather="megaphone"></i><span>Реклама</span></a>
-            <a href="history.html" class="fab-option"><i data-feather="archive"></i><span>Історія</span></a>
+            <a href="history.html" class="fab-option active"><i data-feather="archive"></i><span>Історія</span></a>
             <a href="chat.html" class="fab-option"><i data-feather="message-circle"></i><span>AI Чат</span></a>
             <a href="settings.html" class="fab-option"><i data-feather="settings"></i><span>Налаштування</span></a>
             <button class="fab-option-toggle" id="theme-toggle">
@@ -75,5 +90,38 @@
             <i class="fab-main-icon fab-icon-close" data-feather="x"></i>
         </button>
     </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    <script>
+        feather.replace(); 
+        const fabContainer = document.querySelector('.fab-container');
+        window.addEventListener('pageshow', (event) => { if (fabContainer) fabContainer.classList.remove('active'); });
+        let idleTimer;
+        const setIdle = () => { if (fabContainer && !fabContainer.classList.contains('active')) { fabContainer.classList.add('is-idle'); } };
+        const resetIdleTimer = () => { clearTimeout(idleTimer); if (fabContainer) fabContainer.classList.remove('is-idle'); idleTimer = setTimeout(setIdle, 4000); };
+        resetIdleTimer();
+        ['scroll', 'touchstart', 'click', 'keypress'].forEach(event => document.addEventListener(event, resetIdleTimer));
+        if (fabContainer) {
+            fabContainer.addEventListener('mouseenter', () => { clearTimeout(idleTimer); fabContainer.classList.remove('is-idle'); });
+            fabContainer.addEventListener('mouseleave', resetIdleTimer);
+        }
+        document.getElementById('fab-toggle').addEventListener('click', (e) => {
+            e.stopPropagation(); fabContainer.classList.toggle('active');
+            if (fabContainer.classList.contains('active')) { fabContainer.classList.remove('is-idle'); clearTimeout(idleTimer); } else { resetIdleTimer(); }
+        });
+        document.addEventListener('click', (e) => {
+            if (fabContainer && fabContainer.classList.contains('active') && !fabContainer.contains(e.target)) { fabContainer.classList.remove('active'); resetIdleTimer(); }
+        });
+        (function() {
+            const themeToggle = document.getElementById('theme-toggle');
+            const htmlEl = document.documentElement;
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'light') htmlEl.classList.remove('dark'); else htmlEl.classList.add('dark');
+            themeToggle.addEventListener('click', () => { 
+                htmlEl.classList.toggle('dark'); 
+                localStorage.setItem('theme', htmlEl.classList.contains('dark') ? 'dark' : 'light'); 
+            });
+        })();
+    </script>
 </body>
 </html>
