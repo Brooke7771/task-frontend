@@ -42,11 +42,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const initUI = () => {
         const themeBtn = document.getElementById('settings-theme-toggle');
         const xmasBtn = document.getElementById('settings-xmas-toggle');
+        const physicsBtn = document.getElementById('settings-physics-toggle');
         const htmlEl = document.documentElement;
 
         const updateButtonsState = () => {
             const isDark = htmlEl.classList.contains('dark');
             const isXmas = htmlEl.classList.contains('theme-xmas');
+            
 
             // Кнопка Теми
             if (themeBtn) {
@@ -90,11 +92,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Завантаження стану
         const savedXmas = localStorage.getItem('theme-xmas') === 'true';
+        const isXmas = localStorage.getItem('theme-xmas') === 'true';
+        const isPhysics = localStorage.getItem('theme-physics') === 'true';
         if (savedXmas) {
             htmlEl.classList.add('theme-xmas');
             htmlEl.classList.add('dark');
         }
         updateButtonsState();
+
+        // 3. Кнопка Фізики
+        if (physicsBtn) {
+            // Кнопка активна тільки якщо ввімкнено свято
+            physicsBtn.disabled = !isXmas;
+            physicsBtn.style.opacity = isXmas ? '1' : '0.5';
+
+            if (isPhysics) {
+                physicsBtn.style.background = 'rgba(251, 191, 36, 0.2)';
+                physicsBtn.querySelector('span').textContent = 'Фізика ввімкнена (CPU)';
+            } else {
+                physicsBtn.style.background = 'transparent';
+                physicsBtn.querySelector('span').textContent = 'Ввімкнути фізику';
+            }
+        }
 
         // Обробник: ТЕМА
         if (themeBtn) {
@@ -134,7 +153,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 updateButtonsState();
             };
         }
+
+        // Обробник: ФІЗИКА
+        if (physicsBtn) {
+            physicsBtn.onclick = (e) => {
+                e.preventDefault();
+                const current = localStorage.getItem('theme-physics') === 'true';
+                localStorage.setItem('theme-physics', !current);
+                
+                if (window.refreshGarland) window.refreshGarland();
+                updateButtonsState();
+            };
+        }
     };
+
 
     initUI();
 

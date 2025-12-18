@@ -1133,3 +1133,96 @@ html.theme-xmas input:focus {
     border-color: #fbbf24 !important;
     box-shadow: 0 0 15px rgba(251, 191, 36, 0.3) !important;
 }
+
+/* =================================
+   🎅 DECOR & PHYSICS GARLAND STYLES 🎅
+   ================================= */
+
+/* 1. ФІЗИЧНІ ЛАМПОЧКИ */
+.physics-bulb {
+    position: fixed; /* Позиціонується через JS translate */
+    top: 0; left: 0;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    z-index: 99999;
+    box-shadow: 0 0 5px currentColor;
+    animation: bulbGlow 1.5s infinite alternate ease-in-out;
+}
+
+/* Цоколь */
+.physics-bulb::before {
+    content: '';
+    position: absolute;
+    top: -4px; left: 3px;
+    width: 8px; height: 6px;
+    background: #222;
+    border-radius: 2px;
+}
+
+.physics-bulb.red { background: #ff3333; color: #ff3333; animation-delay: 0s; }
+.physics-bulb.gold { background: #fbbf24; color: #fbbf24; animation-delay: 0.3s; }
+.physics-bulb.green { background: #10b981; color: #10b981; animation-delay: 0.6s; }
+.physics-bulb.blue { background: #3b82f6; color: #3b82f6; animation-delay: 0.9s; }
+
+@keyframes bulbGlow {
+    0% { filter: brightness(0.8); opacity: 0.8; }
+    100% { filter: brightness(1.5); opacity: 1; box-shadow: 0 0 15px currentColor; }
+}
+
+/* 2. ЯЛИНКА З ПОДАРУНКОМ (Зліва внизу) */
+.xmas-tree-container {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    z-index: 1000;
+    pointer-events: none; /* Щоб не заважала клікам */
+    filter: drop-shadow(0 5px 15px rgba(0,0,0,0.5));
+    animation: floatTree 3s ease-in-out infinite alternate;
+}
+
+.xmas-tree-svg {
+    width: 120px;
+    height: auto;
+}
+
+@keyframes floatTree {
+    0% { transform: translateY(0); }
+    100% { transform: translateY(-5px); }
+}
+
+/* 3. САНТА-КНОПКА (Справа внизу, біля FAB) */
+#santa-btn {
+    position: fixed;
+    bottom: 95px; /* Трохи вище FAB */
+    right: 32px;
+    width: 50px;
+    height: 50px;
+    background: radial-gradient(circle, #ffcccc, #ff0000);
+    border-radius: 50%;
+    border: 2px solid #fff;
+    cursor: pointer;
+    z-index: 10001;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    transition: transform 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+}
+#santa-btn:hover { transform: scale(1.1) rotate(10deg); }
+#santa-btn::after {
+    content: '🎅';
+    font-size: 28px;
+}
+
+/* 4. ПОПЕРЕДЖЕННЯ ПРО НАВАНТАЖЕННЯ (У налаштуваннях) */
+.badge-warning {
+    background: rgba(251, 191, 36, 0.2);
+    color: #fbbf24;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.7em;
+    margin-left: 5px;
+    border: 1px solid rgba(251, 191, 36, 0.4);
+}
