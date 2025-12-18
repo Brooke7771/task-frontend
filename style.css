@@ -1286,3 +1286,77 @@ html.theme-xmas input:focus {
 }
 #santa-btn:hover { transform: scale(1.15) rotate(15deg); }
 #santa-btn::after { content: '🎅'; font-size: 32px; }
+
+/* --- 1. ТЕКСТУРА СНІГУ НА БЛОКАХ (ОНОВЛЕНО: М'яка шапка) --- */
+
+/* Прибираємо жорстку рамку зверху, замінимо її на псевдо-елемент */
+html.theme-xmas .card,
+html.theme-xmas .tg-window,
+html.theme-xmas .btn,
+html.theme-xmas input,
+html.theme-xmas textarea,
+html.theme-xmas select {
+    position: relative;
+    border-top: none !important; /* Прибираємо стару рамку */
+}
+
+/* Головна снігова шапка */
+html.theme-xmas .card::before,
+html.theme-xmas .tg-window::before {
+    content: '';
+    position: absolute;
+    top: -4px; /* Лежить зверху, трохи виступає */
+    left: -2px; /* Трохи ширше блоку */
+    width: calc(100% + 4px);
+    height: 10px; /* Висота шару снігу */
+    
+    /* Чистий білий сніг */
+    background-color: rgba(255, 255, 255, 0.85);
+    
+    /* Скруглення, щоб виглядало як замет */
+    border-radius: 12px 12px 4px 4px;
+    
+    /* Робимо краї м'якими (пухнастий сніг) */
+    filter: blur(1.5px);
+    
+    /* Легке холодне світіння (ефект льоду) */
+    box-shadow: 
+        0 2px 8px rgba(255, 255, 255, 0.6), 
+        0 0 15px rgba(165, 243, 252, 0.4); /* Icy cyan tint */
+        
+    pointer-events: none;
+    z-index: 10;
+}
+
+/* Додатковий "блік" зверху, щоб додати об'єму */
+html.theme-xmas .card::after,
+html.theme-xmas .tg-window::after {
+    content: '';
+    position: absolute;
+    top: -6px;
+    left: 20%;
+    width: 60%;
+    height: 4px;
+    background: #fff;
+    border-radius: 50%;
+    filter: blur(4px);
+    opacity: 0.8;
+    pointer-events: none;
+    z-index: 11;
+}
+
+/* Сніг на кнопках (більш тонкий шар) */
+html.theme-xmas .btn::after {
+    content: '';
+    position: absolute;
+    top: 0; 
+    left: 0; 
+    width: 100%; 
+    height: 40%; /* Займає верхню частину */
+    
+    /* Градієнт: Іній */
+    background: linear-gradient(to bottom, rgba(255,255,255,0.5) 0%, transparent 100%);
+    border-top: 1px solid rgba(255,255,255,0.8);
+    border-radius: 8px 8px 0 0;
+    pointer-events: none;
+}
