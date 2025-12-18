@@ -3,46 +3,51 @@
 // Перевіряємо, чи є маркер входу
 function checkAuth() {
     const isLoggedIn = localStorage.getItem('isLoggedIn');
-    const currentPage = window.location.pathname.split('/').pop();
+    const currentPage = window.location.pathname.split('/').pop() || 'index.html'; // Обробка кореня
 
-    if (currentPage === 'login.html' || currentPage === '') return;
+    // Сторінки, які не потребують авторизації
+    if (currentPage === 'login.html') return;
 
+    // 1. Перевірка логіну
     if (isLoggedIn !== 'true') {
         window.location.href = 'login.html';
         return;
     }
 
-    // Перевірка прав доступу до сторінки
+    // 2. Перевірка прав (якщо не Адмін)
     const isAdmin = localStorage.getItem('isAdmin') === 'true';
     if (isAdmin) return; // Адміну можна все
 
-    const allowedPages = JSON.parse(localStorage.getItem('allowedPages') || "[]");
+    const allowedPagesJson = localStorage.getItem('allowedPages');
+    const allowedPages = allowedPagesJson ? JSON.parse(allowedPagesJson) : [];
+
+    // Додаємо 'index.html' до дозволених за замовчуванням, якщо його там немає, 
+    // але тільки якщо це "базова" сторінка. 
+    // Хоча краще суворо: якщо немає в списку - до побачення.
     
-    // Якщо сторінки немає в списку дозволених (і це не спільні сторінки типу task-list)
-    // Можна налаштувати логіку жорсткіше
-    if (!allowedPages.includes(currentPage) && 
-        currentPage !== 'index.html' && 
-        currentPage !== 'task-list.html') { // Базові сторінки, які доступні всім затвердженим
+    if (!allowedPages.includes(currentPage)) {
+        // Якщо це task-list.html або index.html, іноді варто дати доступ всім, 
+        // але за вашим запитом робимо суворо.
         
-       // alert("У вас немає доступу до цієї сторінки.");
-       // window.location.href = 'index.html';
+        alert("⛔️ У вас немає доступу до цієї сторінки.");
+        
+        // Якщо є доступ хоча б до чогось, кидаємо туди, інакше на логін
+        if (allowedPages.length > 0) {
+            window.location.href = allowedPages[0];
+        } else {
+            window.location.href = 'login.html';
+        }
     }
 }
 
-// Функція виходу
 function logout() {
     if(confirm('Вийти з акаунту?')) {
-        localStorage.removeItem('isLoggedIn');
-        localStorage.removeItem('username');
+        localStorage.clear(); // Чистимо все
         window.location.href = 'login.html';
     }
 }
 
-// Запускаємо перевірку одразу
 checkAuth();
-
-// Експортуємо для використання в інших скриптах (наприклад, для кнопки Logout)
-// Або просто робимо глобальною, якщо не використовуємо модулі скрізь
 window.logout = logout;
 
 // --- 🎄 GLOBAL CHRISTMAS MANAGER 🎄 ---
