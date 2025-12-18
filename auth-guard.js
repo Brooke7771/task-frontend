@@ -75,13 +75,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const assets = {
         // Фотореалістична ялинка (PNG з прозорим фоном)
-        treeImage: '', // Наприклад: './assets/real-tree.png'
+        treeImage: '/assets/tree.png', // Наприклад: './assets/real-tree.png'
         
         // Силует Санти на санях (PNG з прозорим фоном)
-        santaImage: '', // Наприклад: './assets/santa-silhouette.png'
+        santaImage: '/assets/santa.png', // Наприклад: './assets/santa-silhouette.png'
         
         // Звук дзвіночків (MP3, короткий, тихий)
-        jingleSound: '' // Наприклад: './assets/jingle-bells.mp3'
+        jingleSound: '/assets/bell.mp3' // Наприклад: './assets/jingle-bells.mp3'
     };
 
     let jingleAudio = null;
