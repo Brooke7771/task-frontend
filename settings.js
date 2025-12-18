@@ -38,6 +38,89 @@ document.addEventListener('DOMContentLoaded', () => {
     const permChannelSelect = document.getElementById('perm_channel_select');
     const permissionsList = document.getElementById('permissionsList');
 
+    // --- 🔥 ЛОГІКА ІНТЕРФЕЙСУ (ТЕМА + НОВИЙ РІК) ---
+    const htmlEl = document.documentElement;
+    const themeBtn = document.getElementById('settings-theme-toggle');
+    const xmasBtn = document.getElementById('settings-xmas-toggle');
+    const themeText = document.getElementById('theme-text');
+
+    // 1. Логіка Темної/Світлої теми
+    const updateThemeUI = () => {
+        const isDark = htmlEl.classList.contains('dark');
+        if (themeBtn) {
+            themeBtn.querySelector('.icon-moon').style.display = isDark ? 'block' : 'none';
+            themeBtn.querySelector('.icon-sun').style.display = isDark ? 'none' : 'block';
+            themeText.textContent = isDark ? 'Темна тема' : 'Світла тема';
+            
+            // Стилізація кнопки
+            themeBtn.style.backgroundColor = isDark ? 'var(--color-bg-card)' : '#fff';
+            themeBtn.style.color = isDark ? '#fff' : '#333';
+        }
+    };
+
+    if (themeBtn) {
+        // Ініціалізація при завантаженні
+        updateThemeUI();
+
+        themeBtn.addEventListener('click', () => {
+            htmlEl.classList.toggle('dark');
+            const isDark = htmlEl.classList.contains('dark');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            updateThemeUI();
+            
+            // Якщо вимикаємо темну тему, вимикаємо і новорічну (бо сніг видно тільки на темному)
+            if (!isDark && htmlEl.classList.contains('theme-xmas')) {
+                xmasBtn.click(); 
+            }
+        });
+    }
+
+    // 2. Логіка Новорічного режиму
+    const updateXmasUI = () => {
+        const isXmas = htmlEl.classList.contains('theme-xmas');
+        if (xmasBtn) {
+            if (isXmas) {
+                xmasBtn.classList.add('btn-success'); // Зелена кнопка
+                xmasBtn.style.color = 'white';
+                xmasBtn.style.borderColor = 'transparent';
+                xmasBtn.innerHTML = '<i data-feather="gift"></i> <span>Свято ввімкнено! 🎅</span>';
+            } else {
+                xmasBtn.classList.remove('btn-success');
+                xmasBtn.style.color = 'var(--color-danger)';
+                xmasBtn.style.borderColor = 'var(--color-danger)';
+                xmasBtn.style.background = 'transparent';
+                xmasBtn.innerHTML = '<i data-feather="gift"></i> <span>Ввімкнути свято 🎄</span>';
+            }
+            if (window.feather) feather.replace();
+        }
+    };
+
+    if (xmasBtn) {
+        // Перевіряємо стан при завантаженні
+        if (localStorage.getItem('theme-xmas') === 'true') {
+            htmlEl.classList.add('theme-xmas');
+            htmlEl.classList.add('dark'); // Новий рік завжди темний
+        }
+        updateXmasUI();
+
+        xmasBtn.addEventListener('click', (e) => {
+            e.preventDefault(); // Щоб форма не сабмітилась, якщо кнопка всередині форми
+            const isActive = htmlEl.classList.contains('theme-xmas');
+            
+            if (!isActive) {
+                htmlEl.classList.add('theme-xmas');
+                htmlEl.classList.add('dark'); // Примусово вмикаємо темну тему
+                localStorage.setItem('theme-xmas', 'true');
+                localStorage.setItem('theme', 'dark');
+                updateThemeUI(); // Оновити кнопку теми
+            } else {
+                htmlEl.classList.remove('theme-xmas');
+                localStorage.setItem('theme-xmas', 'false');
+            }
+            updateXmasUI();
+        });
+    }
+
     // 1. Завантаження налаштувань AI
     const loadSettings = async () => {
         try {
