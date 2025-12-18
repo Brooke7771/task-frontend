@@ -6,60 +6,51 @@
     <link rel="stylesheet" href="style.css">
     <script src="auth-guard.js"></script>
     <style>
-        /* Стилі для панелі фільтрів */
         .filters-bar {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-            background: rgba(255,255,255,0.05);
-            padding: 15px;
-            border-radius: 12px;
-            border: 1px solid var(--color-border);
+            display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;
+            background: rgba(255,255,255,0.05); padding: 15px;
+            border-radius: 12px; border: 1px solid var(--color-border);
         }
-        .filter-input {
-            flex: 1;
-            min-width: 200px;
-            padding: 8px 12px;
-            border-radius: 8px;
-            border: 1px solid var(--color-border);
-            background: var(--color-bg-light);
-            color: var(--color-text-dark);
+        .filter-input, .filter-select {
+            padding: 8px 12px; border-radius: 8px; border: 1px solid var(--color-border);
+            background: var(--color-bg-light); color: var(--color-text-dark);
         }
-        .filter-select {
-            padding: 8px 12px;
-            border-radius: 8px;
-            border: 1px solid var(--color-border);
-            background: var(--color-bg-light);
-            color: var(--color-text-dark);
-            min-width: 150px;
-        }
+        .filter-input { flex: 1; min-width: 200px; }
         .sort-btn {
-            background: var(--color-bg-card);
-            border: 1px solid var(--color-border);
-            color: var(--color-text-dark);
-            padding: 8px 15px;
-            border-radius: 8px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 5px;
+            background: var(--color-bg-card); border: 1px solid var(--color-border);
+            color: var(--color-text-dark); padding: 8px 15px; border-radius: 8px; cursor: pointer;
         }
-        .sort-btn:hover { background: var(--color-bg-light); }
-        
         .link-btn {
-            color: var(--color-primary);
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            font-size: 0.9em;
-            padding: 4px 8px;
-            background: rgba(var(--color-primary-rgb), 0.1);
-            border-radius: 4px;
-            transition: 0.2s;
+            color: var(--color-primary); text-decoration: none; display: inline-flex;
+            align-items: center; gap: 4px; font-size: 0.9em; padding: 4px 8px;
+            background: rgba(var(--color-primary-rgb), 0.1); border-radius: 4px; transition: 0.2s;
         }
         .link-btn:hover { background: rgba(var(--color-primary-rgb), 0.2); }
+
+        /* 🔥 MODAL STYLES */
+        .modal-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7); backdrop-filter: blur(5px); z-index: 10000;
+            justify-content: center; align-items: center; animation: fadeIn 0.2s ease-out;
+        }
+        .modal-content {
+            background: var(--color-bg-card); border: 1px solid var(--color-border);
+            width: 90%; max-width: 600px; max-height: 90vh; border-radius: 16px;
+            padding: 25px; overflow-y: auto; position: relative; box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        }
+        .modal-close {
+            position: absolute; top: 15px; right: 15px; background: transparent; border: none;
+            color: var(--color-text-light); font-size: 1.5rem; cursor: pointer;
+        }
+        .detail-row { margin-bottom: 15px; }
+        .detail-label { color: var(--color-text-light); font-size: 0.85em; display: block; margin-bottom: 5px; }
+        .detail-value { font-size: 1rem; color: var(--color-text-dark); word-break: break-word; }
+        .detail-text { 
+            background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; 
+            font-family: monospace; white-space: pre-wrap; margin-top: 5px;
+        }
+        tr.clickable-row { cursor: pointer; transition: background 0.1s; }
+        tr.clickable-row:hover { background: rgba(255,255,255,0.05); }
     </style>
 </head>
 <body>
@@ -72,21 +63,14 @@
 
             <div class="filters-bar">
                 <input type="text" id="searchInput" class="filter-input" placeholder="🔍 Пошук за текстом...">
-                
                 <select id="typeFilter" class="filter-select">
                     <option value="all">Всі типи</option>
                     <option value="scheduled">📅 Заплановані</option>
                     <option value="ad">📢 Реклама</option>
                     <option value="instant">⚡️ Миттєві</option>
                 </select>
-
-                <select id="channelFilter" class="filter-select">
-                    <option value="all">Всі канали</option>
-                    </select>
-
-                <button id="sortBtn" class="sort-btn">
-                    <span>⬇️ Спочатку нові</span>
-                </button>
+                <select id="channelFilter" class="filter-select"><option value="all">Всі канали</option></select>
+                <button id="sortBtn" class="sort-btn"><span>⬇️ Спочатку нові</span></button>
             </div>
 
             <div style="overflow-x: auto;">
@@ -98,29 +82,51 @@
                             <th style="padding: 10px;">Тип</th>
                             <th style="padding: 10px;">Автор</th>
                             <th style="padding: 10px;">Текст</th>
-                            <th style="padding: 10px; width: 50px;">Дії</th>
+                            <th style="padding: 10px; width: 80px;">Дії</th>
                         </tr>
                     </thead>
-                    <tbody id="historyTableBody">
-                        <tr><td colspan="6" style="padding:20px; text-align:center">Завантаження...</td></tr>
-                    </tbody>
+                    <tbody id="historyTableBody"></tbody>
                 </table>
             </div>
             <div id="statsFooter" style="margin-top: 10px; font-size: 0.9em; color: var(--color-text-light); text-align: right;"></div>
         </div>
     </div>
+
+    <div id="detailModal" class="modal-overlay">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeDetailModal()">&times;</button>
+            <h2 style="margin-top:0; border-bottom:1px solid var(--color-border); padding-bottom:10px;">Деталі публікації</h2>
+            
+            <div class="detail-row">
+                <span class="detail-label">ID Повідомлення / Канал</span>
+                <div class="detail-value" id="modal-id"></div>
+            </div>
+            <div class="detail-row" style="display:flex; gap:20px;">
+                <div><span class="detail-label">Дата</span><div class="detail-value" id="modal-date"></div></div>
+                <div><span class="detail-label">Тип</span><div class="detail-value" id="modal-type"></div></div>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Автор / Бот</span>
+                <div class="detail-value" id="modal-author"></div>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Повний текст</span>
+                <div class="detail-text" id="modal-text"></div>
+            </div>
+            <div class="detail-row" style="text-align: right; margin-top:20px;">
+                <a href="#" id="modal-link-btn" target="_blank" class="btn btn-primary" style="width:auto; display:inline-block;">
+                    <i data-feather="external-link"></i> Відкрити в Telegram
+                </a>
+            </div>
+        </div>
+    </div>
     
     <script type="module">
         import { backendUrl, getChannels } from './api.js';
-        
-        let allHistoryItems = [];
-        let sortDesc = true; // Сортування: true = нові зверху
+        let allHistoryItems = []; let sortDesc = true;
 
-        // Ініціалізація
         async function init() {
             await Promise.all([loadChannelsFilter(), loadHistory()]);
-            
-            // Слухачі подій
             document.getElementById('searchInput').addEventListener('input', renderTable);
             document.getElementById('typeFilter').addEventListener('change', renderTable);
             document.getElementById('channelFilter').addEventListener('change', renderTable);
@@ -133,68 +139,50 @@
                 const select = document.getElementById('channelFilter');
                 channels.forEach(c => {
                     const opt = document.createElement('option');
-                    opt.value = c.telegram_id; // Використовуємо ID як значення
-                    opt.textContent = c.title;
+                    opt.value = c.telegram_id; opt.textContent = c.title;
                     select.appendChild(opt);
                 });
-            } catch (e) { console.error("Filter channels error", e); }
+            } catch (e) {}
         }
 
         window.loadHistory = async function() {
             const tbody = document.getElementById('historyTableBody');
             tbody.innerHTML = '<tr><td colspan="6" style="padding:20px; text-align:center">Оновлення...</td></tr>';
-            
             try {
                 const res = await fetch(`${backendUrl}/api/history`);
                 allHistoryItems = await res.json();
                 renderTable();
             } catch (e) {
-                tbody.innerHTML = '<tr><td colspan="6" style="padding:20px; text-align:center; color: var(--color-danger)">Помилка завантаження</td></tr>';
-                console.error(e);
+                tbody.innerHTML = '<tr><td colspan="6" style="padding:20px; text-align:center; color: var(--color-danger)">Помилка</td></tr>';
             }
         };
 
         function toggleSort() {
             sortDesc = !sortDesc;
-            const btn = document.getElementById('sortBtn');
-            btn.innerHTML = sortDesc ? '<span>⬇️ Спочатку нові</span>' : '<span>⬆️ Спочатку старі</span>';
+            document.getElementById('sortBtn').innerHTML = sortDesc ? '<span>⬇️ Спочатку нові</span>' : '<span>⬆️ Спочатку старі</span>';
             renderTable();
         }
 
-        // 🔥 Функція відкриття модального вікна
         window.openDetailModal = (item) => {
             document.getElementById('modal-id').textContent = `Msg ID: ${item.message_id || 'Немає'} | Channel: ${item.channel_title || item.channel_id}`;
             document.getElementById('modal-date').textContent = new Date(item.sent_at).toLocaleString();
             document.getElementById('modal-type').textContent = item.post_type;
             document.getElementById('modal-author').innerHTML = `${item.created_by || '?'} <span style="opacity:0.5">(via ${item.posted_by || 'bot'})</span>`;
-            
-            // Вставляємо текст (він може бути HTML, але краще textContent для безпеки, або innerHTML якщо довіряємо)
-            // Використовуємо innerHTML, бо у вас там теги <b>, <i> збережені
             document.getElementById('modal-text').innerHTML = item.content_preview.replace(/</g, "&lt;").replace(/>/g, "&gt;"); 
-            // Якщо у вас повний текст не зберігається в history (а тільки preview), то це все що є.
-            // (У вашій схемі `content_preview` - це обрізаний текст. Щоб показувати повний, треба змінити `log_history` в Rust, щоб писав повний текст, або розширити колонку)
             
             const btn = document.getElementById('modal-link-btn');
             if (item.message_id) {
                 let cleanId = String(item.channel_id).replace('-100', '');
                 btn.href = `https://t.me/c/${cleanId}/${item.message_id}`;
                 btn.style.display = 'inline-flex';
-            } else {
-                btn.style.display = 'none';
-            }
+            } else { btn.style.display = 'none'; }
 
             document.getElementById('detailModal').style.display = 'flex';
             if(window.feather) feather.replace();
         };
 
-        window.closeDetailModal = () => {
-            document.getElementById('detailModal').style.display = 'none';
-        };
-        
-        // Закриття по кліку на фон
-        document.getElementById('detailModal').addEventListener('click', (e) => {
-            if(e.target === document.getElementById('detailModal')) closeDetailModal();
-        });
+        window.closeDetailModal = () => document.getElementById('detailModal').style.display = 'none';
+        document.getElementById('detailModal').addEventListener('click', (e) => { if(e.target === document.getElementById('detailModal')) closeDetailModal(); });
 
         function renderTable() {
             const tbody = document.getElementById('historyTableBody');
@@ -203,85 +191,46 @@
             const channelVal = document.getElementById('channelFilter').value;
 
             let filtered = allHistoryItems.filter(item => {
-                const matchSearch = (item.content_preview || '').toLowerCase().includes(searchVal) ||
-                                    (item.created_by || '').toLowerCase().includes(searchVal);
-                
-                let matchType = true;
-                if (typeVal !== 'all') {
-                    if (typeVal === 'instant') matchType = item.post_type.includes('instant');
-                    else matchType = item.post_type === typeVal;
-                }
-                let matchChannel = true;
-                if (channelVal !== 'all') matchChannel = String(item.channel_id) === channelVal;
-
+                const matchSearch = (item.content_preview || '').toLowerCase().includes(searchVal) || (item.created_by || '').toLowerCase().includes(searchVal);
+                let matchType = (typeVal === 'all') || (typeVal === 'instant' ? item.post_type.includes('instant') : item.post_type === typeVal);
+                let matchChannel = (channelVal === 'all') || String(item.channel_id) === channelVal;
                 return matchSearch && matchType && matchChannel;
             });
 
-            filtered.sort((a, b) => {
-                const dateA = new Date(a.sent_at);
-                const dateB = new Date(b.sent_at);
-                return sortDesc ? dateB - dateA : dateA - dateB;
-            });
+            filtered.sort((a, b) => sortDesc ? new Date(b.sent_at) - new Date(a.sent_at) : new Date(a.sent_at) - new Date(b.sent_at));
 
-            if (filtered.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" style="padding:20px; text-align:center">Нічого не знайдено</td></tr>';
-                return;
-            }
+            if (filtered.length === 0) { tbody.innerHTML = '<tr><td colspan="6" style="padding:20px; text-align:center">Нічого не знайдено</td></tr>'; return; }
 
-            tbody.innerHTML = filtered.map((item, index) => {
-                // Зберігаємо об'єкт item в пам'яті (через window або масив), щоб передати в модалку
-                // Простіше використати індекс з filtered (але він змінюється при сортуванні).
-                // Найкраще: серіалізувати item в атрибут (якщо не дуже великий) або шукати по ID.
-                // Тут ми зробимо простий трюк: запишемо JSON в data-attribut
+            tbody.innerHTML = filtered.map(item => {
                 const itemJson = encodeURIComponent(JSON.stringify(item));
-
                 let typeLabel = item.post_type;
                 let typeClass = 'status-open';
                 if (item.post_type === 'ad') { typeLabel = 'Реклама'; typeClass = 'status-claimed'; }
-                else if (item.post_type === 'scheduled') { typeLabel = 'План'; typeClass = 'status-open'; }
                 else if (item.post_type.includes('instant')) { typeLabel = 'Миттєво'; typeClass = 'status-pending'; }
 
-                let linkHtml = '';
-                if (item.message_id) {
-                    let cleanId = String(item.channel_id).replace('-100', '');
-                    let url = `https://t.me/c/${cleanId}/${item.message_id}`;
-                    // stopPropagation важливий, щоб не відкривати модалку при кліку на кнопку
-                    linkHtml = `<a href="${url}" target="_blank" class="link-btn" onclick="event.stopPropagation();"><i data-feather="external-link"></i></a>`;
-                } else {
-                    linkHtml = `<span style="opacity:0.3">-</span>`;
-                }
+                let linkHtml = item.message_id ? 
+                    `<a href="https://t.me/c/${String(item.channel_id).replace('-100', '')}/${item.message_id}" target="_blank" class="link-btn" onclick="event.stopPropagation();"><i data-feather="external-link"></i></a>` : 
+                    `<span style="opacity:0.3">-</span>`;
 
                 return `
                 <tr class="clickable-row" onclick='openDetailModal(JSON.parse(decodeURIComponent("${itemJson}")))' style="border-bottom: 1px solid rgba(255,255,255,0.05);">
                     <td style="padding: 10px; font-size:0.9em;">${new Date(item.sent_at).toLocaleString()}</td>
                     <td style="padding: 10px;">${item.channel_title || item.channel_id}</td>
-                    <td style="padding: 10px;">
-                        <span class="task-status ${typeClass}" style="font-size: 0.8em;">${typeLabel}</span>
-                    </td>
-                    <td style="padding: 10px; font-weight:500;">
-                        ${item.created_by || '-'}
-                    </td>
-                    <td style="padding: 10px; max-width: 300px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
-                        ${item.content_preview}...
-                    </td>
-                    <td style="padding: 10px; text-align:center;">
-                        ${linkHtml}
-                    </td>
-                </tr>
-            `}).join('');
+                    <td style="padding: 10px;"><span class="task-status ${typeClass}" style="font-size: 0.8em;">${typeLabel}</span></td>
+                    <td style="padding: 10px; font-weight:500;">${item.created_by || '-'}</td>
+                    <td style="padding: 10px; max-width: 300px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${item.content_preview}...</td>
+                    <td style="padding: 10px; text-align:center;">${linkHtml}</td>
+                </tr>`;
+            }).join('');
             
             if (window.feather) feather.replace();
             document.getElementById('statsFooter').innerText = `Показано: ${filtered.length} / ${allHistoryItems.length}`;
         }
-
         init();
     </script>
-
     <div class="fab-container">
         <div class="fab-options">
-            <a href="#" onclick="logout(); return false;" class="fab-option" style="color: var(--color-danger);">
-                <i data-feather="log-out"></i><span>Вийти</span>
-            </a>
+            <a href="#" onclick="logout(); return false;" class="fab-option" style="color: var(--color-danger);"><i data-feather="log-out"></i><span>Вийти</span></a>
             <a href="index.html" class="fab-option"><i data-feather="plus-circle"></i><span>Створити Завдання</span></a>
             <a href="task-list.html" class="fab-option"><i data-feather="list"></i><span>Список Завдань</span></a>
             <a href="schedule.html" class="fab-option"><i data-feather="calendar"></i><span>Запланувати Пост</span></a>
@@ -292,39 +241,22 @@
             <a href="settings.html" class="fab-option"><i data-feather="settings"></i><span>Налаштування</span></a>
             <a href="admin.html" class="fab-option"><i data-feather="settings"></i><span>ADMIN</span></a>
         </div>
-        <button class="fab-main" id="fab-toggle">
-            <i class="fab-main-icon fab-icon-menu" data-feather="menu"></i>
-            <i class="fab-main-icon fab-icon-close" data-feather="x"></i>
-        </button>
+        <button class="fab-main" id="fab-toggle"><i class="fab-main-icon fab-icon-menu" data-feather="menu"></i><i class="fab-main-icon fab-icon-close" data-feather="x"></i></button>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
     <script>
         feather.replace(); 
         const fabContainer = document.querySelector('.fab-container');
-        window.addEventListener('pageshow', (event) => { if (fabContainer) fabContainer.classList.remove('active'); });
+        window.addEventListener('pageshow', () => { if (fabContainer) fabContainer.classList.remove('active'); });
         let idleTimer;
-        const setIdle = () => { if (fabContainer && !fabContainer.classList.contains('active')) { fabContainer.classList.add('is-idle'); } };
+        const setIdle = () => { if (fabContainer && !fabContainer.classList.contains('active')) fabContainer.classList.add('is-idle'); };
         const resetIdleTimer = () => { clearTimeout(idleTimer); if (fabContainer) fabContainer.classList.remove('is-idle'); idleTimer = setTimeout(setIdle, 4000); };
         resetIdleTimer();
         ['scroll', 'touchstart', 'click', 'keypress'].forEach(event => document.addEventListener(event, resetIdleTimer));
-        if (fabContainer) {
-            fabContainer.addEventListener('mouseenter', () => { clearTimeout(idleTimer); fabContainer.classList.remove('is-idle'); });
-            fabContainer.addEventListener('mouseleave', resetIdleTimer);
-        }
-        document.getElementById('fab-toggle').addEventListener('click', (e) => {
-            e.stopPropagation(); fabContainer.classList.toggle('active');
-            if (fabContainer.classList.contains('active')) { fabContainer.classList.remove('is-idle'); clearTimeout(idleTimer); } else { resetIdleTimer(); }
-        });
-        document.addEventListener('click', (e) => {
-            if (fabContainer && fabContainer.classList.contains('active') && !fabContainer.contains(e.target)) { fabContainer.classList.remove('active'); resetIdleTimer(); }
-        });
-        (function() {
-            const htmlEl = document.documentElement;
-            const savedTheme = localStorage.getItem('theme');
-            const isXmas = localStorage.getItem('theme-xmas') === 'true';
-            if (isXmas) { htmlEl.classList.add('theme-xmas'); htmlEl.classList.add('dark'); } 
-            else { if (savedTheme === 'light') htmlEl.classList.remove('dark'); else htmlEl.classList.add('dark'); }
-        })();
+        if (fabContainer) { fabContainer.addEventListener('mouseenter', () => { clearTimeout(idleTimer); fabContainer.classList.remove('is-idle'); }); fabContainer.addEventListener('mouseleave', resetIdleTimer); }
+        document.getElementById('fab-toggle').addEventListener('click', (e) => { e.stopPropagation(); fabContainer.classList.toggle('active'); if (fabContainer.classList.contains('active')) { fabContainer.classList.remove('is-idle'); clearTimeout(idleTimer); } else { resetIdleTimer(); } });
+        document.addEventListener('click', (e) => { if (fabContainer && fabContainer.classList.contains('active') && !fabContainer.contains(e.target)) { fabContainer.classList.remove('active'); resetIdleTimer(); } });
+        (function() { const htmlEl = document.documentElement; const savedTheme = localStorage.getItem('theme'); const isXmas = localStorage.getItem('theme-xmas') === 'true'; if (isXmas) { htmlEl.classList.add('theme-xmas'); htmlEl.classList.add('dark'); } else { if (savedTheme === 'light') htmlEl.classList.remove('dark'); else htmlEl.classList.add('dark'); } })();
     </script>
 </body>
 </html>
