@@ -1178,165 +1178,76 @@ html.theme-xmas input:focus {
 .physics-bulb.purple { --bulb-color: rgba(200, 0, 255, 0.9); --bulb-glow: magenta; }
 
 
-/* --- 3. 🎄 ВЕЛИКА ДЕТАЛІЗОВАНА ЯЛИНКА (Interactive) --- */
-.xmas-tree-container {
+/* 1. РЕАЛІСТИЧНА ЯЛИНКА-ПАСХАЛКА (Зображення) */
+#xmas-tree-real {
     position: fixed;
-    bottom: 20px; left: 20px;
-    z-index: 100001; /* Поверх усього */
-    width: 220px; height: 300px; /* Значно більша */
-    cursor: pointer; /* Вказує, що можна клікнути */
-    filter: drop-shadow(0 20px 30px rgba(0,0,0,0.7));
-    animation: treeSwayBot 6s ease-in-out infinite alternate;
-    transform-origin: bottom center;
-    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-/* Ефект при наведенні та кліку */
-.xmas-tree-container:hover { transform: scale(1.05); }
-.xmas-tree-container:active { transform: scale(0.95) rotate(2deg); }
-
-@keyframes treeSwayBot { from { transform: rotate(-1deg); } to { transform: rotate(1deg); } }
-
-/* СТОВБУР */
-.tree-trunk {
-    position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
-    width: 40px; height: 50px;
-    background: linear-gradient(90deg, #2d1a10, #4e342e, #2d1a10);
-    border-radius: 4px;
-    box-shadow: inset 0 0 10px rgba(0,0,0,0.8);
-}
-/* Текстура кори */
-.tree-trunk::after {
-    content: ''; position: absolute; top:0; left:0; width:100%; height:100%;
-    background: repeating-linear-gradient(0deg, rgba(0,0,0,0.1) 0px, rgba(0,0,0,0.1) 2px, transparent 2px, transparent 4px);
-    opacity: 0.5;
-}
-
-/* ГІЛКИ (Шари) - Деталізовані */
-.tree-layer {
-    position: absolute; left: 50%; transform: translateX(-50%);
-    width: 0; height: 0;
-    border-style: solid;
-    border-color: transparent transparent var(--layer-color) transparent;
-    filter: drop-shadow(0 -5px 15px rgba(0,0,0,0.3)); /* Тінь між шарами */
-}
-/* Текстура голок та снігу */
-.tree-layer::before {
-    content: ''; position: absolute; 
-    top: 50%; left: -50%; width: 100%; height: 100%;
-    /* Голки */
-    background-image: 
-        radial-gradient(circle at 20% 80%, rgba(255,255,255,0.2) 2px, transparent 2px),
-        radial-gradient(circle at 80% 70%, rgba(255,255,255,0.2) 2px, transparent 2px),
-        linear-gradient(135deg, transparent 0%, rgba(0,0,0,0.1) 50%, transparent 100%);
-    background-size: 20px 20px, 30px 30px, 100% 100%;
-    /* Сніг на краях */
-    border-bottom: 8px solid rgba(255,255,255,0.8);
-    border-radius: 30%;
-    filter: blur(1px);
-}
-
-.tree-bot { bottom: 40px; border-width: 0 110px 120px 110px; --layer-color: #0a3d26; z-index: 1; }
-.tree-mid { bottom: 100px; border-width: 0 90px 100px 90px; --layer-color: #0e5c3a; z-index: 2; }
-.tree-top { bottom: 160px; border-width: 0 70px 80px 70px; --layer-color: #147d4f; z-index: 3; }
-
-/* ЗІРКА (Сяюча) */
-.tree-star {
-    position: absolute; top: -10px; left: 50%; transform: translateX(-50%);
-    color: #ffd700; font-size: 50px; z-index: 10;
-    text-shadow: 0 0 20px #ffeb3b, 0 0 40px #ffc107, 0 0 60px #ff9800;
-    animation: starSpin 4s ease-in-out infinite alternate;
-}
-@keyframes starSpin { 0% { transform: translateX(-50%) scale(0.9) rotate(-5deg); opacity:0.8; } 100% { transform: translateX(-50%) scale(1.1) rotate(5deg); opacity:1; } }
-
-/* ІГРАШКИ (Об'ємні) */
-.tree-bauble {
-    position: absolute; width: 16px; height: 16px; border-radius: 50%;
-    background: radial-gradient(circle at 30% 30%, white 0%, var(--c) 50%, rgba(0,0,0,0.5) 100%);
-    box-shadow: 0 5px 10px rgba(0,0,0,0.3), inset 0 0 5px rgba(255,255,255,0.5);
-    z-index: 5;
-    animation: baubleGlow 2s infinite alternate;
-}
-@keyframes baubleGlow { from { box-shadow: 0 0 5px var(--c); } to { box-shadow: 0 0 20px var(--c); } }
-.t-1 { top: 180px; left: 60px; --c: #ff0000; animation-delay: 0s; }
-.t-2 { top: 220px; left: 140px; --c: #ffd700; animation-delay: 0.5s; }
-.t-3 { top: 120px; left: 100px; --c: #00f; animation-delay: 1s; }
-.t-4 { top: 260px; left: 80px; --c: #ff00ff; animation-delay: 1.5s; }
-.t-5 { top: 150px; left: 160px; --c: #00ff00; animation-delay: 2s; }
-
-/* ГІРЛЯНДА НА ЯЛИНЦІ (Світиться) */
-.tree-garland {
-    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-    pointer-events: none; z-index: 4;
-    background-image: 
-        radial-gradient(circle at 30% 30%, rgba(255,255,0,0.8) 2px, transparent 4px),
-        radial-gradient(circle at 70% 60%, rgba(255,0,0,0.8) 2px, transparent 4px),
-        radial-gradient(circle at 50% 80%, rgba(0,0,255,0.8) 2px, transparent 4px);
-    background-size: 50px 50px;
-    animation: garlandTwinkle 1s steps(2) infinite;
-    opacity: 0.7;
-}
-@keyframes garlandTwinkle { 0% { opacity: 0.5; background-position: 0 0; } 100% { opacity: 1; background-position: 10px 10px; } }
-
-
-/* --- 4. ПОДАРУНОК (Величезний 3D) --- */
-.tree-gift {
-    position: absolute; bottom: 10px; right: -30px;
-    width: 70px; height: 60px;
-    background: linear-gradient(135deg, #c62828 0%, #b71c1c 100%);
-    border-radius: 4px;
-    box-shadow: 10px 10px 20px rgba(0,0,0,0.5), inset 0 0 10px rgba(255,255,255,0.2);
-    z-index: 100002;
-    transform: rotate(10deg);
+    bottom: 20px;
+    left: 20px;
+    z-index: 1000;
+    width: 120px; /* Невелика, акуратна */
+    height: auto;
     cursor: pointer;
-    transition: transform 0.2s;
-}
-.tree-gift:hover { transform: rotate(10deg) scale(1.1); }
-/* Стрічка */
-.tree-gift::before {
-    content: ''; position: absolute; top: 0; left: 50%; width: 14px; height: 100%;
-    background: linear-gradient(to right, #fdd835, #fbc02d); transform: translateX(-50%);
-    box-shadow: 0 0 5px rgba(0,0,0,0.2);
-}
-.tree-gift::after {
-    content: ''; position: absolute; top: 45%; left: 0; width: 100%; height: 14px;
-    background: linear-gradient(to bottom, #fdd835, #fbc02d); transform: translateY(-50%);
-}
-/* Бант */
-.gift-bow {
-    position: absolute; top: -20px; left: 50%; transform: translateX(-50%);
-    width: 30px; height: 30px;
-    background: radial-gradient(circle, #fdd835 0%, #f9a825 100%);
-    clip-path: polygon(50% 0%, 65% 35%, 100% 50%, 65% 65%, 50% 100%, 35% 65%, 0% 50%, 35% 35%);
-    filter: drop-shadow(0 2px 5px rgba(0,0,0,0.3));
+    /* Легка тінь для реалізму, ніби стоїть на поверхні */
+    filter: drop-shadow(0 10px 15px rgba(0,0,0,0.4));
+    transition: transform 0.3s ease, filter 0.3s ease;
 }
 
-/* --- 5. 🎅 АНІМАЦІЯ ЛЕТЮЧОГО САНТИ --- */
-/* Контейнер для анімації (на весь екран) */
-#santa-fly-container {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    pointer-events: none; z-index: 100005;
-    display: none; /* Приховано за замовчуванням */
-}
-/* Сам Санта на санях */
-.flying-santa {
-    position: absolute; top: 30%; left: -200px; /* Start off-screen left */
-    font-size: 100px; /* Величезний */
-    filter: drop-shadow(0 10px 20px rgba(0,0,0,0.5));
-    animation: santaFlyAcross 4s cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
-}
-/* Слід з подарунків та іскор */
-.flying-santa::after {
-    content: '🎁✨🌟💨'; font-size: 40px; position: absolute; top: 40px; right: -60px;
-    opacity: 0; animation: trailFade 4s linear forwards;
+/* Ефект при наведенні - легке збільшення */
+#xmas-tree-real:hover {
+    transform: scale(1.05);
+    filter: drop-shadow(0 15px 20px rgba(0,0,0,0.5)) brightness(1.1);
 }
 
-@keyframes santaFlyAcross {
-    0% { left: -200px; transform: translateY(0) rotate(-10deg); }
-    25% { transform: translateY(-50px) rotate(0deg); }
-    50% { transform: translateY(20px) rotate(5deg); }
-    100% { left: 110%; transform: translateY(-100px) rotate(15deg); } /* End off-screen right */
+/* Ефект при кліку - легке стиснення */
+#xmas-tree-real:active {
+    transform: scale(0.95);
 }
-@keyframes trailFade { 0% { opacity: 0; } 20% { opacity: 1; } 80% { opacity: 1; } 100% { opacity: 0; } }
+
+/* 2. ЛЕТЮЧИЙ САНТА (Реалістичний силует) */
+#santa-silhouette {
+    position: fixed;
+    top: 10%; /* Літає високо в небі */
+    left: -300px; /* Початкова позиція за межами екрану зліва */
+    width: 250px; /* Розмір силуету */
+    height: auto;
+    z-index: 999; /* Під елементами інтерфейсу, але над фоном */
+    pointer-events: none; /* Щоб не заважав клікати */
+    opacity: 0; /* Спочатку невидимий */
+}
+
+/* Клас, який запускає анімацію */
+.santa-flying-animation {
+    animation: flyRealSanta 6s cubic-bezier(0.4, 0.0, 0.2, 1) forwards;
+}
+
+@keyframes flyRealSanta {
+    0% {
+        left: -300px;
+        opacity: 0;
+        transform: translateY(0) scale(0.8);
+    }
+    10% {
+        opacity: 0.8;
+    }
+    90% {
+        opacity: 0.8;
+    }
+    100% {
+        left: 110%; /* Вилітає за межі екрану справа */
+        opacity: 0;
+        transform: translateY(-50px) scale(1); /* Трохи піднімається вгору і збільшується (ефект наближення) */
+    }
+}
+
+/* 3. СТИЛІ ДЛЯ ЗАГЛУШОК (ВИДАЛІТЬ ЦЕ, КОЛИ ДОДАСТЕ РЕАЛЬНІ КАРТИНКИ) */
+/* Це просто щоб ви бачили, де будуть об'єкти, поки немає картинок */
+#xmas-tree-real[src=""] {
+    display: block; width: 100px; height: 150px; background: linear-gradient(to bottom, #0f5132, #5c3d2e); border-radius: 10px; border: 2px dashed yellow;
+}
+#xmas-tree-real[src=""]::after { content: 'ЗАМІНИ МЕНЕ НА PNG ЯЛИНКИ'; color: white; font-size: 10px; display: block; padding: 5px; }
+#santa-silhouette[src=""] {
+     display: block; width: 200px; height: 80px; background: #333; border-radius: 50%; border: 2px dashed red;
+}
 
 /* --- САНТА (Кнопка) --- */
 #santa-btn {
