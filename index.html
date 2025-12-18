@@ -188,63 +188,19 @@
         } catch (e) { console.error(e); }
 
         (function() {
+            // Тільки застосовуємо тему, без обробки кліків (кнопки тут немає)
             const htmlEl = document.documentElement;
-            
-            // --- Логіка Dark/Light (Стара) ---
-            const themeToggle = document.getElementById('theme-toggle');
             const savedTheme = localStorage.getItem('theme');
-            if (savedTheme === 'light') htmlEl.classList.remove('dark'); 
-            else htmlEl.classList.add('dark'); // Default dark
-
-            if (themeToggle) {
-                themeToggle.addEventListener('click', () => { 
-                    htmlEl.classList.toggle('dark'); 
-                    localStorage.setItem('theme', htmlEl.classList.contains('dark') ? 'dark' : 'light'); 
-                });
-            }
-
-            // --- 🎄 Логіка XMAS (НОВА) ---
-            const xmasToggle = document.getElementById('xmas-toggle');
             const isXmas = localStorage.getItem('theme-xmas') === 'true';
-            
-            // Функція вмикання/вимикання
-            const toggleXmas = (enable) => {
-                if (enable) {
-                    htmlEl.classList.add('theme-xmas');
-                    // Примусово вмикаємо темну основу, бо сніг краще видно
-                    htmlEl.classList.add('dark'); 
-                    if (xmasToggle) {
-                        xmasToggle.style.backgroundColor = 'var(--color-bg-card)';
-                        xmasToggle.querySelector('span').textContent = 'Вимкнути свято';
-                    }
-                } else {
-                    htmlEl.classList.remove('theme-xmas');
-                    if (xmasToggle) {
-                        xmasToggle.style.backgroundColor = '';
-                        xmasToggle.querySelector('span').textContent = 'Новий Рік';
-                    }
-                    // Повертаємо тему користувача
-                    if (localStorage.getItem('theme') === 'light') htmlEl.classList.remove('dark');
-                }
-            };
 
-            // Ініціалізація при завантаженні
-            toggleXmas(isXmas);
-
-            if (xmasToggle) {
-                xmasToggle.addEventListener('click', () => {
-                    const isActive = htmlEl.classList.contains('theme-xmas');
-                    toggleXmas(!isActive);
-                    localStorage.setItem('theme-xmas', !isActive);
-                    
-                    // Ефект конфетті при натисканні (опціонально, просто для радості)
-                    if (!isActive && window.feather) feather.replace(); 
-                });
+            if (isXmas) {
+                htmlEl.classList.add('theme-xmas');
+                htmlEl.classList.add('dark');
+            } else {
+                if (savedTheme === 'light') htmlEl.classList.remove('dark'); 
+                else htmlEl.classList.add('dark');
             }
         })();
-
-        // Оновлюємо іконки після додавання кнопки
-        if (window.feather) feather.replace();
     </script>
 </body>
 </html>
