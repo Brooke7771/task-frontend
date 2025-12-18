@@ -2,142 +2,180 @@
 <html lang="uk" class="dark">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Вхід в систему</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <title>Вхід / Реєстрація</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <style>
-        body {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            padding: 0;
-            /* Змушуємо аврору бути на весь екран без скролу */
-            overflow: hidden; 
-        }
-        .auth-card {
-            width: 100%;
-            max-width: 400px;
-            margin: 0 20px;
-        }
-        .toggle-link {
-            display: block;
-            text-align: center;
-            margin-top: 15px;
-            color: var(--color-primary);
-            cursor: pointer;
-            text-decoration: underline;
-        }
+        body { display: flex; align-items: center; justify-content: center; min-height: 100vh; overflow-y: auto; padding: 20px; }
+        .auth-card { width: 100%; max-width: 500px; margin: auto; }
+        .feature-checkbox { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; cursor: pointer; }
+        .hidden { display: none; }
     </style>
 </head>
 <body>
 
     <div class="card auth-card">
         <h1 id="pageTitle">Вхід 👋</h1>
-        <form id="authForm">
+        
+        <form id="loginForm">
             <div class="form-group">
-                <label for="username">Логін:</label>
-                <input type="text" id="username" name="username" required placeholder="admin">
+                <label>Логін:</label>
+                <input type="text" id="login_username" required>
             </div>
-            
             <div class="form-group">
-                <label for="password">Пароль:</label>
-                <input type="password" id="password" name="password" required placeholder="••••••">
+                <label>Пароль:</label>
+                <input type="password" id="login_password" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Увійти</button>
+        </form>
+
+        <form id="registerForm" class="hidden">
+            <h3>Особисті дані</h3>
+            <div class="form-group">
+                <label>Придумайте Логін:</label>
+                <input type="text" id="reg_username" required>
+            </div>
+            <div class="form-group">
+                <label>Пароль:</label>
+                <input type="password" id="reg_password" required>
+            </div>
+            <div class="form-group">
+                <label>Email:</label>
+                <input type="email" id="reg_email" required>
+            </div>
+            <div class="form-group">
+                <label>Ваш Telegram (@username):</label>
+                <input type="text" id="reg_tg" required>
             </div>
 
-            <button type="submit" class="btn btn-primary" id="submitBtn">Увійти</button>
+            <h3>Дані Каналу</h3>
+            <div class="form-group">
+                <label>Назва каналу:</label>
+                <input type="text" id="reg_ch_name" required>
+            </div>
+            <div class="form-group">
+                <label>ID Каналу (напр. -100123456):</label>
+                <input type="text" id="reg_ch_id" required>
+                <small style="color:var(--color-text-light)">Бот має бути адміністратором каналу.</small>
+            </div>
+
+            <h3>Оберіть функціонал</h3>
+            <label class="feature-checkbox">
+                <input type="checkbox" value="tasks" checked> Планування завдань
+            </label>
+            <label class="feature-checkbox">
+                <input type="checkbox" value="schedule" checked> Відкладений постинг
+            </label>
+            <label class="feature-checkbox">
+                <input type="checkbox" value="ai"> AI Редактор
+            </label>
+            <label class="feature-checkbox">
+                <input type="checkbox" value="ads"> Рекламний кабінет
+            </label>
+
+            <button type="submit" class="btn btn-success" style="margin-top:20px">Подати заявку</button>
         </form>
         
-        <p id="message" style="text-align: center; margin-top: 10px;"></p>
-        
-        <a class="toggle-link" id="toggleAuth">Немає акаунту? Зареєструватися</a>
+        <p id="message" style="text-align: center; margin-top: 15px; font-weight:bold;"></p>
+        <a class="toggle-link" id="toggleAuth" style="display:block; text-align:center; margin-top:15px; cursor:pointer; color:var(--color-primary);">Немає акаунту? Зареєструватися</a>
     </div>
 
-    <script>
-        const form = document.getElementById('authForm');
-        const submitBtn = document.getElementById('submitBtn');
-        const pageTitle = document.getElementById('pageTitle');
+    <script type="module">
+        import { backendUrl } from './api.js';
+
+        const loginForm = document.getElementById('loginForm');
+        const registerForm = document.getElementById('registerForm');
         const toggleLink = document.getElementById('toggleAuth');
         const message = document.getElementById('message');
-        const usernameInput = document.getElementById('username');
-        const passwordInput = document.getElementById('password');
+        const pageTitle = document.getElementById('pageTitle');
 
-        // 🔥 ВАЖЛИВО: Вказуємо повну адресу бекенду на Heroku
-        const backendUrl = 'https://my-telegram-task-bot-5c4258bd3f9b.herokuapp.com';
-
-        let isLoginMode = true;
-
-        // Перевірка, чи ми вже залогінені
-        if (localStorage.getItem('isLoggedIn') === 'true') {
-            window.location.href = 'index.html';
-        }
+        let isLogin = true;
 
         toggleLink.addEventListener('click', () => {
-            isLoginMode = !isLoginMode;
-            if (isLoginMode) {
+            isLogin = !isLogin;
+            if (isLogin) {
+                loginForm.classList.remove('hidden');
+                registerForm.classList.add('hidden');
                 pageTitle.textContent = 'Вхід 👋';
-                submitBtn.textContent = 'Увійти';
                 toggleLink.textContent = 'Немає акаунту? Зареєструватися';
             } else {
-                pageTitle.textContent = 'Реєстрація 🚀';
-                submitBtn.textContent = 'Створити акаунт';
+                loginForm.classList.add('hidden');
+                registerForm.classList.remove('hidden');
+                pageTitle.textContent = 'Заявка на реєстрацію 🚀';
                 toggleLink.textContent = 'Вже є акаунт? Увійти';
             }
             message.textContent = '';
         });
 
-        form.addEventListener('submit', async (e) => {
+        // ВХІД
+        loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            submitBtn.disabled = true;
-            message.className = '';
-            message.textContent = 'Обробка...';
-
-            // 🔥 ВИПРАВЛЕННЯ: Додаємо backendUrl до шляху
-            const path = isLoginMode ? '/api/auth/login' : '/api/auth/register';
-            const endpoint = `${backendUrl}${path}`;
-
             const data = {
-                username: usernameInput.value,
-                password: passwordInput.value
+                username: document.getElementById('login_username').value,
+                password: document.getElementById('login_password').value
             };
 
             try {
-                const response = await fetch(endpoint, {
+                const res = await fetch(`${backendUrl}/api/auth/login`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(data)
+                });
+                
+                if (res.ok) {
+                    const respData = await res.json();
+                    localStorage.setItem('isLoggedIn', 'true');
+                    localStorage.setItem('username', data.username);
+                    localStorage.setItem('isAdmin', respData.is_admin);
+                    // Зберігаємо дозволені сторінки
+                    localStorage.setItem('allowedPages', JSON.stringify(respData.allowed_pages));
+
+                    if (respData.is_admin) {
+                        window.location.href = 'admin.html'; // Адміна кидаємо в панель
+                    } else {
+                        window.location.href = 'index.html';
+                    }
+                } else {
+                    const txt = await res.text();
+                    message.textContent = txt;
+                    message.className = 'error';
+                }
+            } catch (err) { console.error(err); message.textContent = 'Помилка мережі'; }
+        });
+
+        // РЕЄСТРАЦІЯ
+        registerForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // Збираємо чекбокси
+            const features = [];
+            registerForm.querySelectorAll('input[type="checkbox"]:checked').forEach(cb => features.push(cb.value));
+
+            const data = {
+                username: document.getElementById('reg_username').value,
+                password: document.getElementById('reg_password').value,
+                telegram_username: document.getElementById('reg_tg').value,
+                email: document.getElementById('reg_email').value,
+                channel_name: document.getElementById('reg_ch_name').value,
+                channel_id: document.getElementById('reg_ch_id').value,
+                features: features
+            };
+
+            try {
+                const res = await fetch(`${backendUrl}/api/auth/register`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify(data)
                 });
 
-                if (response.ok) {
-                    if (isLoginMode) {
-                        // Успішний вхід
-                        localStorage.setItem('isLoggedIn', 'true');
-                        localStorage.setItem('username', data.username);
-                        window.location.href = 'index.html'; // Перехід на Dashboard
-                    } else {
-                        // Успішна реєстрація
-                        message.className = 'success';
-                        message.textContent = 'Акаунт створено! Тепер увійдіть.';
-                        // Перемикаємо на вхід
-                        toggleLink.click();
-                        // Заповнюємо поля для зручності
-                        usernameInput.value = data.username;
-                        passwordInput.value = data.password; 
-                    }
+                if (res.ok) {
+                    alert("Заявку успішно відправлено! Очікуйте підтвердження від адміністратора.");
+                    toggleLink.click(); // Повернутися на вхід
                 } else {
-                    const errorText = await response.text();
+                    message.textContent = await res.text();
                     message.className = 'error';
-                    message.textContent = isLoginMode ? 'Невірний логін або пароль' : 'Помилка реєстрації (логін зайнятий?)';
-                    console.error('Server error:', errorText);
                 }
-            } catch (error) {
-                console.error(error);
-                message.className = 'error';
-                message.textContent = 'Помилка з\'єднання з сервером';
-            } finally {
-                submitBtn.disabled = false;
-            }
+            } catch (err) { console.error(err); message.textContent = 'Помилка мережі'; }
         });
     </script>
 </body>

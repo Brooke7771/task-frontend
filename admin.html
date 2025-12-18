@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="uk" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <title>Адмін Панель</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="auth-guard.js"></script>
+</head>
+<body>
+    <div class="container-main">
+        <div class="card">
+            <div style="display:flex; justify-content:space-between;">
+                <h1>👑 Керування Користувачами</h1>
+                <a href="index.html" class="btn" style="width:auto">В додаток -></a>
+            </div>
+            
+            <div style="overflow-x:auto;">
+                <table style="width:100%; text-align:left; border-collapse:collapse;">
+                    <thead>
+                        <tr style="border-bottom:1px solid #555;">
+                            <th>Користувач</th>
+                            <th>Телеграм/Пошта</th>
+                            <th>Канал</th>
+                            <th>Запит функцій</th>
+                            <th>Статус</th>
+                            <th>Дії</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usersTable"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div id="permissionsModal" class="card" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); z-index:1000; border:2px solid var(--color-primary); width:90%; max-width:400px;">
+        <h3>Налаштування доступу</h3>
+        <p id="modalUser"></p>
+        <form id="permForm">
+            <label><input type="checkbox" value="index.html"> Створення Завдань</label><br>
+            <label><input type="checkbox" value="schedule.html"> Планування Постів</label><br>
+            <label><input type="checkbox" value="ads.html"> Реклама</label><br>
+            <label><input type="checkbox" value="chat.html"> AI Чат</label><br>
+            <label><input type="checkbox" value="settings.html"> Налаштування</label><br>
+            <br>
+            <button type="submit" class="btn btn-success">Зберегти та Активувати</button>
+            <button type="button" class="btn btn-danger" onclick="closeModal()" style="margin-top:10px">Скасувати</button>
+        </form>
+    </div>
+
+    <script type="module">
+        import { backendUrl } from './api.js';
+
+        let currentUserId = null;
+
+        async function loadUsers() {
+            const res = await fetch(`${backendUrl}/api/admin/users`);
+            const users = await res.json();
+            const tbody = document.getElementById('usersTable');
+            tbody.innerHTML = users.map(u => {
+                const features = JSON.parse(u.requested_features || "[]").join(", ");
+                const status = u.is_approved ? '<span style="color:lime">Активний</span>' : '<span style="color:orange">Очікує</span>';
+                
+                return `
+                <tr style="border-bottom:1px solid #333;">
+                    <td style="padding:10px;">${u.username}</td>
+                    <td style="padding:10px;">${u.telegram_username}<br><small>${u.email}</small></td>
+                    <td style="padding:10px;">${u.channel_name}<br><small>${u.channel_id}</small></td>
+                    <td style="padding:10px;">${features}</td>
+                    <td style="padding:10px;">${status}</td>
+                    <td style="padding:10px;">
+                        ${!u.is_approved ? `<button onclick="window.openApprove(${u.id}, '${u.username}')" class="btn btn-success btn-sm">✅</button>` : ''}
+                        <button onclick="window.deleteUser(${u.id})" class="btn btn-danger btn-sm">🗑</button>
+                    </td>
+                </tr>
+                `;
+            }).join('');
+        }
+
+        window.openApprove = (id, name) => {
+            currentUserId = id;
+            document.getElementById('modalUser').innerText = `Користувач: ${name}`;
+            document.getElementById('permissionsModal').style.display = 'block';
+        };
+
+        window.closeModal = () => {
+            document.getElementById('permissionsModal').style.display = 'none';
+        };
+
+        document.getElementById('permForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const allowed = [];
+            e.target.querySelectorAll('input:checked').forEach(cb => allowed.push(cb.value));
+            
+            await fetch(`${backendUrl}/api/admin/users/${currentUserId}/approve`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ is_approved: true, allowed_pages: allowed })
+            });
+            closeModal();
+            loadUsers();
+        });
+
+        window.deleteUser = async (id) => {
+            if(confirm("Видалити користувача?")) {
+                await fetch(`${backendUrl}/api/admin/users/${id}/delete`, { method: 'POST' });
+                loadUsers();
+            }
+        };
+
+        loadUsers();
+    </script>
+</body>
+</html>

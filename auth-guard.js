@@ -5,14 +5,27 @@ function checkAuth() {
     const isLoggedIn = localStorage.getItem('isLoggedIn');
     const currentPage = window.location.pathname.split('/').pop();
 
-    // Якщо це сторінка логіну - нічого не робимо (або редірект на index, якщо вже ввійшли)
-    if (currentPage === 'login.html' || currentPage === '') {
+    if (currentPage === 'login.html' || currentPage === '') return;
+
+    if (isLoggedIn !== 'true') {
+        window.location.href = 'login.html';
         return;
     }
 
-    if (isLoggedIn !== 'true') {
-        // Якщо не ввійшли - кидаємо на логін
-        window.location.href = 'login.html';
+    // Перевірка прав доступу до сторінки
+    const isAdmin = localStorage.getItem('isAdmin') === 'true';
+    if (isAdmin) return; // Адміну можна все
+
+    const allowedPages = JSON.parse(localStorage.getItem('allowedPages') || "[]");
+    
+    // Якщо сторінки немає в списку дозволених (і це не спільні сторінки типу task-list)
+    // Можна налаштувати логіку жорсткіше
+    if (!allowedPages.includes(currentPage) && 
+        currentPage !== 'index.html' && 
+        currentPage !== 'task-list.html') { // Базові сторінки, які доступні всім затвердженим
+        
+       // alert("У вас немає доступу до цієї сторінки.");
+       // window.location.href = 'index.html';
     }
 }
 
