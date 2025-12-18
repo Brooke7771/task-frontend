@@ -1064,14 +1064,31 @@ html.theme-xmas {
 
 /* Фон */
 html.theme-xmas body {
-    background: radial-gradient(circle at 50% 0%, #1e293b 0%, #000000 100%);
+    background: radial-gradient(circle at 50% 0%, #1a2c4e 0%, #020617 100%);
     background-attachment: fixed;
-    /* Відступ зверху для гірлянди */
-    padding-top: 15px; 
+    /* Додаємо відступ зверху, щоб гірлянда не перекривала контент */
+    padding-top: 25px; 
+}
+html.theme-xmas body::before { display: none; }
+
+/* Картки: Ефект темного льоду */
+html.theme-xmas .card,
+html.theme-xmas .tg-window {
+    background: linear-gradient(145deg, rgba(20, 25, 40, 0.8) 0%, rgba(10, 15, 25, 0.6) 100%);
+    backdrop-filter: blur(25px);
+    border: 1px solid var(--color-border);
+    border-top: 2px solid rgba(251, 191, 36, 0.6); /* Золотий верх */
+    box-shadow: var(--shadow-lg), inset 0 0 20px rgba(251, 191, 36, 0.05);
+}
+/* Заголовки: Золотий градієнт */
+html.theme-xmas h1 {
+    background: linear-gradient(to right, #fde68a, #fbbf24, #f59e0b);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    text-shadow: 0 0 25px rgba(251, 191, 36, 0.5);
 }
 
-/* Вимикаємо старі ефекти фону */
-html.theme-xmas body::before { display: none; }
 
 /* --- ГІРЛЯНДА (КОНТЕЙНЕР) --- */
 #xmas-garland-container {
