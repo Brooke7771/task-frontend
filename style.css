@@ -1135,94 +1135,127 @@ html.theme-xmas input:focus {
 }
 
 /* =================================
-   🎅 DECOR & PHYSICS GARLAND STYLES 🎅
+   🎅 ULTRA-REALISTIC DECOR 🎅
    ================================= */
 
-/* 1. ФІЗИЧНІ ЛАМПОЧКИ */
-.physics-bulb {
-    position: fixed; /* Позиціонується через JS translate */
-    top: 0; left: 0;
-    width: 14px;
-    height: 14px;
-    border-radius: 50%;
+/* Контейнер для лампочок (щоб не перекривали інтерфейс, але були видимі) */
+#garland-bulbs-container {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    pointer-events: none;
     z-index: 99999;
-    box-shadow: 0 0 5px currentColor;
-    animation: bulbGlow 1.5s infinite alternate ease-in-out;
 }
 
-/* Цоколь */
-.physics-bulb::before {
+/* ОСНОВА ЛАМПОЧКИ */
+.physics-bulb {
+    position: absolute;
+    top: 0; left: 0;
+    width: 20px; /* Трохи більші */
+    height: 30px;
+    transform-origin: top center; /* Важливо для фізики гойдання */
+    will-change: transform; /* Оптимізація */
+}
+
+/* СКЛЯНА КОЛБА */
+.bulb-glass {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.1) 20%, var(--bulb-color) 60%, rgba(0,0,0,0.1) 100%);
+    box-shadow: 
+        inset -2px -2px 4px rgba(0,0,0,0.2), /* Тінь всередині */
+        0 0 10px var(--bulb-color), /* Світіння */
+        0 0 20px var(--bulb-glow); /* Сильне світіння */
+    position: absolute;
+    top: 5px; /* Нижче цоколя */
+    left: 2px;
+    z-index: 2;
+    animation: realFlash 2s infinite alternate ease-in-out;
+}
+
+/* Блік на склі */
+.bulb-glass::after {
     content: '';
     position: absolute;
-    top: -4px; left: 3px;
-    width: 8px; height: 6px;
-    background: #222;
-    border-radius: 2px;
+    top: 3px; left: 4px;
+    width: 4px; height: 4px;
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 50%;
+    box-shadow: 0 0 2px #fff;
 }
 
-.physics-bulb.red { background: #ff3333; color: #ff3333; animation-delay: 0s; }
-.physics-bulb.gold { background: #fbbf24; color: #fbbf24; animation-delay: 0.3s; }
-.physics-bulb.green { background: #10b981; color: #10b981; animation-delay: 0.6s; }
-.physics-bulb.blue { background: #3b82f6; color: #3b82f6; animation-delay: 0.9s; }
-
-@keyframes bulbGlow {
-    0% { filter: brightness(0.8); opacity: 0.8; }
-    100% { filter: brightness(1.5); opacity: 1; box-shadow: 0 0 15px currentColor; }
+/* ЦОКОЛЬ (Метал) */
+.bulb-cap {
+    width: 8px;
+    height: 7px;
+    background: linear-gradient(to right, #444 0%, #888 50%, #444 100%);
+    position: absolute;
+    top: 0;
+    left: 6px;
+    border-radius: 2px 2px 0 0;
+    z-index: 1;
+    border: 1px solid #222;
+}
+/* Різьба на цоколі */
+.bulb-cap::before {
+    content: '';
+    position: absolute;
+    top: 2px; left: 0; right: 0; height: 1px;
+    background: rgba(0,0,0,0.5);
+    box-shadow: 0 2px 0 rgba(0,0,0,0.5);
 }
 
-/* 2. ЯЛИНКА З ПОДАРУНКОМ (Зліва внизу) */
+/* КОЛЬОРИ */
+.physics-bulb.red { --bulb-color: rgba(255, 0, 0, 0.8); --bulb-glow: rgba(255, 0, 0, 0.6); animation-delay: 0s; }
+.physics-bulb.gold { --bulb-color: rgba(255, 180, 0, 0.8); --bulb-glow: rgba(255, 180, 0, 0.6); animation-delay: 0.4s; }
+.physics-bulb.green { --bulb-color: rgba(0, 255, 0, 0.8); --bulb-glow: rgba(0, 255, 0, 0.6); animation-delay: 0.8s; }
+.physics-bulb.blue { --bulb-color: rgba(0, 100, 255, 0.8); --bulb-glow: rgba(0, 100, 255, 0.6); animation-delay: 1.2s; }
+.physics-bulb.purple { --bulb-color: rgba(200, 0, 255, 0.8); --bulb-glow: rgba(200, 0, 255, 0.6); animation-delay: 1.6s; }
+
+/* Анімація мерехтіння */
+@keyframes realFlash {
+    0% { opacity: 0.7; filter: brightness(0.9); }
+    100% { opacity: 1; filter: brightness(1.3); }
+}
+
+/* --- ЯЛИНКА ТА САНТА (залишаємо як було) --- */
 .xmas-tree-container {
     position: fixed;
     bottom: 20px;
     left: 20px;
     z-index: 1000;
-    pointer-events: none; /* Щоб не заважала клікам */
-    filter: drop-shadow(0 5px 15px rgba(0,0,0,0.5));
-    animation: floatTree 3s ease-in-out infinite alternate;
+    pointer-events: none;
+    filter: drop-shadow(0 10px 20px rgba(0,0,0,0.6));
+    animation: floatTree 4s ease-in-out infinite alternate;
 }
+.xmas-tree-svg { width: 130px; height: auto; }
+@keyframes floatTree { 0% { transform: rotate(-2deg); } 100% { transform: rotate(2deg); } }
 
-.xmas-tree-svg {
-    width: 120px;
-    height: auto;
-}
-
-@keyframes floatTree {
-    0% { transform: translateY(0); }
-    100% { transform: translateY(-5px); }
-}
-
-/* 3. САНТА-КНОПКА (Справа внизу, біля FAB) */
 #santa-btn {
     position: fixed;
-    bottom: 95px; /* Трохи вище FAB */
+    bottom: 95px;
     right: 32px;
-    width: 50px;
-    height: 50px;
-    background: radial-gradient(circle, #ffcccc, #ff0000);
+    width: 55px; height: 55px;
+    background: radial-gradient(circle, #fff0f0, #d32f2f);
     border-radius: 50%;
-    border: 2px solid #fff;
+    border: 3px solid #fff;
     cursor: pointer;
     z-index: 10001;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.4);
     transition: transform 0.2s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 24px;
+    display: flex; align-items: center; justify-content: center;
 }
-#santa-btn:hover { transform: scale(1.1) rotate(10deg); }
-#santa-btn::after {
-    content: '🎅';
-    font-size: 28px;
-}
+#santa-btn:hover { transform: scale(1.15) rotate(15deg); }
+#santa-btn::after { content: '🎅'; font-size: 32px; }
 
-/* 4. ПОПЕРЕДЖЕННЯ ПРО НАВАНТАЖЕННЯ (У налаштуваннях) */
+/* Badge */
 .badge-warning {
-    background: rgba(251, 191, 36, 0.2);
+    background: rgba(251, 191, 36, 0.15);
     color: #fbbf24;
-    padding: 2px 6px;
+    padding: 3px 6px;
     border-radius: 4px;
-    font-size: 0.7em;
-    margin-left: 5px;
-    border: 1px solid rgba(251, 191, 36, 0.4);
+    font-size: 0.65em;
+    margin-left: 6px;
+    border: 1px solid rgba(251, 191, 36, 0.3);
+    vertical-align: middle;
 }

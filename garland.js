@@ -6,34 +6,36 @@ export class XmasGarland {
         this.ctx = null;
         this.points = [];
         this.constraints = [];
-        this.bulbs = []; // DOM елементи лампочок
+        this.bulbs = []; 
         this.width = window.innerWidth;
-        this.height = 300; // Висота області гірлянди
+        this.height = 400; // Трохи більше місця
         this.physicsEnabled = true;
         
-        // Налаштування фізики
-        this.gravity = 0.4;
-        this.friction = 0.96;
-        this.stiffness = 1; // Жорсткість дроту
+        // --- ⚙️ НАЛАШТУВАННЯ ФІЗИКИ ---
+        this.gravity = 0.5;
+        this.friction = 0.98; // Менше тертя = більше коливань
+        this.segmentLength = 20; // 🔥 Менша довжина = більше точок = плавніший дріт
+        this.stiffness = 1;
         
         this.mouseX = -1000;
         this.mouseY = -1000;
         this.lastScrollY = window.scrollY;
         
-        this.colors = ['red', 'gold', 'green', 'blue'];
+        // Кольори для CSS класів
+        this.colors = ['red', 'gold', 'green', 'blue', 'purple']; 
         this.bulbIndex = 0;
 
         this.init();
     }
 
     init() {
-        // Створюємо Canvas для малювання дроту
+        // Canvas для дроту
         this.canvas = document.createElement('canvas');
         this.canvas.id = 'garland-wire-canvas';
         this.canvas.style.position = 'fixed';
         this.canvas.style.top = '0';
         this.canvas.style.left = '0';
-        this.canvas.style.zIndex = '99998'; // Під лампочками
+        this.canvas.style.zIndex = '99998'; 
         this.canvas.style.pointerEvents = 'none';
         document.body.appendChild(this.canvas);
         this.ctx = this.canvas.getContext('2d');
@@ -46,7 +48,7 @@ export class XmasGarland {
         this.resize();
         window.addEventListener('resize', () => this.resize());
         
-        // Взаємодія
+        // Взаємодія з мишкою
         document.addEventListener('mousemove', (e) => {
             this.mouseX = e.clientX;
             this.mouseY = e.clientY;
@@ -59,22 +61,24 @@ export class XmasGarland {
     }
 
     createRope() {
-        // Очищаємо старе
         this.points = [];
         this.constraints = [];
         this.bulbContainer.innerHTML = '';
         this.bulbs = [];
 
-        const segments = Math.floor(this.width / 40); // Кількість сегментів
-        const segmentLength = 45; // Довжина сегмента (трохи більше відстані, щоб провисало)
-        const startY = -10;
+        // Розрахунок кількості точок
+        const segments = Math.ceil(this.width / (this.segmentLength * 0.9)); 
+        const startY = -15;
 
-        // Створюємо точки
+        // --- СТВОРЕННЯ ТОЧОК ---
         for (let i = 0; i <= segments; i++) {
             const x = (i / segments) * this.width;
-            const y = startY + Math.sin((i / segments) * Math.PI) * 50; // Початковий прогин
-            // pinned: true для крайніх точок і кожної 5-ї (цвяшки)
-            const pinned = (i === 0 || i === segments || i % 6 === 0); 
+            // Робимо природне провисання (синусоїда)
+            const sag = Math.sin((i / segments) * Math.PI) * 80; 
+            const y = startY + sag;
+            
+            // Закріплюємо краї та кожну 8-му точку ("цвяшки")
+            const pinned = (i === 0 || i === segments || i % 8 === 0);
             
             this.points.push({
                 x: x, y: y,
@@ -82,18 +86,18 @@ export class XmasGarland {
                 pinned: pinned
             });
 
-            // Додаємо лампочку, якщо точка не закріплена
-            if (!pinned && i % 2 !== 0) {
+            // Додаємо лампочку кожну 3-тю точку (щоб не було занадто густо)
+            if (!pinned && i % 3 === 0 && i > 0 && i < segments) {
                 this.createBulbDOM(i);
             }
         }
 
-        // Створюємо зв'язки (дріт)
+        // --- СТВОРЕННЯ ЗВ'ЯЗКІВ (Constraint) ---
         for (let i = 0; i < this.points.length - 1; i++) {
             this.constraints.push({
                 p1: this.points[i],
                 p2: this.points[i + 1],
-                length: segmentLength
+                length: this.segmentLength
             });
         }
     }
@@ -101,18 +105,21 @@ export class XmasGarland {
     createBulbDOM(index) {
         const el = document.createElement('div');
         const color = this.colors[this.bulbIndex++ % this.colors.length];
+        
+        // Створюємо структуру лампочки
         el.className = `physics-bulb ${color}`;
+        el.innerHTML = `<div class="bulb-glass"></div><div class="bulb-cap"></div>`;
+        
         this.bulbContainer.appendChild(el);
-        // Зв'язуємо DOM елемент з фізичною точкою
         this.bulbs.push({ el: el, pointIndex: index });
     }
 
     update() {
-        if (!document.getElementById('garland-wire-canvas')) return; // Якщо видалили
+        if (!document.getElementById('garland-wire-canvas')) return;
 
         this.ctx.clearRect(0, 0, this.width, this.height);
         
-        // 1. Обробка фізики точок (Verlet Integration)
+        // 1. ФІЗИКА (Verlet)
         const scrollDiff = window.scrollY - this.lastScrollY;
         this.lastScrollY = window.scrollY;
 
@@ -129,67 +136,86 @@ export class XmasGarland {
                 p.y += vy;
                 p.y += this.gravity;
 
-                // Реакція на скрол (інерція)
-                p.y -= scrollDiff * 0.1;
+                // Інерція від скролу
+                p.y -= scrollDiff * 0.15; 
 
-                // Реакція на мишку
+                // Взаємодія з мишкою (відштовхування)
                 const dx = p.x - this.mouseX;
                 const dy = p.y - this.mouseY;
                 const dist = Math.sqrt(dx * dx + dy * dy);
-                if (dist < 80) {
-                    const force = (80 - dist) / 80;
+                if (dist < 100) {
+                    const force = (100 - dist) / 100;
                     const angle = Math.atan2(dy, dx);
-                    p.x += Math.cos(angle) * force * 5;
-                    p.y += Math.sin(angle) * force * 5;
+                    // М'який поштовх
+                    p.x += Math.cos(angle) * force * 4;
+                    p.y += Math.sin(angle) * force * 4;
                 }
             }
         }
 
-        // 2. Обробка зв'язків (Constraints)
-        for (let i = 0; i < 5; i++) { // Кілька ітерацій для стабільності
+        // 2. ЖОРСТКІСТЬ (Constraints)
+        // Більше ітерацій = стабільніша мотузка
+        for (let k = 0; k < 6; k++) { 
             for (const c of this.constraints) {
                 const dx = c.p2.x - c.p1.x;
                 const dy = c.p2.y - c.p1.y;
                 const dist = Math.sqrt(dx * dx + dy * dy);
-                const diff = (c.length - dist) / dist * 0.5; // push/pull factor
-
-                const offsetX = dx * diff * 0.8; // Трохи пружності
-                const offsetY = dy * diff * 0.8;
+                const diff = (c.length - dist) / dist * 0.5;
 
                 if (!c.p1.pinned) {
-                    c.p1.x -= offsetX;
-                    c.p1.y -= offsetY;
+                    c.p1.x -= dx * diff;
+                    c.p1.y -= dy * diff;
                 }
                 if (!c.p2.pinned) {
-                    c.p2.x += offsetX;
-                    c.p2.y += offsetY;
+                    c.p2.x += dx * diff;
+                    c.p2.y += dy * diff;
                 }
             }
         }
 
-        // 3. Малювання дроту
+        // 3. МАЛЮВАННЯ ДРОТУ (Гладкі криві)
         this.ctx.beginPath();
-        this.ctx.strokeStyle = '#023020'; // Темно-зелений
-        this.ctx.lineWidth = 3;
-        this.ctx.lineCap = 'round';
+        // Темно-зелений дріт з тінню
+        this.ctx.strokeStyle = '#0f392b'; 
+        this.ctx.lineWidth = 2.5;
+        this.ctx.shadowBlur = 2;
+        this.ctx.shadowColor = "black";
         
         if (this.points.length > 0) {
             this.ctx.moveTo(this.points[0].x, this.points[0].y);
-            for (let i = 1; i < this.points.length; i++) {
-                // Крива Безьє для гладкості
-                // this.ctx.lineTo(this.points[i].x, this.points[i].y);
-                const xc = (this.points[i].oldx + this.points[i].x) / 2; // interpolation trick
-                const yc = (this.points[i].oldy + this.points[i].y) / 2;
-                this.ctx.lineTo(this.points[i].x, this.points[i].y);
+            
+            // Використовуємо середини відрізків для quadraticCurveTo
+            for (let i = 1; i < this.points.length - 1; i++) {
+                const xc = (this.points[i].x + this.points[i + 1].x) / 2;
+                const yc = (this.points[i].y + this.points[i + 1].y) / 2;
+                this.ctx.quadraticCurveTo(this.points[i].x, this.points[i].y, xc, yc);
             }
+            // Домальовуємо останній сегмент
+            const last = this.points[this.points.length - 1];
+            this.ctx.lineTo(last.x, last.y);
         }
         this.ctx.stroke();
+        this.ctx.shadowBlur = 0; // Скидаємо тінь
 
-        // 4. Оновлення позицій лампочок DOM
+        // 4. ОНОВЛЕННЯ ЛАМПОЧОК (З обертанням!)
         for (const b of this.bulbs) {
             const p = this.points[b.pointIndex];
-            // Центруємо лампочку відносно точки
-            b.el.style.transform = `translate(${p.x - 6}px, ${p.y + 4}px)`;
+            const prevP = this.points[b.pointIndex - 1];
+            const nextP = this.points[b.pointIndex + 1];
+
+            // Вираховуємо кут нахилу дроту в цій точці
+            let angle = 0;
+            if (prevP && nextP) {
+                // Кут перпендикулярний до дроту
+                angle = Math.atan2(nextP.y - prevP.y, nextP.x - prevP.x) + (Math.PI / 2);
+            }
+
+            // Конвертуємо в градуси
+            const angleDeg = angle * (180 / Math.PI);
+
+            // Застосовуємо позицію та обертання
+            // translate(-50%, 0) центрує лампочку по горизонталі відносно точки кріплення
+            b.el.style.transform = `translate(${p.x}px, ${p.y}px) rotate(${angleDeg}deg) translate(-50%, 0)`;
         }
 
         requestAnimationFrame(this.loop);
@@ -197,7 +223,7 @@ export class XmasGarland {
 
     resize() {
         this.width = window.innerWidth;
-        this.height = window.innerHeight; // Можна на весь екран, якщо дріт довгий
+        this.height = window.innerHeight;
         this.canvas.width = this.width;
         this.canvas.height = this.height;
         this.createRope();
