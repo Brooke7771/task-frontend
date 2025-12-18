@@ -49,5 +49,12 @@
     </div>
 
     <script>feather.replace();</script>
+    <script src="garland.js" type="module"></script>
+    <script>
+        // Проста ініціалізація теми, якщо треба
+        if(localStorage.getItem('theme-xmas') === 'true') {
+            document.documentElement.classList.add('theme-xmas');
+        }
+    </script>
 </body>
 </html>
