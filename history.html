@@ -24,10 +24,11 @@
             color: var(--color-primary); text-decoration: none; display: inline-flex;
             align-items: center; gap: 4px; font-size: 0.9em; padding: 4px 8px;
             background: rgba(var(--color-primary-rgb), 0.1); border-radius: 4px; transition: 0.2s;
+            cursor: pointer;
         }
         .link-btn:hover { background: rgba(var(--color-primary-rgb), 0.2); }
 
-        /* 🔥 MODAL STYLES */
+        /* 🔥 MODAL STYLES (Додано) */
         .modal-overlay {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.7); backdrop-filter: blur(5px); z-index: 10000;
@@ -164,6 +165,7 @@
         }
 
         window.openDetailModal = (item) => {
+            // Заповнюємо дані модального вікна
             document.getElementById('modal-id').textContent = `Msg ID: ${item.message_id || 'Немає'} | Channel: ${item.channel_title || item.channel_id}`;
             document.getElementById('modal-date').textContent = new Date(item.sent_at).toLocaleString();
             document.getElementById('modal-type').textContent = item.post_type;
@@ -171,11 +173,15 @@
             document.getElementById('modal-text').innerHTML = item.content_preview.replace(/</g, "&lt;").replace(/>/g, "&gt;"); 
             
             const btn = document.getElementById('modal-link-btn');
-            if (item.message_id) {
-                let cleanId = String(item.channel_id).replace('-100', '');
+            // Перевіряємо, чи є ID повідомлення та чи валідний канал
+            if (item.message_id && String(item.channel_id) !== "0") {
+                // Прибираємо -100 з ID каналу для посилання
+                let cleanId = String(item.channel_id).replace(/^-?100/, '');
                 btn.href = `https://t.me/c/${cleanId}/${item.message_id}`;
                 btn.style.display = 'inline-flex';
-            } else { btn.style.display = 'none'; }
+            } else { 
+                btn.style.display = 'none'; 
+            }
 
             document.getElementById('detailModal').style.display = 'flex';
             if(window.feather) feather.replace();
@@ -208,10 +214,18 @@
                 if (item.post_type === 'ad') { typeLabel = 'Реклама'; typeClass = 'status-claimed'; }
                 else if (item.post_type.includes('instant')) { typeLabel = 'Миттєво'; typeClass = 'status-pending'; }
 
-                let linkHtml = item.message_id ? 
-                    `<a href="https://t.me/c/${String(item.channel_id).replace('-100', '')}/${item.message_id}" target="_blank" class="link-btn" onclick="event.stopPropagation();"><i data-feather="external-link"></i></a>` : 
-                    `<span style="opacity:0.3">-</span>`;
+                let linkHtml = '';
+                // Якщо ID каналу == 0, значить ми не можемо згенерувати посилання
+                if (item.message_id && String(item.channel_id) !== "0") {
+                    let cleanId = String(item.channel_id).replace(/^-?100/, '');
+                    let url = `https://t.me/c/${cleanId}/${item.message_id}`;
+                    // Важливо: onclick="event.stopPropagation()" щоб не відкривати модалку при кліку на лінк
+                    linkHtml = `<a href="${url}" target="_blank" class="link-btn" onclick="event.stopPropagation();"><i data-feather="external-link"></i></a>`;
+                } else {
+                    linkHtml = `<span style="opacity:0.3" title="ID каналу невідомий або 0">-</span>`;
+                }
 
+                // ВАЖЛИВО: Атрибут onclick викликає модалку
                 return `
                 <tr class="clickable-row" onclick='openDetailModal(JSON.parse(decodeURIComponent("${itemJson}")))' style="border-bottom: 1px solid rgba(255,255,255,0.05);">
                     <td style="padding: 10px; font-size:0.9em;">${new Date(item.sent_at).toLocaleString()}</td>
