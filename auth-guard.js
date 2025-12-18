@@ -3,7 +3,7 @@
 // Перевіряємо, чи є маркер входу
 function checkAuth() {
     const isLoggedIn = localStorage.getItem('isLoggedIn');
-    const currentPage = window.location.pathname.split('/').pop() || 'chat.html'; // Обробка кореня
+    const currentPage = window.location.pathname.split('/').pop() || 'chat.html, login.html'; // Обробка кореня
 
     // Сторінки, які не потребують авторизації
     if (currentPage === 'login.html') return;
