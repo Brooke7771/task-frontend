@@ -75,12 +75,96 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // 2. Логіка Новорічного режиму
+    // --- 🎄 ГЕНЕРАТОР ГІРЛЯНДИ ТА ФІЗИКА ---
+    const createGarland = () => {
+        if (document.getElementById('xmas-garland-container')) return; // Вже існує
+
+        const container = document.createElement('div');
+        container.id = 'xmas-garland-container';
+
+        // 1. Верхня гірлянда
+        const topStrand = document.createElement('div');
+        topStrand.className = 'garland-strand garland-top';
+        for (let i = 0; i < 20; i++) { // 20 лампочок зверху
+            const bulb = document.createElement('div');
+            bulb.className = 'bulb';
+            topStrand.appendChild(bulb);
+        }
+
+        // 2. Ліва гірлянда
+        const leftStrand = document.createElement('div');
+        leftStrand.className = 'garland-strand garland-side garland-left';
+        for (let i = 0; i < 15; i++) {
+            const bulb = document.createElement('div');
+            bulb.className = 'bulb';
+            leftStrand.appendChild(bulb);
+        }
+
+        // 3. Права гірлянда
+        const rightStrand = document.createElement('div');
+        rightStrand.className = 'garland-strand garland-side garland-right';
+        for (let i = 0; i < 15; i++) {
+            const bulb = document.createElement('div');
+            bulb.className = 'bulb';
+            rightStrand.appendChild(bulb);
+        }
+
+        container.appendChild(topStrand);
+        container.appendChild(leftStrand);
+        container.appendChild(rightStrand);
+        document.body.appendChild(container);
+
+        // --- 🧪 ФІЗИКА СКРОЛУ ---
+        let lastScrollY = window.scrollY;
+        let leftRotation = 0;
+        let rightRotation = 0;
+        let velocity = 0;
+
+        const updatePhysics = () => {
+            const currentScrollY = window.scrollY;
+            const diff = currentScrollY - lastScrollY;
+            lastScrollY = currentScrollY;
+
+            // Чим швидше скролимо, тим сильніше відхиляється
+            // Ліва відхиляється вправо (+), Права вліво (-) при скролі вниз
+            velocity += diff * 0.05; 
+            
+            // Затухання (повернення до 0)
+            velocity *= 0.9; 
+            leftRotation = velocity;
+            rightRotation = -velocity;
+
+            // Обмеження кута (щоб не крутилися як пропелер)
+            leftRotation = Math.max(-15, Math.min(15, leftRotation));
+            rightRotation = Math.max(-15, Math.min(15, rightRotation));
+
+            leftStrand.style.transform = `rotate(${leftRotation}deg)`;
+            rightStrand.style.transform = `rotate(${rightRotation}deg)`;
+
+            requestAnimationFrame(updatePhysics);
+        };
+        
+        requestAnimationFrame(updatePhysics);
+    };
+
+    const removeGarland = () => {
+        const container = document.getElementById('xmas-garland-container');
+        if (container) container.remove();
+    };
+
+    // --- ЛОГІКА ПЕРЕМИКАЧА ---
     const updateXmasUI = () => {
         const isXmas = htmlEl.classList.contains('theme-xmas');
+        
+        if (isXmas) {
+            createGarland(); // Створюємо гірлянду
+        } else {
+            removeGarland(); // Видаляємо
+        }
+
         if (xmasBtn) {
             if (isXmas) {
-                xmasBtn.classList.add('btn-success'); // Зелена кнопка
+                xmasBtn.classList.add('btn-success');
                 xmasBtn.style.color = 'white';
                 xmasBtn.style.borderColor = 'transparent';
                 xmasBtn.innerHTML = '<i data-feather="gift"></i> <span>Свято ввімкнено! 🎅</span>';
@@ -95,24 +179,25 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    if (xmasBtn) {
-        // Перевіряємо стан при завантаженні
-        if (localStorage.getItem('theme-xmas') === 'true') {
-            htmlEl.classList.add('theme-xmas');
-            htmlEl.classList.add('dark'); // Новий рік завжди темний
-        }
-        updateXmasUI();
+    // Запуск при старті
+    if (localStorage.getItem('theme-xmas') === 'true') {
+        htmlEl.classList.add('theme-xmas');
+        htmlEl.classList.add('dark');
+        createGarland(); // Запускаємо одразу, якщо тема збережена
+    }
+    updateXmasUI(); // Оновлюємо кнопку
 
+    if (xmasBtn) {
         xmasBtn.addEventListener('click', (e) => {
-            e.preventDefault(); // Щоб форма не сабмітилась, якщо кнопка всередині форми
+            e.preventDefault();
             const isActive = htmlEl.classList.contains('theme-xmas');
             
             if (!isActive) {
                 htmlEl.classList.add('theme-xmas');
-                htmlEl.classList.add('dark'); // Примусово вмикаємо темну тему
+                htmlEl.classList.add('dark');
                 localStorage.setItem('theme-xmas', 'true');
                 localStorage.setItem('theme', 'dark');
-                updateThemeUI(); // Оновити кнопку теми
+                updateThemeUI();
             } else {
                 htmlEl.classList.remove('theme-xmas');
                 localStorage.setItem('theme-xmas', 'false');
@@ -120,6 +205,7 @@ document.addEventListener('DOMContentLoaded', () => {
             updateXmasUI();
         });
     }
+});
 
     // 1. Завантаження налаштувань AI
     const loadSettings = async () => {
