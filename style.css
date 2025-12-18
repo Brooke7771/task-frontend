@@ -1287,9 +1287,9 @@ html.theme-xmas input:focus {
 #santa-btn:hover { transform: scale(1.15) rotate(15deg); }
 #santa-btn::after { content: '🎅'; font-size: 32px; }
 
-/* --- 1. ЕФЕКТ ЗАМЕРЗАННЯ (FROST EFFECT) --- */
+/* --- 1. ЕФЕКТ ЗАМЕРЗАННЯ (FROST EFFECT) V2 - VISIBLE --- */
 
-/* Налаштування контейнерів карток */
+/* Базові стилі блоків */
 html.theme-xmas .card,
 html.theme-xmas .tg-window,
 html.theme-xmas .btn,
@@ -1297,81 +1297,93 @@ html.theme-xmas input,
 html.theme-xmas textarea,
 html.theme-xmas select {
     position: relative;
-    /* Легка блакитна обводка (крига) */
-    border: 1px solid rgba(165, 243, 252, 0.3) !important;
-    overflow: hidden; /* Щоб лід не вилазив за межі */
+    /* Крижана рамка (блакитна) */
+    border: 1px solid rgba(100, 200, 255, 0.3) !important;
+    background-color: rgba(10, 15, 30, 0.6) !important; /* Напівпрозорий темний */
+    overflow: hidden;
 }
 
-/* Шар льоду (Текстура + Анімація) */
+/* ❄️ ШАР 1: ТЕКСТУРА ЛЬОДУ (Кристали) */
 html.theme-xmas .card::before,
 html.theme-xmas .tg-window::before,
 html.theme-xmas .btn::before,
 html.theme-xmas input::before {
     content: '';
     position: absolute;
-    inset: 0; /* Розтягнути на весь блок */
-    pointer-events: none; /* Пропускає кліки */
+    inset: 0;
     z-index: 2;
+    pointer-events: none;
     
-    /* Текстура морозу (SVG Noise) */
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.15'/%3E%3C/svg%3E");
+    /* Створюємо візерунок льоду за допомогою градієнтів */
+    background: 
+        /* Тонкі подряпини / грані льоду */
+        repeating-linear-gradient(
+            45deg,
+            transparent,
+            transparent 10px,
+            rgba(255, 255, 255, 0.05) 10px,
+            rgba(255, 255, 255, 0.05) 11px
+        ),
+        repeating-linear-gradient(
+            -45deg,
+            transparent,
+            transparent 20px,
+            rgba(165, 243, 252, 0.05) 20px,
+            rgba(165, 243, 252, 0.08) 22px
+        );
+        
+    /* Ефект замерзлого скла */
+    box-shadow: inset 0 0 40px rgba(165, 243, 252, 0.15);
     
-    /* Крижаний відтінок */
-    background-color: rgba(220, 250, 255, 0.05);
+    /* Важливо: SCREEN дозволяє білому бути видимим на чорному */
+    mix-blend-mode: screen;
     
-    /* Внутрішнє світіння холодом */
-    box-shadow: inset 0 0 30px rgba(165, 243, 252, 0.2);
-    
-    /* Змішування для реалізму */
-    mix-blend-mode: overlay;
-    
-    /* Анімація появи морозу */
+    /* Анімація появи (наростання морозу) */
     opacity: 0;
-    animation: freezeEffect 4s ease-out forwards;
+    animation: frostGrow 3s ease-out forwards;
 }
 
-/* Додатковий блік (блиск льоду) */
+/* ❄️ ШАР 2: БЛІКИ ТА ІНІЙ (Знизу) */
 html.theme-xmas .card::after,
 html.theme-xmas .tg-window::after {
     content: '';
     position: absolute;
-    top: -50%; left: -50%;
-    width: 200%; height: 200%;
-    background: linear-gradient(
-        45deg, 
-        transparent 45%, 
-        rgba(255, 255, 255, 0.1) 50%, 
-        transparent 55%
-    );
-    pointer-events: none;
+    bottom: 0; left: 0;
+    width: 100%; height: 60%; /* Займає низ */
     z-index: 3;
-    animation: iceShimmer 8s infinite linear;
+    pointer-events: none;
+    
+    /* Градієнт інію знизу */
+    background: linear-gradient(
+        to top, 
+        rgba(255, 255, 255, 0.15) 0%, 
+        rgba(165, 243, 252, 0.05) 40%, 
+        transparent 100%
+    );
+    
+    /* Фільтр шуму для реалізму інію (опціонально, але гарно) */
+    filter: url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg"><filter id="f"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="3"/></filter></svg>#f');
+    opacity: 0;
+    animation: frostRise 4s ease-out forwards 0.5s; /* Затримка 0.5с */
 }
 
-/* Анімація "Замерзання" */
-@keyframes freezeEffect {
-    0% {
-        opacity: 0;
-        /* Лід починає рости з країв */
-        clip-path: circle(0% at 50% 50%);
-        filter: blur(5px);
-    }
-    100% {
-        opacity: 1;
-        /* Покриває весь блок */
-        clip-path: circle(150% at 50% 50%);
-        filter: blur(0px);
-    }
+/* Анімація 1: Поява текстури */
+@keyframes frostGrow {
+    0% { opacity: 0; transform: scale(1.05); }
+    100% { opacity: 1; transform: scale(1); }
 }
 
-/* Анімація повільного блиску */
-@keyframes iceShimmer {
-    0% { transform: translateY(-50%) translateX(-50%) rotate(0deg); }
-    100% { transform: translateY(-50%) translateX(-50%) rotate(360deg); }
+/* Анімація 2: Наростання інію знизу */
+@keyframes frostRise {
+    0% { opacity: 0; transform: translateY(20px); }
+    100% { opacity: 0.6; transform: translateY(0); }
 }
 
-/* Специфічний стиль для кнопок (щоб текст лишався чітким) */
+/* Для кнопок - простіший ефект */
 html.theme-xmas .btn::before {
-    opacity: 0.5; /* Менше льоду на кнопках */
-    mix-blend-mode: soft-light;
+    animation: none; /* Без анімації, просто лід */
+    opacity: 0.3;
+}
+html.theme-xmas .btn:hover::before {
+    opacity: 0.5;
 }
