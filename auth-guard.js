@@ -73,76 +73,82 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     };
 
+    const assets = {
+        // Фотореалістична ялинка (PNG з прозорим фоном)
+        treeImage: '', // Наприклад: './assets/real-tree.png'
+        
+        // Силует Санти на санях (PNG з прозорим фоном)
+        santaImage: '', // Наприклад: './assets/santa-silhouette.png'
+        
+        // Звук дзвіночків (MP3, короткий, тихий)
+        jingleSound: '' // Наприклад: './assets/jingle-bells.mp3'
+    };
+
+    let jingleAudio = null;
+
     // 2. Декорації (Ялинка HTML)
     const toggleDecorations = (show) => {
-        const treeId = 'xmas-tree-decor';
-        const santaId = 'santa-btn';
-        const flySantaId = 'santa-fly-container';
+        const treeId = 'xmas-tree-real';
+        const santaId = 'santa-silhouette';
 
-        let tree = document.getElementById(treeId);
-        let santa = document.getElementById(santaId);
-        let flySanta = document.getElementById(flySantaId);
+        let treeImg = document.getElementById(treeId);
+        let santaImg = document.getElementById(santaId);
 
         if (show) {
-            // 🎄 Створення ЯЛИНКИ
-            if (!tree) {
-                tree = document.createElement('div');
-                tree.id = treeId;
-                tree.className = 'xmas-tree-container';
-                // Оновлений, деталізований HTML ялинки
-                tree.innerHTML = `
-                    <div class="tree-trunk"></div>
-                    <div class="tree-layer tree-bot"></div>
-                    <div class="tree-layer tree-mid"></div>
-                    <div class="tree-layer tree-top"></div>
-                    <div class="tree-garland"></div>
-                    <div class="tree-star">★</div>
-                    <div class="tree-bauble t-1"></div><div class="tree-bauble t-2"></div>
-                    <div class="tree-bauble t-3"></div><div class="tree-bauble t-4"></div>
-                    <div class="tree-bauble t-5"></div>
-                    <div class="tree-gift"><div class="gift-bow"></div></div>
-                `;
-                document.body.appendChild(tree);
+            // 1. Створюємо та додаємо ЯЛИНКУ
+            if (!treeImg) {
+                treeImg = document.createElement('img');
+                treeImg.id = treeId;
+                treeImg.src = assets.treeImage; // Використовуємо шлях до картинки
+                treeImg.alt = "Christmas Tree Easter Egg";
+                // Додаємо підказку при наведенні
+                treeImg.title = "Натисни мене... якщо віриш у дива ✨"; 
+                document.body.appendChild(treeImg);
 
-                // 🔥 ДОДАЄМО ОБРОБНИК КЛІКУ ДЛЯ АНІМАЦІЇ
-                tree.addEventListener('click', () => {
-                    const container = document.getElementById(flySantaId);
-                    if (container) {
-                        // Відтворюємо звук (опціонально)
-                        // new Audio('hohoho.mp3').play();
+                // Ініціалізуємо звук
+                if (assets.jingleSound && !jingleAudio) {
+                    jingleAudio = new Audio(assets.jingleSound);
+                    jingleAudio.volume = 0.4; // Не дуже голосно
+                }
 
-                        container.style.display = 'block'; // Показуємо контейнер
-                        
-                        // Перезапуск анімації (клон елемента)
-                        const santaEl = container.querySelector('.flying-santa');
-                        const newSanta = santaEl.cloneNode(true);
-                        container.replaceChild(newSanta, santaEl);
+                // 🔥 ГОЛОВНА ПАСХАЛКА: Обробник кліку
+                treeImg.addEventListener('click', () => {
+                    const santa = document.getElementById(santaId);
+                    if (santa) {
+                        // Якщо анімація вже йде, не запускаємо знову
+                        if (santa.classList.contains('santa-flying-animation')) return;
 
-                        // Ховаємо після завершення
-                        setTimeout(() => { container.style.display = 'none'; }, 4000);
+                        // Запускаємо звук
+                        if (jingleAudio) {
+                            jingleAudio.currentTime = 0;
+                            jingleAudio.play().catch(e => console.log("Audio play blocked:", e));
+                        }
+
+                        // Запускаємо анімацію
+                        santa.classList.add('santa-flying-animation');
+
+                        // Прибираємо клас після завершення анімації (6 секунд), щоб можна було клікнути знову
+                        setTimeout(() => {
+                            santa.classList.remove('santa-flying-animation');
+                        }, 6000); // Час має співпадати з CSS animation duration
                     }
                 });
             }
 
-            // 🎅 Створення контейнера для ЛЕТЮЧОГО САНТИ
-            if (!flySanta) {
-                flySanta = document.createElement('div');
-                flySanta.id = flySantaId;
-                flySanta.innerHTML = '<div class="flying-santa">🎅🛷</div>';
-                document.body.appendChild(flySanta);
+            // 2. Створюємо (прихованого) САНТУ
+            if (!santaImg) {
+                santaImg = document.createElement('img');
+                santaImg.id = santaId;
+                santaImg.src = assets.santaImage; // Використовуємо шлях до картинки
+                santaImg.alt = "Flying Santa";
+                document.body.appendChild(santaImg);
             }
-            
-            // Кнопка Санти (стара, якщо треба)
-            if (!santa) {
-                santa = document.createElement('div');
-                santa.id = santaId;
-                santa.onclick = () => alert("🎅 Хо-хо-хо! Щасливого кодингу!");
-                document.body.appendChild(santa);
-            }
+
         } else {
-            if (tree) tree.remove();
-            if (santa) santa.remove();
-            if (flySanta) flySanta.remove();
+            // Якщо тему вимкнено, прибираємо елементи
+            if (treeImg) treeImg.remove();
+            if (santaImg) santaImg.remove();
+            jingleAudio = null;
         }
     };
 
