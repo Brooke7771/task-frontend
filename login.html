@@ -2,114 +2,278 @@
 <html lang="uk" class="dark">
 <head>
     <meta charset="UTF-8">
-    <title>Вхід / Реєстрація</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Вхід - TaskBot</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
     <style>
-        body { display: flex; align-items: center; justify-content: center; min-height: 100vh; overflow-y: auto; padding: 20px; }
-        .auth-card { width: 100%; max-width: 500px; margin: auto; }
-        .feature-checkbox { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; cursor: pointer; }
-        .hidden { display: none; }
+        /* --- Login Specific Styles --- */
+        body {
+            background-color: #020617;
+            display: flex; align-items: center; justify-content: center;
+            min-height: 100vh; overflow-y: auto; padding: 20px;
+            position: relative; font-family: 'Inter', sans-serif;
+        }
+        
+        /* Background Effects */
+        .noise-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E");
+            pointer-events: none; z-index: 0;
+        }
+        .bg-orb {
+            position: absolute; border-radius: 50%; filter: blur(90px); opacity: 0.4; z-index: -1;
+            animation: floatOrb 20s ease-in-out infinite alternate;
+        }
+        .orb-1 { width: 500px; height: 500px; background: var(--color-primary); top: -200px; left: -100px; }
+        .orb-2 { width: 400px; height: 400px; background: var(--color-success); bottom: -100px; right: -100px; animation-delay: -5s; }
+        
+        @keyframes floatOrb { 0% { transform: translate(0, 0); } 100% { transform: translate(30px, 30px); } }
+
+        /* Auth Card */
+        .auth-card {
+            width: 100%; max-width: 460px;
+            background: rgba(30, 41, 59, 0.6);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 24px;
+            padding: 40px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            position: relative; z-index: 1;
+            overflow: hidden;
+            animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .auth-header {
+            text-align: center; margin-bottom: 30px;
+        }
+        .auth-logo {
+            font-size: 1.8rem; font-weight: 800; color: white;
+            display: inline-flex; align-items: center; gap: 10px;
+            text-shadow: 0 0 20px rgba(var(--color-primary-rgb), 0.4);
+            margin-bottom: 5px;
+        }
+        .auth-subtitle { color: var(--color-text-light); font-size: 0.95rem; }
+
+        /* Toggle Tabs */
+        .auth-toggle {
+            display: flex; background: rgba(0,0,0,0.3);
+            padding: 4px; border-radius: 12px; margin-bottom: 30px;
+            position: relative; border: 1px solid rgba(255,255,255,0.05);
+        }
+        .toggle-btn {
+            flex: 1; text-align: center; padding: 10px;
+            font-size: 0.95rem; font-weight: 600; color: var(--color-text-light);
+            cursor: pointer; z-index: 2; transition: color 0.3s;
+            border-radius: 10px; user-select: none;
+        }
+        .toggle-btn.active { color: white; }
+        .toggle-bg {
+            position: absolute; top: 4px; left: 4px; width: calc(50% - 4px); height: calc(100% - 8px);
+            background: var(--color-primary); border-radius: 10px;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); z-index: 1;
+            box-shadow: 0 4px 12px rgba(var(--color-primary-rgb), 0.4);
+        }
+        .auth-toggle.register-active .toggle-bg { transform: translateX(100%); }
+
+        /* Forms */
+        .hidden { display: none; animation: fadeOut 0.2s forwards; }
+        .visible-form { animation: fadeIn 0.4s forwards; }
+
+        .form-group { margin-bottom: 20px; }
+        .form-group label {
+            font-size: 0.8rem; color: var(--color-text-light); margin-bottom: 8px;
+            text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700;
+            display: block;
+        }
+        .form-group input {
+            background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1);
+            color: white; font-size: 1rem; padding: 12px 16px; border-radius: 12px;
+            width: 100%; transition: 0.2s;
+        }
+        .form-group input:focus {
+            border-color: var(--color-primary); background: rgba(0,0,0,0.4);
+            box-shadow: 0 0 0 3px rgba(var(--color-primary-rgb), 0.15); outline: none;
+        }
+
+        .section-title {
+            color: white; font-size: 1rem; font-weight: 600; margin: 25px 0 15px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;
+        }
+
+        .feature-checkbox {
+            background: rgba(255,255,255,0.03); padding: 12px 15px;
+            border-radius: 10px; border: 1px solid rgba(255,255,255,0.05);
+            transition: 0.2s; display: flex; align-items: center; gap: 10px;
+            margin-bottom: 10px; cursor: pointer; color: var(--color-text-dark);
+        }
+        .feature-checkbox:hover { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.1); }
+        .feature-checkbox input { width: auto; margin: 0; }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
+            border: none; padding: 14px; font-size: 1rem; font-weight: 700;
+            margin-top: 10px; width: 100%; color: white; border-radius: 12px;
+            cursor: pointer; transition: 0.2s;
+            box-shadow: 0 10px 20px -5px rgba(var(--color-primary-rgb), 0.4);
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 15px 25px -5px rgba(var(--color-primary-rgb), 0.5); }
+
+        #message {
+            min-height: 20px; margin-top: 20px; text-align: center; font-size: 0.9rem;
+            padding: 10px; border-radius: 8px; display: none;
+        }
+        #message.error { display: block; background: rgba(220, 38, 38, 0.1); color: #fca5a5; border: 1px solid rgba(220, 38, 38, 0.2); }
+        #message.success { display: block; background: rgba(22, 163, 74, 0.1); color: #86efac; border: 1px solid rgba(22, 163, 74, 0.2); }
+
+        .back-link {
+            text-align: center; margin-top: 30px;
+        }
+        .back-link a { color: var(--color-text-light); text-decoration: none; font-size: 0.9rem; transition: 0.2s; }
+        .back-link a:hover { color: white; }
+
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
 </head>
 <body>
 
-    <div class="card auth-card">
-        <h1 id="pageTitle">Вхід 👋</h1>
+    <div class="noise-overlay"></div>
+    <div class="bg-orb orb-1"></div>
+    <div class="bg-orb orb-2"></div>
+
+    <div class="auth-card">
+        <div class="auth-header">
+            <div class="auth-logo"><i data-feather="zap"></i> TaskBot</div>
+            <div class="auth-subtitle">Керуйте своїм каналом професійно</div>
+        </div>
+
+        <div class="auth-toggle" id="authToggle">
+            <div class="toggle-bg"></div>
+            <div class="toggle-btn active" id="btn-login" onclick="switchMode('login')">Вхід</div>
+            <div class="toggle-btn" id="btn-register" onclick="switchMode('register')">Реєстрація</div>
+        </div>
         
-        <form id="loginForm">
+        <!-- LOGIN FORM -->
+        <form id="loginForm" class="visible-form">
             <div class="form-group">
-                <label>Логін:</label>
-                <input type="text" id="login_username" required>
+                <label>Логін</label>
+                <input type="text" id="login_username" placeholder="Ваше ім'я користувача" required>
             </div>
             <div class="form-group">
-                <label>Пароль:</label>
-                <input type="password" id="login_password" required>
+                <label>Пароль</label>
+                <input type="password" id="login_password" placeholder="••••••••" required>
             </div>
-            <button type="submit" class="btn btn-primary">Увійти</button>
+            <button type="submit" class="btn-primary">Увійти <i data-feather="arrow-right" style="width: 18px;"></i></button>
         </form>
 
+        <!-- REGISTER FORM -->
         <form id="registerForm" class="hidden">
-            <h3>Особисті дані</h3>
+            <div class="section-title">Особисті дані</div>
             <div class="form-group">
-                <label>Придумайте Логін:</label>
-                <input type="text" id="reg_username" required>
+                <label>Придумайте Логін</label>
+                <input type="text" id="reg_username" placeholder="user123" required>
             </div>
             <div class="form-group">
-                <label>Пароль:</label>
-                <input type="password" id="reg_password" required>
+                <label>Пароль</label>
+                <input type="password" id="reg_password" placeholder="Надійний пароль" required>
             </div>
             <div class="form-group">
-                <label>Email:</label>
-                <input type="email" id="reg_email" required>
+                <label>Email</label>
+                <input type="email" id="reg_email" placeholder="mail@example.com" required>
             </div>
             <div class="form-group">
-                <label>Ваш Telegram (@username):</label>
-                <input type="text" id="reg_tg" required>
-            </div>
-
-            <h3>Дані Каналу</h3>
-            <div class="form-group">
-                <label>Назва каналу:</label>
-                <input type="text" id="reg_ch_name" required>
-            </div>
-            <div class="form-group">
-                <label>ID Каналу (напр. -100123456):</label>
-                <input type="text" id="reg_ch_id" required>
-                <small style="color:var(--color-text-light)">Бот має бути адміністратором каналу.</small>
+                <label>Ваш Telegram</label>
+                <input type="text" id="reg_tg" placeholder="@username" required>
             </div>
 
-            <h3>Оберіть функціонал</h3>
+            <div class="section-title">Дані Каналу</div>
+            <div class="form-group">
+                <label>Назва каналу</label>
+                <input type="text" id="reg_ch_name" placeholder="Новини України" required>
+            </div>
+            <div class="form-group">
+                <label>ID Каналу</label>
+                <input type="text" id="reg_ch_id" placeholder="-100..." required>
+                <small style="color:var(--color-text-light); font-size: 0.8em; margin-top: 5px; display: block;">* Бот має бути адміном каналу</small>
+            </div>
+
+            <div class="section-title">Функціонал</div>
             <label class="feature-checkbox">
-                <input type="checkbox" value="tasks" checked> Планування завдань
+                <input type="checkbox" value="tasks" checked> <span>Планування завдань</span>
             </label>
             <label class="feature-checkbox">
-                <input type="checkbox" value="schedule" checked> Відкладений постинг
+                <input type="checkbox" value="schedule" checked> <span>Відкладений постинг</span>
             </label>
             <label class="feature-checkbox">
-                <input type="checkbox" value="ai"> AI Редактор
+                <input type="checkbox" value="ai"> <span>AI Редактор (Gemini)</span>
             </label>
             <label class="feature-checkbox">
-                <input type="checkbox" value="ads"> Рекламний кабінет
+                <input type="checkbox" value="ads"> <span>Рекламний кабінет</span>
             </label>
 
-            <button type="submit" class="btn btn-success" style="margin-top:20px">Подати заявку</button>
+            <button type="submit" class="btn-primary" style="background: linear-gradient(135deg, var(--color-success), var(--color-success-dark)); box-shadow: 0 10px 20px -5px rgba(var(--color-success-rgb), 0.4);">Подати заявку</button>
         </form>
         
-        <p id="message" style="text-align: center; margin-top: 15px; font-weight:bold;"></p>
-        <a class="toggle-link" id="toggleAuth" style="display:block; text-align:center; margin-top:15px; cursor:pointer; color:var(--color-primary);">Немає акаунту? Зареєструватися</a>
+        <div id="message"></div>
+        
+        <div class="back-link">
+            <a href="landing.html">← На головну</a>
+        </div>
     </div>
 
     <script type="module">
         import { backendUrl } from './api.js';
 
+        feather.replace();
+
         const loginForm = document.getElementById('loginForm');
         const registerForm = document.getElementById('registerForm');
-        const toggleLink = document.getElementById('toggleAuth');
+        const authToggle = document.getElementById('authToggle');
         const message = document.getElementById('message');
-        const pageTitle = document.getElementById('pageTitle');
+        const btnLogin = document.getElementById('btn-login');
+        const btnRegister = document.getElementById('btn-register');
 
-        let isLogin = true;
-
-        toggleLink.addEventListener('click', () => {
-            isLogin = !isLogin;
-            if (isLogin) {
+        // Глобальна функція для перемикання (викликається з onclick в HTML)
+        window.switchMode = (mode) => {
+            message.style.display = 'none';
+            message.className = '';
+            
+            if (mode === 'login') {
+                authToggle.classList.remove('register-active');
+                btnLogin.classList.add('active');
+                btnRegister.classList.remove('active');
+                
                 loginForm.classList.remove('hidden');
+                loginForm.classList.add('visible-form');
                 registerForm.classList.add('hidden');
-                pageTitle.textContent = 'Вхід 👋';
-                toggleLink.textContent = 'Немає акаунту? Зареєструватися';
+                registerForm.classList.remove('visible-form');
             } else {
-                loginForm.classList.add('hidden');
+                authToggle.classList.add('register-active');
+                btnRegister.classList.add('active');
+                btnLogin.classList.remove('active');
+                
                 registerForm.classList.remove('hidden');
-                pageTitle.textContent = 'Заявка на реєстрацію 🚀';
-                toggleLink.textContent = 'Вже є акаунт? Увійти';
+                registerForm.classList.add('visible-form');
+                loginForm.classList.add('hidden');
+                loginForm.classList.remove('visible-form');
             }
-            message.textContent = '';
-        });
+        };
 
         // ВХІД
         loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
+            message.style.display = 'none';
+            
+            const btn = loginForm.querySelector('button');
+            const originalBtnText = btn.innerHTML;
+            btn.innerHTML = '<span class="loader"></span> Вхід...'; // Simple text loader
+            btn.disabled = true;
+
             const data = {
                 username: document.getElementById('login_username').value,
                 password: document.getElementById('login_password').value
@@ -127,11 +291,10 @@
                     localStorage.setItem('isLoggedIn', 'true');
                     localStorage.setItem('username', data.username);
                     localStorage.setItem('isAdmin', respData.is_admin);
-                    // Зберігаємо дозволені сторінки
                     localStorage.setItem('allowedPages', JSON.stringify(respData.allowed_pages));
 
                     if (respData.is_admin) {
-                        window.location.href = 'admin.html'; // Адміна кидаємо в панель
+                        window.location.href = 'admin.html';
                     } else {
                         window.location.href = 'index.html';
                     }
@@ -140,14 +303,26 @@
                     message.textContent = txt;
                     message.className = 'error';
                 }
-            } catch (err) { console.error(err); message.textContent = 'Помилка мережі'; }
+            } catch (err) { 
+                console.error(err); 
+                message.textContent = 'Помилка мережі'; 
+                message.className = 'error';
+            } finally {
+                btn.innerHTML = originalBtnText;
+                btn.disabled = false;
+            }
         });
 
         // РЕЄСТРАЦІЯ
         registerForm.addEventListener('submit', async (e) => {
             e.preventDefault();
+            message.style.display = 'none';
             
-            // Збираємо чекбокси
+            const btn = registerForm.querySelector('button');
+            const originalBtnText = btn.innerHTML;
+            btn.innerHTML = 'Відправка...';
+            btn.disabled = true;
+            
             const features = [];
             registerForm.querySelectorAll('input[type="checkbox"]:checked').forEach(cb => features.push(cb.value));
 
@@ -169,13 +344,21 @@
                 });
 
                 if (res.ok) {
-                    alert("Заявку успішно відправлено! Очікуйте підтвердження від адміністратора.");
-                    toggleLink.click(); // Повернутися на вхід
+                    message.textContent = "Заявку успішно відправлено! Очікуйте підтвердження.";
+                    message.className = 'success';
+                    setTimeout(() => switchMode('login'), 3000);
                 } else {
                     message.textContent = await res.text();
                     message.className = 'error';
                 }
-            } catch (err) { console.error(err); message.textContent = 'Помилка мережі'; }
+            } catch (err) { 
+                console.error(err); 
+                message.textContent = 'Помилка мережі'; 
+                message.className = 'error';
+            } finally {
+                btn.innerHTML = originalBtnText;
+                btn.disabled = false;
+            }
         });
     </script>
 </body>
