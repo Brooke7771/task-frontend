@@ -1135,10 +1135,52 @@ html.theme-xmas input:focus {
 }
 
 /* =================================
-   🎅 ULTRA-REALISTIC PHYSICS DECOR 🎅
+   🎅 ULTRA-REALISTIC PHYSICS DECOR & SNOWY UI 🎅
    ================================= */
 
-/* Контейнери Canvas */
+/* --- 1. ТЕКСТУРА СНІГУ НА БЛОКАХ --- */
+/* Цей ефект додає "шапку" снігу на картки та кнопки */
+html.theme-xmas .card,
+html.theme-xmas .tg-window,
+html.theme-xmas .btn,
+html.theme-xmas input,
+html.theme-xmas textarea,
+html.theme-xmas select {
+    position: relative;
+    /* Крижана рамка зверху */
+    border-top: 2px solid rgba(255, 255, 255, 0.7) !important;
+}
+
+/* Ефект м'якого снігу зверху */
+html.theme-xmas .card::before,
+html.theme-xmas .tg-window::before {
+    content: '';
+    position: absolute;
+    top: -2px; /* Трохи вилазить за межі */
+    left: 0;
+    width: 100%;
+    height: 35px; /* Висота "шапки" */
+    /* Градієнт: Білий -> Прозорий. Імітує сніг */
+    background: linear-gradient(to bottom, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0.05) 60%, transparent 100%);
+    border-radius: 20px 20px 0 0; /* Скруглення зверху */
+    pointer-events: none;
+    z-index: 1;
+    /* Легкий шум для текстури */
+    filter: url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg"><filter id="filter"><feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="3" stitchTiles="stitch"/></filter></svg>#filter') blur(0.5px);
+    opacity: 0.8;
+}
+
+/* Сніг на кнопках (менший) */
+html.theme-xmas .btn::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 50%;
+    background: linear-gradient(to bottom, rgba(255,255,255,0.4) 0%, transparent 100%);
+    border-radius: 8px 8px 0 0;
+    pointer-events: none;
+}
+
+/* --- 2. CANVAS LAYERS --- */
 #physics-garland-canvas, #physics-snow-canvas {
     position: fixed;
     top: 0; left: 0;
@@ -1151,7 +1193,7 @@ html.theme-xmas input:focus {
     z-index: 99999;
 }
 
-/* --- ЛАМПОЧКИ (для фізики) --- */
+/* --- 3. ФІЗИЧНІ ЛАМПОЧКИ --- */
 .physics-bulb {
     position: absolute;
     width: 20px; height: 30px;
@@ -1177,112 +1219,122 @@ html.theme-xmas input:focus {
 .physics-bulb.blue { --bulb-color: rgba(0, 100, 255, 0.9); --bulb-glow: cyan; }
 .physics-bulb.purple { --bulb-color: rgba(200, 0, 255, 0.9); --bulb-glow: magenta; }
 
-
-/* --- 🎄 РЕАЛІСТИЧНА ЯЛИНКА (CSS ART) --- */
+/* --- 4. 🎄 РЕАЛІСТИЧНА ЯЛИНКА V2 --- */
 .xmas-tree-container {
     position: fixed;
-    bottom: 20px; left: 20px;
-    z-index: 900; /* Під снігом */
-    width: 140px; height: 180px;
+    bottom: 25px; left: 30px; /* Трохи правіше, бо сніг збирається зліва */
+    z-index: 100000; /* Поверх снігу */
+    width: 160px; height: 200px;
     pointer-events: none;
-    filter: drop-shadow(0 10px 20px rgba(0,0,0,0.6));
-    /* Легке погойдування */
-    animation: treeSway 5s ease-in-out infinite alternate;
+    /* Легке дихання */
+    animation: treeBreathe 6s ease-in-out infinite alternate;
     transform-origin: bottom center;
 }
 
-@keyframes treeSway { from { transform: rotate(-1deg); } to { transform: rotate(1deg); } }
+@keyframes treeBreathe { 
+    from { transform: scale(1) rotate(-1deg); } 
+    to { transform: scale(1.02) rotate(1deg); } 
+}
 
-/* Гілки (трикутники з градієнтом для об'єму) */
+/* Гілки з текстурою голок */
 .tree-layer {
     position: absolute;
     left: 50%; transform: translateX(-50%);
     width: 0; height: 0;
     border-left: solid transparent;
     border-right: solid transparent;
-    border-bottom: solid #0f5132; /* Base color */
-    filter: drop-shadow(0 5px 5px rgba(0,0,0,0.3));
+    border-bottom: solid #0f5132;
+    /* Тінь знизу */
+    filter: drop-shadow(0 5px 10px rgba(0,0,0,0.5));
 }
-/* Текстура гілок через ::after */
-.tree-layer::after {
+/* Ефект снігу на гілках */
+.tree-layer::before {
     content: '';
     position: absolute;
-    top: 50%; left: -50%;
-    width: 100%; height: 100%;
-    background: linear-gradient(90deg, rgba(255,255,255,0.1) 0%, transparent 50%, rgba(0,0,0,0.3) 100%);
+    top: 2px; /* На краях */
+    left: -50%;
+    width: 100%; height: 5px;
+    background: rgba(255,255,255,0.7);
+    border-radius: 50%;
+    filter: blur(2px);
+    transform: translateY(100%); /* Зсув на край */
 }
 
-.tree-top { bottom: 90px; border-width: 0 40px 60px 40px; border-bottom-color: #10b981; z-index: 3; }
-.tree-mid { bottom: 50px; border-width: 0 55px 70px 55px; border-bottom-color: #059669; z-index: 2; }
-.tree-bot { bottom: 20px; border-width: 0 70px 80px 70px; border-bottom-color: #047857; z-index: 1; }
+.tree-top { bottom: 110px; border-width: 0 45px 60px 45px; border-bottom-color: #10b981; z-index: 3; }
+.tree-mid { bottom: 65px; border-width: 0 65px 70px 65px; border-bottom-color: #059669; z-index: 2; }
+.tree-bot { bottom: 25px; border-width: 0 85px 80px 85px; border-bottom-color: #047857; z-index: 1; }
 
-/* Стовбур */
 .tree-trunk {
     position: absolute;
     bottom: 0; left: 50%; transform: translateX(-50%);
-    width: 24px; height: 25px;
+    width: 28px; height: 30px;
     background: linear-gradient(90deg, #3e2723, #5d4037, #3e2723);
-    border-radius: 2px;
+    border-radius: 3px;
+    box-shadow: inset 0 0 5px rgba(0,0,0,0.5);
 }
 
-/* Іграшки на ялинці */
-.tree-bauble {
-    position: absolute;
-    width: 10px; height: 10px;
-    border-radius: 50%;
-    background: radial-gradient(circle at 30% 30%, white, var(--color) 60%);
-    box-shadow: 0 0 5px var(--color);
-    z-index: 4;
-    animation: twinkle 2s infinite alternate;
-}
-.t-1 { top: 60px; left: 35px; --color: gold; }
-.t-2 { top: 90px; left: 80px; --color: red; }
-.t-3 { top: 110px; left: 45px; --color: blue; }
-.t-4 { top: 40px; left: 65px; --color: magenta; }
-
-/* Зірка */
+/* Сяюча Зірка */
 .tree-star {
     position: absolute;
-    top: 0; left: 50%; transform: translateX(-50%);
+    top: 10px; left: 50%; transform: translateX(-50%);
     color: #fbbf24;
-    font-size: 30px;
+    font-size: 36px;
     z-index: 5;
-    text-shadow: 0 0 15px gold;
+    text-shadow: 0 0 20px gold, 0 0 40px orange;
+    animation: starPulse 2s infinite alternate;
 }
+@keyframes starPulse { from { opacity: 0.8; transform: translateX(-50%) scale(0.9); } to { opacity: 1; transform: translateX(-50%) scale(1.1); } }
 
-/* --- ПОДАРУНОК 🎁 --- */
+/* Іграшки */
+.tree-bauble {
+    position: absolute;
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, white, var(--color) 60%);
+    box-shadow: 0 0 8px var(--color);
+    z-index: 4;
+}
+.t-1 { top: 75px; left: 40px; --color: gold; }
+.t-2 { top: 105px; left: 90px; --color: red; }
+.t-3 { top: 130px; left: 50px; --color: cyan; }
+.t-4 { top: 50px; left: 70px; --color: magenta; }
+.t-5 { top: 100px; left: 40px; --color: #fff; }
+
+/* --- 3D ПОДАРУНОК 🎁 --- */
 .tree-gift {
     position: absolute;
-    bottom: 5px; right: 10px;
-    width: 40px; height: 35px;
-    background: linear-gradient(135deg, #ef4444, #b91c1c);
+    bottom: 5px; right: 15px;
+    width: 45px; height: 40px;
+    /* Градієнт для об'єму */
+    background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%);
     border: 1px solid #7f1d1d;
-    box-shadow: 5px 5px 10px rgba(0,0,0,0.5);
+    box-shadow: 5px 5px 15px rgba(0,0,0,0.6);
     z-index: 5;
+    transform: rotate(5deg); /* Легкий нахил */
 }
-/* Стрічка */
+/* Кришка коробки */
 .tree-gift::before {
     content: ''; position: absolute;
-    top: 0; left: 50%; width: 8px; height: 100%;
-    background: #fbbf24; transform: translateX(-50%);
-    box-shadow: 0 0 2px rgba(0,0,0,0.3);
+    top: -5px; left: -2px; width: 49px; height: 10px;
+    background: #d32f2f;
+    border-radius: 2px;
 }
+/* Стрічка */
 .tree-gift::after {
     content: ''; position: absolute;
-    top: 50%; left: 0; width: 100%; height: 8px;
-    background: #fbbf24; transform: translateY(-50%);
+    top: -5px; left: 50%; width: 10px; height: 45px;
+    background: #fbbf24; transform: translateX(-50%);
+    box-shadow: 0 0 5px rgba(0,0,0,0.2);
 }
 
-/* --- САНТА (Кнопка) --- */
-#santa-btn {
-    position: fixed; bottom: 95px; right: 32px;
-    width: 55px; height: 55px;
-    background: radial-gradient(circle at 30% 30%, #fff0f0, #dc2626);
-    border-radius: 50%; border: 3px solid #fff;
-    cursor: pointer; z-index: 10001;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.4);
-    transition: transform 0.2s;
-    display: flex; align-items: center; justify-content: center;
+/* Badge */
+.badge-warning {
+    background: rgba(251, 191, 36, 0.15);
+    color: #fbbf24;
+    padding: 3px 6px;
+    border-radius: 4px;
+    font-size: 0.65em;
+    margin-left: 6px;
+    border: 1px solid rgba(251, 191, 36, 0.3);
+    vertical-align: middle;
 }
-#santa-btn:hover { transform: scale(1.15) rotate(15deg); }
-#santa-btn::after { content: '🎅'; font-size: 32px; }
