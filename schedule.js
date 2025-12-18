@@ -30,20 +30,21 @@ document.addEventListener('DOMContentLoaded', async () => {
             try {
                 const channels = await getChannels();
                 
-                // Очищаємо та додаємо дефолтну опцію
-                channelSelect.innerHTML = '<option value="">За замовчуванням (з конфігу)</option>';
+                // Очищаємо. Більше НЕМАЄ опції "За замовчуванням"
+                channelSelect.innerHTML = '<option value="" disabled selected>Оберіть канал...</option>';
                 
                 if (channels && channels.length > 0) {
                     channels.forEach(channel => {
                         const option = document.createElement('option');
-                        option.value = channel.telegram_id; // Важливо: ID каналу для бекенду
+                        option.value = channel.telegram_id; 
                         option.textContent = channel.title;
                         channelSelect.appendChild(option);
                     });
+                } else {
+                    channelSelect.innerHTML = '<option value="" disabled>Немає доступних каналів</option>';
                 }
             } catch (e) {
                 console.error("Не вдалося завантажити канали:", e);
-                // Можна додати візуальне повідомлення про помилку в консоль або UI
             }
         };
 

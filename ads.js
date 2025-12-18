@@ -5,18 +5,26 @@ document.addEventListener('DOMContentLoaded', async () => {
     const form = document.getElementById('adForm');
     const adsList = document.getElementById('adsList');
 
-    // 🔥 ОНОВЛЕНО: Завантаження каналів + Основний
-    const channels = await getChannels();
-    
-    // Додаємо основний канал вручну першим
-    channelSelect.innerHTML = '<option value="0" selected>📢 Основний канал (за замовчуванням)</option>';
-    
-    channels.forEach(c => {
-        const opt = document.createElement('option');
-        opt.value = c.telegram_id;
-        opt.textContent = c.title;
-        channelSelect.appendChild(opt);
-    });
+    // 🔥 ОНОВЛЕНО: Тільки дозволені канали
+    try {
+        const channels = await getChannels();
+        
+        // Прибираємо хардкод "Основний канал"
+        channelSelect.innerHTML = '<option value="" disabled selected>Оберіть канал...</option>';
+        
+        if (channels && channels.length > 0) {
+            channels.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c.telegram_id;
+                opt.textContent = c.title;
+                channelSelect.appendChild(opt);
+            });
+        } else {
+            channelSelect.innerHTML = '<option value="" disabled>Немає доступних каналів</option>';
+        }
+    } catch (e) {
+        console.error("Error loading channels", e);
+    }
     
     // Завантаження списку реклам
     const loadAds = async () => {
