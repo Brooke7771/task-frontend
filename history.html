@@ -5,11 +5,90 @@
     <title>Історія Публікацій</title>
     <link rel="stylesheet" href="style.css">
     <script src="auth-guard.js"></script>
+    <style>
+        /* Стилі для панелі фільтрів */
+        .filters-bar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            background: rgba(255,255,255,0.05);
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px solid var(--color-border);
+        }
+        .filter-input {
+            flex: 1;
+            min-width: 200px;
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 1px solid var(--color-border);
+            background: var(--color-bg-light);
+            color: var(--color-text-dark);
+        }
+        .filter-select {
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 1px solid var(--color-border);
+            background: var(--color-bg-light);
+            color: var(--color-text-dark);
+            min-width: 150px;
+        }
+        .sort-btn {
+            background: var(--color-bg-card);
+            border: 1px solid var(--color-border);
+            color: var(--color-text-dark);
+            padding: 8px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .sort-btn:hover { background: var(--color-bg-light); }
+        
+        .link-btn {
+            color: var(--color-primary);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.9em;
+            padding: 4px 8px;
+            background: rgba(var(--color-primary-rgb), 0.1);
+            border-radius: 4px;
+            transition: 0.2s;
+        }
+        .link-btn:hover { background: rgba(var(--color-primary-rgb), 0.2); }
+    </style>
 </head>
 <body>
     <div class="container-main">
         <div class="card">
-            <h1>📜 Історія Публікацій</h1>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                <h1 style="margin:0">📜 Історія Публікацій</h1>
+                <button onclick="loadHistory()" class="btn" style="width:auto; padding: 5px 10px;"><i data-feather="refresh-cw"></i></button>
+            </div>
+
+            <div class="filters-bar">
+                <input type="text" id="searchInput" class="filter-input" placeholder="🔍 Пошук за текстом...">
+                
+                <select id="typeFilter" class="filter-select">
+                    <option value="all">Всі типи</option>
+                    <option value="scheduled">📅 Заплановані</option>
+                    <option value="ad">📢 Реклама</option>
+                    <option value="instant">⚡️ Миттєві</option>
+                </select>
+
+                <select id="channelFilter" class="filter-select">
+                    <option value="all">Всі канали</option>
+                    </select>
+
+                <button id="sortBtn" class="sort-btn">
+                    <span>⬇️ Спочатку нові</span>
+                </button>
+            </div>
+
             <div style="overflow-x: auto;">
                 <table style="width: 100%; border-collapse: collapse; color: var(--color-text-dark); min-width: 800px;">
                     <thead>
@@ -17,7 +96,9 @@
                             <th style="padding: 10px;">Дата</th>
                             <th style="padding: 10px;">Канал</th>
                             <th style="padding: 10px;">Тип</th>
-                            <th style="padding: 10px;">Створив</th> <th style="padding: 10px;">Запостив</th> <th style="padding: 10px;">Текст</th>
+                            <th style="padding: 10px;">Автор</th>
+                            <th style="padding: 10px;">Текст</th>
+                            <th style="padding: 10px; width: 50px;">Дії</th>
                         </tr>
                     </thead>
                     <tbody id="historyTableBody">
@@ -25,48 +106,146 @@
                     </tbody>
                 </table>
             </div>
+            <div id="statsFooter" style="margin-top: 10px; font-size: 0.9em; color: var(--color-text-light); text-align: right;"></div>
         </div>
     </div>
     
     <script type="module">
-        import { backendUrl } from './api.js';
+        import { backendUrl, getChannels } from './api.js';
         
-        async function loadHistory() {
+        let allHistoryItems = [];
+        let sortDesc = true; // Сортування: true = нові зверху
+
+        // Ініціалізація
+        async function init() {
+            await Promise.all([loadChannelsFilter(), loadHistory()]);
+            
+            // Слухачі подій
+            document.getElementById('searchInput').addEventListener('input', renderTable);
+            document.getElementById('typeFilter').addEventListener('change', renderTable);
+            document.getElementById('channelFilter').addEventListener('change', renderTable);
+            document.getElementById('sortBtn').addEventListener('click', toggleSort);
+        }
+
+        async function loadChannelsFilter() {
+            try {
+                const channels = await getChannels();
+                const select = document.getElementById('channelFilter');
+                channels.forEach(c => {
+                    const opt = document.createElement('option');
+                    opt.value = c.telegram_id; // Використовуємо ID як значення
+                    opt.textContent = c.title;
+                    select.appendChild(opt);
+                });
+            } catch (e) { console.error("Filter channels error", e); }
+        }
+
+        window.loadHistory = async function() {
+            const tbody = document.getElementById('historyTableBody');
+            tbody.innerHTML = '<tr><td colspan="6" style="padding:20px; text-align:center">Оновлення...</td></tr>';
+            
             try {
                 const res = await fetch(`${backendUrl}/api/history`);
-                const items = await res.json();
-                const tbody = document.getElementById('historyTableBody');
-                
-                if (items.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="6" style="padding:20px; text-align:center">Історія порожня</td></tr>';
-                    return;
-                }
-
-                tbody.innerHTML = items.map(item => {
-                    let typeLabel = item.post_type;
-                    let typeClass = 'status-open';
-                    if (item.post_type === 'ad') { typeLabel = 'Реклама'; typeClass = 'status-claimed'; }
-                    else if (item.post_type === 'scheduled') { typeLabel = 'План'; typeClass = 'status-open'; }
-                    else if (item.post_type === 'instant') { typeLabel = 'Миттєво'; typeClass = 'status-pending'; }
-
-                    return `
-                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-                        <td style="padding: 10px;">${new Date(item.sent_at).toLocaleString()}</td>
-                        <td style="padding: 10px;">${item.channel_title || item.channel_id}</td>
-                        <td style="padding: 10px;">
-                            <span class="task-status ${typeClass}" style="font-size: 0.8em;">${typeLabel}</span>
-                        </td>
-                        <td style="padding: 10px; font-weight:bold;">${item.created_by || '-'}</td>
-                        <td style="padding: 10px;">${item.posted_by || '-'}</td>
-                        <td style="padding: 10px;">${item.content_preview}...</td>
-                    </tr>
-                `}).join('');
+                allHistoryItems = await res.json();
+                renderTable();
             } catch (e) {
-                document.getElementById('historyTableBody').innerHTML = '<tr><td colspan="6" style="padding:20px; text-align:center; color: var(--color-danger)">Помилка завантаження</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="6" style="padding:20px; text-align:center; color: var(--color-danger)">Помилка завантаження</td></tr>';
                 console.error(e);
             }
+        };
+
+        function toggleSort() {
+            sortDesc = !sortDesc;
+            const btn = document.getElementById('sortBtn');
+            btn.innerHTML = sortDesc ? '<span>⬇️ Спочатку нові</span>' : '<span>⬆️ Спочатку старі</span>';
+            renderTable();
         }
-        loadHistory();
+
+        function renderTable() {
+            const tbody = document.getElementById('historyTableBody');
+            const searchVal = document.getElementById('searchInput').value.toLowerCase();
+            const typeVal = document.getElementById('typeFilter').value;
+            const channelVal = document.getElementById('channelFilter').value;
+
+            // 1. Фільтрація
+            let filtered = allHistoryItems.filter(item => {
+                const matchSearch = (item.content_preview || '').toLowerCase().includes(searchVal) ||
+                                    (item.created_by || '').toLowerCase().includes(searchVal);
+                
+                let matchType = true;
+                if (typeVal !== 'all') {
+                    if (typeVal === 'instant') matchType = item.post_type.includes('instant');
+                    else matchType = item.post_type === typeVal;
+                }
+
+                let matchChannel = true;
+                if (channelVal !== 'all') {
+                    matchChannel = String(item.channel_id) === channelVal;
+                }
+
+                return matchSearch && matchType && matchChannel;
+            });
+
+            // 2. Сортування
+            filtered.sort((a, b) => {
+                const dateA = new Date(a.sent_at);
+                const dateB = new Date(b.sent_at);
+                return sortDesc ? dateB - dateA : dateA - dateB;
+            });
+
+            // 3. Рендеринг
+            if (filtered.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="padding:20px; text-align:center">Нічого не знайдено</td></tr>';
+                document.getElementById('statsFooter').innerText = '';
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(item => {
+                let typeLabel = item.post_type;
+                let typeClass = 'status-open';
+                if (item.post_type === 'ad') { typeLabel = 'Реклама'; typeClass = 'status-claimed'; }
+                else if (item.post_type === 'scheduled') { typeLabel = 'План'; typeClass = 'status-open'; }
+                else if (item.post_type.includes('instant')) { typeLabel = 'Миттєво'; typeClass = 'status-pending'; }
+
+                // 🔥 Генерація посилання на пост
+                let linkHtml = '';
+                if (item.message_id) {
+                    // Формат посилання для приватних каналів (-100...)
+                    // https://t.me/c/1234567890/123 (без -100)
+                    let cleanId = String(item.channel_id).replace('-100', '');
+                    let url = `https://t.me/c/${cleanId}/${item.message_id}`;
+                    linkHtml = `<a href="${url}" target="_blank" class="link-btn"><i data-feather="external-link"></i> Відкрити</a>`;
+                } else {
+                    linkHtml = `<span style="opacity:0.5; font-size:0.8em">Немає ID</span>`;
+                }
+
+                return `
+                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                    <td style="padding: 10px; font-size:0.9em;">${new Date(item.sent_at).toLocaleString()}</td>
+                    <td style="padding: 10px;">${item.channel_title || item.channel_id}</td>
+                    <td style="padding: 10px;">
+                        <span class="task-status ${typeClass}" style="font-size: 0.8em;">${typeLabel}</span>
+                    </td>
+                    <td style="padding: 10px; font-weight:500;">
+                        ${item.created_by || '-'}
+                        <div style="font-size:0.7em; opacity:0.6">Bot: ${item.posted_by || '-'}</div>
+                    </td>
+                    <td style="padding: 10px; max-width: 300px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+                        ${item.content_preview}...
+                    </td>
+                    <td style="padding: 10px;">
+                        ${linkHtml}
+                    </td>
+                </tr>
+            `}).join('');
+            
+            // Оновлення іконок Feather
+            if (window.feather) feather.replace();
+            
+            document.getElementById('statsFooter').innerText = `Показано: ${filtered.length} / ${allHistoryItems.length}`;
+        }
+
+        init();
     </script>
 
     <div class="fab-container">
@@ -110,18 +289,11 @@
             if (fabContainer && fabContainer.classList.contains('active') && !fabContainer.contains(e.target)) { fabContainer.classList.remove('active'); resetIdleTimer(); }
         });
         (function() {
-            // Тільки застосовуємо тему, без обробки кліків (кнопки тут немає)
             const htmlEl = document.documentElement;
             const savedTheme = localStorage.getItem('theme');
             const isXmas = localStorage.getItem('theme-xmas') === 'true';
-
-            if (isXmas) {
-                htmlEl.classList.add('theme-xmas');
-                htmlEl.classList.add('dark');
-            } else {
-                if (savedTheme === 'light') htmlEl.classList.remove('dark'); 
-                else htmlEl.classList.add('dark');
-            }
+            if (isXmas) { htmlEl.classList.add('theme-xmas'); htmlEl.classList.add('dark'); } 
+            else { if (savedTheme === 'light') htmlEl.classList.remove('dark'); else htmlEl.classList.add('dark'); }
         })();
     </script>
 </body>

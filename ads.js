@@ -5,15 +5,19 @@ document.addEventListener('DOMContentLoaded', async () => {
     const form = document.getElementById('adForm');
     const adsList = document.getElementById('adsList');
 
-    // Завантаження каналів
+    // 🔥 ОНОВЛЕНО: Завантаження каналів + Основний
     const channels = await getChannels();
+    
+    // Додаємо основний канал вручну першим
+    channelSelect.innerHTML = '<option value="0" selected>📢 Основний канал (за замовчуванням)</option>';
+    
     channels.forEach(c => {
         const opt = document.createElement('option');
         opt.value = c.telegram_id;
         opt.textContent = c.title;
         channelSelect.appendChild(opt);
     });
-
+    
     // Завантаження списку реклам
     const loadAds = async () => {
         const res = await fetch(`${backendUrl}/api/ads`);
