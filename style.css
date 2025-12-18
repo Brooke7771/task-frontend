@@ -1039,89 +1039,144 @@ button:disabled {
     .chat-item-title { max-width: 80%; }
 }
 
+
 /* =================================
-   🎄 CHRISTMAS THEME & MAGIC 🎄
+   🎄 PREMIUM CHRISTMAS THEME V2 🎄
    ================================= */
 
-/* 1. Змінні Новорічної Теми (переписують стандартні) */
 html.theme-xmas {
-    --color-primary: #D42426; /* Santa Red */
-    --color-primary-rgb: 212, 36, 38;
-    --color-primary-dark: #a0181a;
+    /* Основні кольори: Цукерковий червоний, Золотий, Глибокий зелений */
+    --color-primary: #FF3333; 
+    --color-primary-rgb: 255, 51, 51;
+    --color-primary-dark: #cc0000;
     
-    --color-success: #059669; /* Pine Green */
-    --color-success-rgb: 5, 150, 105;
+    --color-success: #00D68F; /* Neon Mint */
+    --color-bg-light: #0f172a; 
     
-    --color-bg-light: #0b1e16; /* Deep Forest Night */
-    --color-bg-card: rgba(255, 255, 255, 0.15); /* Icy Glass */
-    --color-border: rgba(167, 243, 208, 0.3); /* Frosty Border */
+    /* Крижане скло */
+    --color-bg-card: rgba(20, 30, 48, 0.6); 
+    --color-border: rgba(255, 255, 255, 0.2); 
+    --color-text-dark: #ffffff;
+    --color-text-light: #cbd5e1;
     
-    --color-text-dark: #ecfdf5;
-    --color-text-light: #d1fae5;
-    
-    --shadow-lg: 0 10px 40px rgba(212, 36, 38, 0.2); /* Red Glow */
+    /* Тіні з світінням */
+    --shadow-md: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+    --shadow-lg: 0 0 25px rgba(255, 51, 51, 0.3);
 }
 
-/* 2. Фон (Північне сяйво + Різдво) */
-html.theme-xmas body::before {
-    background: linear-gradient(125deg, #022c22, #0f172a, #310b0b, #0f172a);
-    background-size: 400% 400%;
-    animation: aurora 15s ease infinite;
+/* 1. Магічний Фон (Градієнт + Сніг) */
+html.theme-xmas body {
+    background: radial-gradient(circle at 50% 0%, #1a2c4e 0%, #000000 100%);
+    background-attachment: fixed;
 }
 
-/* 3. Ефект Снігу (CSS Only, без картинок) */
+/* Прибираємо стару "Аврору" в цьому режимі, щоб не заважала снігу */
+html.theme-xmas body::before { display: none; }
+
+/* Анімація Снігу (Покращена, 3 шари глибини) */
 html.theme-xmas::after {
     content: "";
     position: fixed;
-    top: -50%;
-    left: 0;
-    width: 200%;
-    height: 200%;
+    top: 0; left: 0; width: 100%; height: 100%;
     pointer-events: none;
-    z-index: 1;
+    z-index: 0;
     background-image: 
-        radial-gradient(4px 4px at 10% 50%, white 50%, transparent 50%),
-        radial-gradient(3px 3px at 20% 40%, rgba(255,255,255,0.8) 50%, transparent 50%),
-        radial-gradient(6px 6px at 30% 70%, rgba(255,255,255,0.6) 50%, transparent 50%),
-        radial-gradient(4px 4px at 40% 10%, white 50%, transparent 50%),
-        radial-gradient(3px 3px at 50% 60%, rgba(255,255,255,0.8) 50%, transparent 50%),
-        radial-gradient(5px 5px at 60% 30%, white 50%, transparent 50%),
-        radial-gradient(4px 4px at 70% 80%, rgba(255,255,255,0.7) 50%, transparent 50%),
-        radial-gradient(3px 3px at 80% 20%, white 50%, transparent 50%),
-        radial-gradient(5px 5px at 90% 50%, rgba(255,255,255,0.9) 50%, transparent 50%);
-    background-size: 600px 600px;
-    animation: snowfall 20s linear infinite;
-    opacity: 0.6;
+        radial-gradient(3px 3px at 10% 10%, #fff 50%, transparent 50%),
+        radial-gradient(2px 2px at 20% 30%, rgba(255,255,255,0.8) 50%, transparent 50%),
+        radial-gradient(4px 4px at 30% 50%, rgba(255,255,255,0.6) 50%, transparent 50%),
+        radial-gradient(3px 3px at 40% 70%, #fff 50%, transparent 50%),
+        radial-gradient(2px 2px at 50% 90%, rgba(255,255,255,0.8) 50%, transparent 50%),
+        radial-gradient(4px 4px at 60% 20%, #fff 50%, transparent 50%),
+        radial-gradient(2px 2px at 70% 40%, rgba(255,255,255,0.7) 50%, transparent 50%),
+        radial-gradient(3px 3px at 80% 60%, #fff 50%, transparent 50%),
+        radial-gradient(2px 2px at 90% 80%, rgba(255,255,255,0.8) 50%, transparent 50%);
+    background-size: 500px 500px;
+    animation: snowfall 25s linear infinite;
+    opacity: 0.7;
 }
 
 @keyframes snowfall {
-    0% { transform: translateY(0) rotate(0deg); }
-    100% { transform: translateY(300px) rotate(10deg); }
+    0% { background-position: 0 0; }
+    100% { background-position: 50px 500px; }
 }
 
-/* 4. Декор Карток (Золота Гірлянда зверху) */
-html.theme-xmas .card, 
-html.theme-xmas .fab-option {
-    position: relative;
-    border-top: 2px solid rgba(251, 191, 36, 0.7); /* Gold top */
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-    backdrop-filter: blur(20px) saturate(150%);
+/* 2. Картки: Ефект "Замерзлого вікна" */
+html.theme-xmas .card,
+html.theme-xmas .tg-window {
+    background: linear-gradient(145deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.02) 100%);
+    backdrop-filter: blur(20px); /* Сильне розмиття */
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-top: 1px solid rgba(255, 255, 255, 0.5); /* "Сніжок" зверху */
+    border-bottom: 1px solid rgba(0, 0, 0, 0.4);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.5), inset 0 0 30px rgba(255,255,255,0.05);
+    border-radius: 20px;
 }
 
+/* Заголовки */
 html.theme-xmas h1 {
-    text-shadow: 0 0 15px rgba(251, 191, 36, 0.6); /* Golden Glow Text */
-    color: #FCD34D;
+    font-weight: 800;
+    background: linear-gradient(to right, #FFD700, #FDB931, #FFD700);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    text-shadow: 0 0 20px rgba(253, 185, 49, 0.3);
+    letter-spacing: 1px;
 }
 
-/* 5. Кнопки (Цукерковий стиль) */
+/* 3. Кнопки: "Різдвяна іграшка" */
 html.theme-xmas .btn-primary, 
 html.theme-xmas button[type="submit"] {
-    background: linear-gradient(135deg, #D42426 0%, #b91c1c 100%);
-    border: 1px solid rgba(255,255,255,0.3);
-    box-shadow: 0 4px 15px rgba(212, 36, 38, 0.4);
+    background: linear-gradient(135deg, #ff4d4d 0%, #b30000 100%);
+    border: none;
+    border-top: 1px solid rgba(255,255,255,0.4);
+    box-shadow: 0 5px 15px rgba(255, 0, 0, 0.4), inset 0 0 10px rgba(255,255,255,0.2);
+    color: white;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+    font-weight: 700;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+html.theme-xmas .btn-primary:hover {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 8px 25px rgba(255, 0, 0, 0.6), inset 0 0 10px rgba(255,255,255,0.3);
 }
 
-/* Іконка сніжинки в меню активна */
-.icon-snow { display: none; }
-html.theme-xmas .icon-snow { display: inline-block; color: #fff; }
-html.theme-xmas .icon-default { display: none; }
+/* Поля вводу: Темне скло */
+html.theme-xmas input, 
+html.theme-xmas textarea, 
+html.theme-xmas select {
+    background: rgba(0, 0, 0, 0.4) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: #fff !important;
+    box-shadow: inset 0 2px 5px rgba(0,0,0,0.5);
+}
+html.theme-xmas input:focus, 
+html.theme-xmas textarea:focus {
+    border-color: #FFD700 !important;
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.2), inset 0 2px 5px rgba(0,0,0,0.5) !important;
+}
+
+/* 4. Гірлянда (CSS Lights) - Висить зверху */
+html.theme-xmas body::before {
+    display: block; /* Повертаємо display, але для гірлянди */
+    content: '';
+    position: fixed;
+    top: -15px;
+    left: 0;
+    width: 100%;
+    height: 15px;
+    z-index: 9999;
+    background-image: 
+        radial-gradient(10px 10px at 10px 10px, #ff0000 50%, transparent 50%),
+        radial-gradient(10px 10px at 40px 10px, #ffd700 50%, transparent 50%),
+        radial-gradient(10px 10px at 70px 10px, #00ff00 50%, transparent 50%),
+        radial-gradient(10px 10px at 100px 10px, #0000ff 50%, transparent 50%);
+    background-size: 120px 20px;
+    background-repeat: repeat-x;
+    animation: lightsBlink 2s infinite alternate;
+    filter: drop-shadow(0 5px 10px rgba(255,255,255,0.5));
+}
+
+@keyframes lightsBlink {
+    0% { filter: drop-shadow(0 5px 5px rgba(255,255,255,0.2)) hue-rotate(0deg); opacity: 0.8; }
+    100% { filter: drop-shadow(0 5px 20px rgba(255,255,255,0.8)) hue-rotate(20deg); opacity: 1; }
+}
