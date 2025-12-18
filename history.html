@@ -96,24 +96,42 @@
     <div id="detailModal" class="modal-overlay">
         <div class="modal-content">
             <button class="modal-close" onclick="closeDetailModal()">&times;</button>
-            <h2 style="margin-top:0; border-bottom:1px solid var(--color-border); padding-bottom:10px;">Деталі публікації</h2>
+            <h2 style="margin-top:0; border-bottom:1px solid var(--color-border); padding-bottom:10px;">
+                🕵️ Деталі публікації
+            </h2>
             
-            <div class="detail-row">
-                <span class="detail-label">ID Повідомлення / Канал</span>
-                <div class="detail-value" id="modal-id"></div>
-            </div>
             <div class="detail-row" style="display:flex; gap:20px;">
-                <div><span class="detail-label">Дата</span><div class="detail-value" id="modal-date"></div></div>
-                <div><span class="detail-label">Тип</span><div class="detail-value" id="modal-type"></div></div>
+                <div style="flex:1"><span class="detail-label">ID Повідомлення</span><div class="detail-value" id="modal-id"></div></div>
+                <div style="flex:1"><span class="detail-label">Канал</span><div class="detail-value" id="modal-channel"></div></div>
             </div>
+
+            <div class="detail-row" style="display:flex; gap:20px;">
+                <div style="flex:1"><span class="detail-label">Дата</span><div class="detail-value" id="modal-date"></div></div>
+                <div style="flex:1"><span class="detail-label">Тип</span><div class="detail-value" id="modal-type"></div></div>
+            </div>
+
             <div class="detail-row">
-                <span class="detail-label">Автор / Бот</span>
+                <span class="detail-label">Автор / Ініціатор</span>
                 <div class="detail-value" id="modal-author"></div>
             </div>
+
+            <div style="background: rgba(220, 38, 38, 0.1); border: 1px solid rgba(220, 38, 38, 0.3); padding: 10px; border-radius: 8px; margin: 15px 0;">
+                <h4 style="margin: 0 0 10px 0; color: #fca5a5;">🛡 Security Audit</h4>
+                <div class="detail-row" style="margin-bottom: 5px;">
+                    <span class="detail-label">IP Адреса:</span>
+                    <div class="detail-value" id="modal-ip" style="font-family: monospace;">-</div>
+                </div>
+                <div class="detail-row" style="margin-bottom: 0;">
+                    <span class="detail-label">Пристрій (User-Agent):</span>
+                    <div class="detail-value" id="modal-ua" style="font-size: 0.85em; opacity: 0.8;">-</div>
+                </div>
+            </div>
+
             <div class="detail-row">
-                <span class="detail-label">Повний текст</span>
+                <span class="detail-label">Текст (Прев'ю)</span>
                 <div class="detail-text" id="modal-text"></div>
             </div>
+            
             <div class="detail-row" style="text-align: right; margin-top:20px;">
                 <a href="#" id="modal-link-btn" target="_blank" class="btn btn-primary" style="width:auto; display:inline-block;">
                     <i data-feather="external-link"></i> Відкрити в Telegram
@@ -165,17 +183,20 @@
         }
 
         window.openDetailModal = (item) => {
-            // Заповнюємо дані модального вікна
-            document.getElementById('modal-id').textContent = `Msg ID: ${item.message_id || 'Немає'} | Channel: ${item.channel_title || item.channel_id}`;
+            document.getElementById('modal-id').textContent = item.message_id || 'Немає';
+            document.getElementById('modal-channel').textContent = item.channel_title || item.channel_id;
             document.getElementById('modal-date').textContent = new Date(item.sent_at).toLocaleString();
             document.getElementById('modal-type').textContent = item.post_type;
             document.getElementById('modal-author').innerHTML = `${item.created_by || '?'} <span style="opacity:0.5">(via ${item.posted_by || 'bot'})</span>`;
+            
+            // 🔥 Заповнюємо дані безпеки
+            document.getElementById('modal-ip').textContent = item.client_ip || 'System / Unknown';
+            document.getElementById('modal-ua').textContent = item.user_agent || 'Internal Process';
+
             document.getElementById('modal-text').innerHTML = item.content_preview.replace(/</g, "&lt;").replace(/>/g, "&gt;"); 
             
             const btn = document.getElementById('modal-link-btn');
-            // Перевіряємо, чи є ID повідомлення та чи валідний канал
             if (item.message_id && String(item.channel_id) !== "0") {
-                // Прибираємо -100 з ID каналу для посилання
                 let cleanId = String(item.channel_id).replace(/^-?100/, '');
                 btn.href = `https://t.me/c/${cleanId}/${item.message_id}`;
                 btn.style.display = 'inline-flex';
