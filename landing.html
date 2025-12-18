@@ -17,7 +17,7 @@
         .sticky-nav {
             position: fixed; top: 0; left: 0; width: 100%; z-index: 1000;
             padding: 12px 0;
-            background: rgba(2, 6, 23, 0.8); /* Темний напівпрозорий фон */
+            background: rgba(2, 6, 23, 0.8);
             backdrop-filter: blur(20px);
             border-bottom: 1px solid rgba(255,255,255,0.05);
             transform: translateY(-100%); 
@@ -33,12 +33,12 @@
         
         /* 2. BACKGROUND VISUALS (Orbs & Noise) */
         .bg-orb {
-            position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.4; z-index: -1;
-            animation: floatOrb 10s ease-in-out infinite;
+            position: absolute; border-radius: 50%; filter: blur(100px); opacity: 0.4; z-index: -1;
+            animation: floatOrb 15s ease-in-out infinite alternate;
         }
-        .orb-1 { width: 400px; height: 400px; background: var(--color-primary); top: -100px; left: -100px; }
-        .orb-2 { width: 300px; height: 300px; background: var(--color-success); bottom: 10%; right: -50px; animation-delay: -2s; }
-        .orb-3 { width: 200px; height: 200px; background: #3b82f6; top: 40%; left: 20%; opacity: 0.2; animation-delay: -5s; }
+        .orb-1 { width: 500px; height: 500px; background: var(--color-primary); top: -150px; left: -100px; }
+        .orb-2 { width: 400px; height: 400px; background: var(--color-success); bottom: 10%; right: -100px; animation-delay: -5s; }
+        .orb-3 { width: 300px; height: 300px; background: #3b82f6; top: 40%; left: 30%; opacity: 0.2; animation-delay: -8s; }
 
         .noise-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -174,7 +174,7 @@
         /* Animations */
         @keyframes scroll { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
         @keyframes floatBadge { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
-        @keyframes floatOrb { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(20px, -20px); } }
+        @keyframes floatOrb { 0% { transform: translate(0, 0) scale(1); } 50% { transform: translate(30px, -30px) scale(1.1); } 100% { transform: translate(0, 0) scale(1); } }
         .reveal { opacity: 0; transform: translateY(30px); transition: 0.8s all ease; }
         .reveal.active { opacity: 1; transform: translateY(0); }
         
@@ -184,49 +184,84 @@
             -webkit-background-clip: text; background-clip: text; color: transparent;
         }
 
-        /* --- UPDATED: Stats Grid --- */
+        /* --- UPDATED: Stats Grid (Glass) --- */
         .stats-grid {
             display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 20px; margin: 4rem 0;
         }
         .stat-card {
-            background: rgba(255, 255, 255, 0.03); padding: 30px 20px; text-align: center;
+            background: rgba(255, 255, 255, 0.02); padding: 30px 20px; text-align: center;
             border-radius: 16px; border: 1px solid rgba(255,255,255,0.05);
-            transition: 0.3s;
+            transition: 0.3s; position: relative; overflow: hidden;
         }
-        .stat-card:hover { background: rgba(255, 255, 255, 0.05); transform: translateY(-5px); }
-        .stat-icon { color: var(--color-primary); margin-bottom: 10px; opacity: 0.8; }
-        .stat-num { font-size: 3.5rem; font-weight: 800; color: white; margin-bottom: 5px; line-height: 1; }
-        .stat-label { color: var(--color-text-light); font-size: 1rem; text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
+        .stat-card::before {
+            content: ''; position: absolute; inset: 0;
+            background: radial-gradient(circle at center, rgba(var(--color-primary-rgb), 0.1), transparent 70%);
+            opacity: 0; transition: 0.3s;
+        }
+        .stat-card:hover::before { opacity: 1; }
+        .stat-card:hover { transform: translateY(-5px); border-color: rgba(var(--color-primary-rgb), 0.3); }
+        
+        .stat-icon { color: var(--color-primary); margin-bottom: 15px; opacity: 0.9; position: relative; z-index: 1; }
+        .stat-num { font-size: 3.5rem; font-weight: 800; color: white; margin-bottom: 5px; line-height: 1; position: relative; z-index: 1; text-shadow: 0 0 20px rgba(var(--color-primary-rgb), 0.3); }
+        .stat-label { color: var(--color-text-light); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1.5px; font-weight: 600; position: relative; z-index: 1; }
 
-        /* --- UPDATED: Pricing Toggle --- */
+        /* --- UPDATED: Pricing Toggle (IOS Style) --- */
         .pricing-toggle-container {
-            display: flex; justify-content: center; margin-bottom: 40px;
+            display: flex; justify-content: center; margin-bottom: 50px;
         }
         .pricing-toggle {
-            display: flex; padding: 5px; background: rgba(0,0,0,0.3);
+            display: inline-flex; background: rgba(30, 41, 59, 0.5);
             border: 1px solid rgba(255,255,255,0.1); border-radius: 50px;
-            position: relative;
+            padding: 4px; position: relative;
         }
         .toggle-btn {
             padding: 12px 30px; border-radius: 40px; cursor: pointer;
-            font-weight: 600; color: var(--color-text-light); transition: 0.3s;
-            position: relative; z-index: 2;
+            font-weight: 600; color: var(--color-text-light); transition: color 0.3s;
+            position: relative; z-index: 2; user-select: none;
         }
         .toggle-btn.active { color: white; }
-        .toggle-bg {
-            position: absolute; top: 5px; left: 5px; width: 50%; height: calc(100% - 10px);
-            background: var(--color-primary); border-radius: 40px; transition: 0.3s; z-index: 1;
-            box-shadow: 0 4px 15px rgba(var(--color-primary-rgb), 0.4);
-        }
-        /* Коли активна друга кнопка (Рік), зсуваємо фон */
-        .pricing-toggle.yearly-active .toggle-bg { left: 50%; transform: translateX(-5px); } /* compensate padding */
         
+        /* Sliding Background */
+        .toggle-bg {
+            position: absolute; top: 4px; left: 4px; height: calc(100% - 8px); width: calc(50% - 4px);
+            background: var(--color-primary); border-radius: 40px; transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            z-index: 1; box-shadow: 0 4px 15px rgba(var(--color-primary-rgb), 0.4);
+        }
+        .pricing-toggle.yearly-active .toggle-bg { transform: translateX(100%); }
+
         .save-badge {
             background: #10b981; color: #020617; padding: 2px 8px; border-radius: 10px;
-            font-size: 0.7rem; font-weight: 800; margin-left: 5px; vertical-align: middle;
-            text-transform: uppercase;
+            font-size: 0.7rem; font-weight: 800; margin-left: 6px; vertical-align: middle;
+            text-transform: uppercase; box-shadow: 0 2px 5px rgba(16, 185, 129, 0.3);
         }
+
+        /* AI Demo Styling */
+        .ai-demo-wrapper {
+            background: #0f172a; border: 1px solid rgba(255,255,255,0.1); border-radius: 20px;
+            overflow: hidden; max-width: 800px; margin: 0 auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.4); position: relative;
+        }
+        .ai-header {
+            background: rgba(255,255,255,0.03); padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.05);
+            display: flex; gap: 8px; align-items: center;
+        }
+        .dot { width: 12px; height: 12px; border-radius: 50%; }
+        .dot-r { background: #ef4444; } .dot-y { background: #eab308; } .dot-g { background: #22c55e; }
+        
+        .ai-content { padding: 25px; height: 300px; overflow-y: auto; font-family: monospace; font-size: 0.95rem; color: #a5f3fc; line-height: 1.6; }
+        .ai-cursor { display: inline-block; width: 8px; height: 15px; background: var(--color-primary); animation: blink 1s infinite; vertical-align: middle; }
+        @keyframes blink { 50% { opacity: 0; } }
+
+        .ai-input-area {
+            padding: 15px; border-top: 1px solid rgba(255,255,255,0.05);
+            display: flex; gap: 10px; background: rgba(0,0,0,0.2);
+        }
+        .ai-btn {
+            background: var(--color-primary); color: white; border: none; padding: 10px 20px;
+            border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s;
+        }
+        .ai-btn:hover { background: var(--color-primary-dark); }
 
     </style>
 </head>
@@ -276,9 +311,8 @@
                 </div>
                 <h1 class="hero-title">Ваш Telegram-канал<br>на автопілоті</h1>
                 
-                <!-- 🔥 ОНОВЛЕНИЙ ТЕКСТ -->
                 <p class="hero-subtitle">
-                    Плануйте контент, а AI та бот зроблять решту. Більше ніякого ручного постингу та помилок.
+                    Плануйте контент, а AI та бот зроблять решту. 
                 </p>
                 
                 <div style="display: flex; gap: 15px; flex-wrap: wrap;">
@@ -292,7 +326,6 @@
             </div>
 
             <div class="hero-visual mockup-wrapper">
-                <!-- Floating Badges -->
                 <div class="floating-badge fb-1">
                     <div style="background: var(--color-success); width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: white;"><i data-feather="trending-up" style="width: 20px;"></i></div>
                     <div>
@@ -300,6 +333,7 @@
                         <div style="font-size: 1.1rem;">+120%</div>
                     </div>
                 </div>
+                
                 <div class="floating-badge fb-2">
                     <div style="background: #3b82f6; width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: white;"><i data-feather="cpu" style="width: 20px;"></i></div>
                     <div>
@@ -308,7 +342,6 @@
                     </div>
                 </div>
 
-                <!-- 3D Mockup -->
                 <div class="mockup-container">
                     <div style="border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 20px; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
                         <div style="width: 12px; height: 12px; background: #ff5f56; border-radius: 50%;"></div>
@@ -345,7 +378,7 @@
                 <div class="brand-item"><i data-feather="globe"></i> NewsGlobal</div>
                 <div class="brand-item"><i data-feather="anchor"></i> OdessaLife</div>
                 <div class="brand-item"><i data-feather="shopping-cart"></i> SaleHunter</div>
-                <!-- Duplicate -->
+                <!-- Duplicate for loop -->
                 <div class="brand-item"><i data-feather="send"></i> CryptoInsider</div>
                 <div class="brand-item"><i data-feather="trending-up"></i> InvestUA</div>
                 <div class="brand-item"><i data-feather="cpu"></i> TechDaily</div>
@@ -375,8 +408,33 @@
                 <div class="stat-label">% Uptime</div>
             </div>
         </section>
+        
+        <!-- 4. AI DEMO SECTION -->
+        <section id="demo" class="reveal" style="padding: 4rem 0;">
+            <div style="text-align: center; margin-bottom: 2rem;">
+                <div style="color: var(--color-primary); font-weight: bold; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 2px;">Інтерактивне Демо</div>
+                <h2 style="font-size: 2.5rem; margin-bottom: 1rem;">Спробуйте AI-магію</h2>
+                <p style="color: var(--color-text-light);">Натисніть кнопку, щоб побачити, як AI переписує нудний текст.</p>
+            </div>
 
-        <!-- 4. COMPARISON SECTION -->
+            <div class="ai-demo-wrapper">
+                <div class="ai-header">
+                    <div class="dot dot-r"></div>
+                    <div class="dot dot-y"></div>
+                    <div class="dot dot-g"></div>
+                    <span style="font-size: 0.8rem; color: #64748b; margin-left: 10px;">gemini_processor.exe</span>
+                </div>
+                <div class="ai-content" id="aiOutput">
+                    <span style="color: #64748b;">// Очікування вводу...</span><span class="ai-cursor"></span>
+                </div>
+                <div class="ai-input-area">
+                    <button class="ai-btn" onclick="runAiDemo('news')">📰 Новина про крипту</button>
+                    <button class="ai-btn" style="background: #3b82f6;" onclick="runAiDemo('sale')">🛍 Рекламний пост</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- 5. COMPARISON SECTION -->
         <section class="reveal" style="padding: 3rem 0;">
             <div style="text-align: center; max-width: 700px; margin: 0 auto;">
                 <h2 style="font-size: 2.5rem; margin-bottom: 1rem;">Досить працювати руками</h2>
@@ -410,38 +468,10 @@
             </div>
         </section>
 
-        <!-- 5. TIMELINE -->
-        <section id="demo" class="reveal" style="padding: 3rem 0;">
-            <h2 style="text-align: center; font-size: 2.5rem; margin-bottom: 3rem;">Шлях до автоматизації</h2>
-            <div class="timeline">
-                <div class="timeline-item">
-                    <div class="timeline-number">1</div>
-                    <div class="timeline-content">
-                        <h3>Реєстрація</h3>
-                        <p style="color: var(--color-text-light);">Створіть акаунт за 30 секунд. Картка не потрібна.</p>
-                    </div>
-                </div>
-                <div class="timeline-item">
-                    <div class="timeline-number">2</div>
-                    <div class="timeline-content">
-                        <h3>Підключення</h3>
-                        <p style="color: var(--color-text-light);">Додайте бота в адміністратори вашого каналу.</p>
-                    </div>
-                </div>
-                <div class="timeline-item">
-                    <div class="timeline-number">3</div>
-                    <div class="timeline-content">
-                        <h3>Автопілот</h3>
-                        <p style="color: var(--color-text-light);">Плануйте контент, а AI та бот зроблять решту.</p>
-                    </div>
-                </div>
-            </div>
-        </section>
-
         <!-- 6. PRICING -->
         <section class="reveal" style="padding: 4rem 0;">
             <h2 style="text-align: center; font-size: 2.5rem;">Прозорі тарифи</h2>
-            <p style="text-align: center; color: var(--color-text-light); margin-bottom: 30px;">Створено для росту вашого бізнесу.</p>
+            <p style="text-align: center; color: var(--color-text-light); margin-bottom: 40px;">Створено для росту вашого бізнесу.</p>
             
             <!-- 🔥 UPDATED: PRICING TOGGLE -->
             <div class="pricing-toggle-container">
@@ -566,18 +596,9 @@
 
         // --- Sticky Header Logic ---
         const header = document.getElementById('stickyNav');
-        let lastScroll = 0;
-        
         window.addEventListener('scroll', () => {
-            const currentScroll = window.scrollY;
-            
-            // Show header only after scrolling past Hero (approx 600px)
-            if (currentScroll > 600) {
-                header.classList.add('visible');
-            } else {
-                header.classList.remove('visible');
-            }
-            lastScroll = currentScroll;
+            if (window.scrollY > 600) header.classList.add('visible');
+            else header.classList.remove('visible');
         });
 
         // --- Pricing Toggle ---
@@ -610,11 +631,59 @@
                         counter.innerText = Math.ceil(current);
                         requestAnimationFrame(updateCounter);
                     } else {
-                        counter.innerText = target + (target > 100 ? '+' : '');
+                        // Fix for 99.9 display
+                        if (target === 99.9) counter.innerText = "99.9%";
+                        else counter.innerText = target + "+";
                     }
                 };
                 updateCounter();
             });
+        }
+
+        // --- AI Typing Demo ---
+        let typingInterval;
+        const aiOutput = document.getElementById('aiOutput');
+        
+        function typeText(text) {
+            aiOutput.innerHTML = '<span class="ai-cursor"></span>';
+            let i = 0;
+            if(typingInterval) clearInterval(typingInterval);
+            
+            const cursor = document.querySelector('.ai-cursor');
+            
+            typingInterval = setInterval(() => {
+                if(i < text.length) {
+                    const char = text.charAt(i);
+                    const span = document.createElement('span');
+                    span.textContent = char;
+                    // Insert before cursor
+                    aiOutput.insertBefore(span, cursor);
+                    i++;
+                    // Scroll to bottom
+                    aiOutput.scrollTop = aiOutput.scrollHeight;
+                } else {
+                    clearInterval(typingInterval);
+                    // Add HTML formatting after typing simulates "processing"
+                    aiOutput.innerHTML = aiOutput.innerText.replace(/\n/g, '<br>').replace(/(\*\*|__)(.*?)\1/g, '<b>$2</b>');
+                    aiOutput.appendChild(cursor);
+                }
+            }, 30);
+        }
+
+        window.runAiDemo = (type) => {
+            const cursor = document.querySelector('.ai-cursor');
+            aiOutput.innerHTML = '<span style="color:#64748b">> Analyzing input...</span><br>';
+            aiOutput.appendChild(cursor);
+            
+            setTimeout(() => {
+                let text = "";
+                if(type === 'news') {
+                    text = "🚀 **Bitcoin пробив $100k!**\n\nСьогодні вночі курс першої криптовалюти досяг історичного максимуму. Експерти пов'язують це з схваленням ETF та загальним позитивом на ринках.\n\nАналітики прогнозують подальший ріст до $120k до кінця місяця. Тримаємо руку на пульсі! #btc #crypto";
+                } else {
+                    text = "🔥 **Розпродаж року!**\n\nТільки сьогодні знижки до -50% на весь літній одяг. Встигніть оновити гардероб за смішними цінами.\n\n📍 ТРЦ Ocean Plaza, 2 поверх.\n⏰ Працюємо до 22:00.\n\nНе пропустіть! Кількість товару обмежена.";
+                }
+                typeText(text);
+            }, 800);
         }
     </script>
     <script src="garland.js" type="module"></script>
