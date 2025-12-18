@@ -5,143 +5,182 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Telegram Task Bot - Ultimate Edition</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
     <script src="auth-guard.js"></script>
     <style>
         /* --- Landing Specific Styles --- */
+        body { overflow-x: hidden; }
+
+        /* 1. ELEGANT STICKY NAV (Виправлено) */
+        .sticky-nav {
+            position: fixed; top: 0; left: 0; width: 100%; z-index: 1000;
+            padding: 12px 0;
+            background: rgba(15, 23, 42, 0.85); /* Темний напівпрозорий фон */
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            transform: translateY(-100%); 
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .sticky-nav.visible { transform: translateY(0); }
         
-        /* Floating CTA Header */
-        .sticky-header {
-            position: fixed; top: -80px; left: 0; width: 100%; z-index: 999;
-            background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(10px);
-            border-bottom: 1px solid var(--color-border);
-            padding: 10px 20px; transition: top 0.3s;
+        .nav-container {
+            max-width: 1200px; margin: 0 auto; padding: 0 20px;
             display: flex; justify-content: space-between; align-items: center;
         }
-        .sticky-header.visible { top: 0; }
-
+        .nav-logo { font-weight: 800; font-size: 1.2rem; display: flex; align-items: center; gap: 8px; color: white; text-decoration: none; }
+        
         /* Hero Section */
         .hero-section {
-            display: grid; grid-template-columns: 1fr; gap: 40px;
-            padding: 8rem 1rem 4rem 1rem; align-items: center;
-            position: relative; overflow: hidden;
+            display: grid; grid-template-columns: 1fr; gap: 50px;
+            padding: 8rem 1rem 5rem 1rem; align-items: center;
+            position: relative;
         }
-        @media(min-width: 900px) { .hero-section { grid-template-columns: 1fr 1fr; text-align: left; } }
+        @media(min-width: 900px) { .hero-section { grid-template-columns: 1.1fr 0.9fr; text-align: left; } }
 
-        /* Glow Effect behind Hero */
         .hero-glow {
-            position: absolute; width: 600px; height: 600px;
-            background: radial-gradient(circle, rgba(var(--color-primary-rgb), 0.2) 0%, transparent 70%);
+            position: absolute; width: 800px; height: 800px;
+            background: radial-gradient(circle, rgba(var(--color-primary-rgb), 0.15) 0%, transparent 60%);
             top: 50%; left: 50%; transform: translate(-50%, -50%);
-            z-index: -1; pointer-events: none; filter: blur(80px);
+            z-index: -1; pointer-events: none; filter: blur(100px);
         }
 
         .hero-title {
             font-size: 3.8rem; font-weight: 900; line-height: 1.1;
             background: linear-gradient(135deg, #fff 30%, var(--color-primary));
             -webkit-background-clip: text; background-clip: text; color: transparent;
-            margin-bottom: 1.5rem; letter-spacing: -1px;
+            margin-bottom: 1.5rem; letter-spacing: -1.5px;
         }
 
-        /* 3D Mockup with Floating Elements */
-        .mockup-wrapper { position: relative; perspective: 1500px; }
+        /* 3D Mockup */
+        .mockup-wrapper { position: relative; perspective: 2000px; }
         .mockup-container {
-            background: var(--color-bg-card);
-            border: 1px solid var(--color-border);
-            border-radius: 20px; padding: 20px;
-            box-shadow: 0 30px 60px rgba(0,0,0,0.5);
-            transform: rotateY(-10deg) rotateX(5deg);
-            transition: transform 0.5s ease;
+            background: #0f172a;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 24px; padding: 25px;
+            box-shadow: 0 50px 100px -20px rgba(0,0,0,0.5);
+            transform: rotateY(-12deg) rotateX(6deg);
+            transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
-        .mockup-wrapper:hover .mockup-container { transform: rotateY(0) rotateX(0); }
+        .mockup-wrapper:hover .mockup-container { transform: rotateY(0) rotateX(0) scale(1.02); }
         
         .floating-badge {
-            position: absolute; padding: 10px 15px; border-radius: 12px;
-            background: var(--color-bg-card); border: 1px solid var(--color-border);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-            display: flex; align-items: center; gap: 10px; font-weight: 600;
-            animation: floatBadge 4s ease-in-out infinite; z-index: 2;
+            position: absolute; padding: 12px 18px; border-radius: 16px;
+            background: rgba(30, 41, 59, 0.9); border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4); backdrop-filter: blur(10px);
+            display: flex; align-items: center; gap: 12px; font-weight: 700; color: white;
+            animation: floatBadge 6s ease-in-out infinite; z-index: 2;
         }
-        .fb-1 { top: -20px; right: -20px; animation-delay: 0s; }
-        .fb-2 { bottom: 40px; left: -30px; animation-delay: 2s; }
+        .fb-1 { top: 40px; right: -40px; animation-delay: 0s; }
+        .fb-2 { bottom: 60px; left: -50px; animation-delay: 3s; }
 
-        /* Marquee (Trust Bar) */
-        .marquee-section { padding: 2rem 0; border-top: 1px solid var(--color-border); border-bottom: 1px solid var(--color-border); background: rgba(0,0,0,0.2); overflow: hidden; }
-        .marquee-content { display: flex; gap: 50px; animation: scroll 30s linear infinite; width: max-content; }
-        .brand-item { display: flex; align-items: center; gap: 10px; color: var(--color-text-light); font-weight: 600; font-size: 1.2rem; opacity: 0.6; }
-        .brand-item i { width: 24px; height: 24px; }
+        /* Marquee */
+        .marquee-section { padding: 2.5rem 0; border-top: 1px solid var(--color-border); border-bottom: 1px solid var(--color-border); background: rgba(0,0,0,0.2); overflow: hidden; position: relative; }
+        .marquee-section::before, .marquee-section::after {
+            content: ""; position: absolute; top: 0; width: 150px; height: 100%; z-index: 2;
+            pointer-events: none;
+        }
+        .marquee-section::before { left: 0; background: linear-gradient(to right, var(--color-bg-light), transparent); }
+        .marquee-section::after { right: 0; background: linear-gradient(to left, var(--color-bg-light), transparent); }
+        
+        .marquee-content { display: flex; gap: 60px; animation: scroll 40s linear infinite; width: max-content; }
+        .brand-item { display: flex; align-items: center; gap: 10px; color: var(--color-text-light); font-weight: 700; font-size: 1.3rem; opacity: 0.5; filter: grayscale(100%); transition: 0.3s; }
+        .brand-item:hover { opacity: 1; filter: grayscale(0%); color: var(--color-primary); }
 
-        /* Stats Grid */
-        .stats-grid {
-            display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 2px; background: var(--color-border); border: 1px solid var(--color-border);
-            border-radius: 20px; overflow: hidden; margin: 4rem 0;
+        /* Comparison Section (Before/After) */
+        .comparison-grid {
+            display: grid; grid-template-columns: 1fr; gap: 30px; margin-top: 3rem;
         }
-        .stat-card { background: var(--color-bg-card); padding: 30px; text-align: center; backdrop-filter: blur(10px); }
-        .stat-num { font-size: 3rem; font-weight: 800; color: var(--color-primary); margin-bottom: 5px; }
+        @media(min-width: 768px) { .comparison-grid { grid-template-columns: 1fr 1fr; } }
+        
+        .comp-card {
+            padding: 30px; border-radius: 20px;
+            border: 1px solid var(--color-border);
+        }
+        .comp-bad { background: rgba(239, 68, 68, 0.05); border-color: rgba(239, 68, 68, 0.2); }
+        .comp-good { background: rgba(var(--color-primary-rgb), 0.05); border-color: var(--color-primary); position: relative; overflow: hidden; }
+        .comp-good::before {
+            content: "Recommended"; position: absolute; top: 15px; right: 15px;
+            font-size: 0.7rem; text-transform: uppercase; font-weight: bold;
+            color: var(--color-primary); border: 1px solid var(--color-primary);
+            padding: 2px 8px; border-radius: 20px;
+        }
 
-        /* AI Demo Section */
-        .ai-section { background: linear-gradient(180deg, transparent, rgba(var(--color-primary-rgb), 0.05) 50%, transparent); padding: 6rem 0; }
-        .chat-ui {
-            max-width: 700px; margin: 0 auto; background: #0f172a;
-            border-radius: 20px; border: 1px solid var(--color-border); overflow: hidden;
-            box-shadow: 0 0 50px rgba(var(--color-primary-rgb), 0.15);
-        }
-        .chat-messages { height: 350px; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
-        .msg { max-width: 80%; padding: 12px 18px; border-radius: 18px; font-size: 0.95rem; line-height: 1.5; }
-        .msg-user { align-self: flex-end; background: var(--color-primary); color: white; border-bottom-right-radius: 4px; }
-        .msg-ai { align-self: flex-start; background: rgba(255,255,255,0.1); border-bottom-left-radius: 4px; }
-        .chat-input-area { padding: 15px; border-top: 1px solid rgba(255,255,255,0.1); display: flex; gap: 10px; background: rgba(0,0,0,0.3); }
-        .chat-input-fake { flex: 1; background: transparent; border: none; color: white; outline: none; }
+        .comp-list { list-style: none; padding: 0; margin-top: 20px; }
+        .comp-list li { margin-bottom: 12px; display: flex; gap: 10px; align-items: flex-start; line-height: 1.5; font-size: 0.95rem; color: var(--color-text-light); }
+        .comp-list li i { flex-shrink: 0; margin-top: 3px; }
 
-        /* Tech Stack */
-        .tech-stack { display: flex; justify-content: center; gap: 30px; flex-wrap: wrap; margin-top: 3rem; }
-        .tech-item { 
-            background: var(--color-bg-card); padding: 15px 25px; border-radius: 12px; 
-            border: 1px solid var(--color-border); display: flex; align-items: center; gap: 10px;
-            font-weight: 600; transition: 0.3s;
+        /* Timeline */
+        .timeline { position: relative; max-width: 800px; margin: 4rem auto; }
+        .timeline::before {
+            content: ''; position: absolute; top: 0; bottom: 0; left: 24px; width: 2px;
+            background: var(--color-border);
         }
-        .tech-item:hover { border-color: var(--color-primary); box-shadow: 0 0 20px rgba(var(--color-primary-rgb), 0.3); transform: translateY(-5px); }
-
-        /* Testimonials */
-        .testimonials-grid {
-            display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin: 3rem 0;
+        .timeline-item { position: relative; padding-left: 60px; margin-bottom: 40px; }
+        .timeline-number {
+            position: absolute; left: 0; top: 0; width: 50px; height: 50px;
+            background: var(--color-bg-card); border: 2px solid var(--color-primary);
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            font-weight: 800; font-size: 1.2rem; color: var(--color-primary);
+            z-index: 2;
         }
-        .review-card {
-            background: var(--color-bg-card); padding: 25px; border-radius: 16px;
-            border: 1px solid var(--color-border); position: relative;
-        }
-        .review-header { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; }
-        .avatar { width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(45deg, #333, #666); display: flex; align-items: center; justify-content: center; font-weight: bold; color: white; }
-        .stars { color: var(--color-warning); margin-bottom: 10px; }
+        .timeline-content h3 { margin: 0 0 10px 0; text-align: left; }
 
         /* Pricing */
-        .pricing-toggle {
-            display: flex; justify-content: center; align-items: center; gap: 15px; margin-bottom: 40px;
-            background: var(--color-bg-card); width: fit-content; margin: 0 auto 40px auto;
-            padding: 5px; border-radius: 30px; border: 1px solid var(--color-border);
+        .pricing-grid { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; margin-top: 3rem; }
+        .pricing-card {
+            background: var(--color-bg-card); border: 1px solid var(--color-border);
+            border-radius: 24px; padding: 40px 30px; width: 320px; text-align: center;
+            transition: 0.3s; position: relative; display: flex; flex-direction: column;
         }
-        .toggle-btn { padding: 10px 25px; border-radius: 25px; cursor: pointer; transition: 0.3s; font-weight: 600; }
-        .toggle-btn.active { background: var(--color-primary); color: white; box-shadow: 0 4px 15px rgba(var(--color-primary-rgb), 0.4); }
-        .save-badge { font-size: 0.8rem; color: var(--color-success); font-weight: bold; }
+        .pricing-card:hover { transform: translateY(-10px); border-color: var(--color-primary); }
+        .pricing-card.popular { 
+            background: linear-gradient(180deg, rgba(var(--color-primary-rgb), 0.1), rgba(var(--color-bg-card), 0));
+            border: 1px solid var(--color-primary); 
+            box-shadow: 0 0 30px rgba(var(--color-primary-rgb), 0.15);
+        }
+        .price { font-size: 3rem; font-weight: 800; margin: 20px 0; letter-spacing: -1px; }
+        .price span { font-size: 1rem; color: var(--color-text-light); font-weight: 500; }
+
+        /* Footer */
+        .footer-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 40px; padding: 60px 0; border-top: 1px solid var(--color-border);
+        }
+        .footer-col h4 { margin-bottom: 20px; color: var(--color-text-dark); }
+        .footer-col ul { list-style: none; padding: 0; }
+        .footer-col ul li { margin-bottom: 10px; }
+        .footer-col a { color: var(--color-text-light); text-decoration: none; transition: 0.2s; }
+        .footer-col a:hover { color: var(--color-primary); }
 
         /* Animations */
         @keyframes scroll { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
-        @keyframes floatBadge { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        @keyframes floatBadge { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
         .reveal { opacity: 0; transform: translateY(30px); transition: 0.8s all ease; }
         .reveal.active { opacity: 1; transform: translateY(0); }
+        
+        /* Gradient Text */
+        .text-gradient {
+            background: linear-gradient(135deg, #fff, var(--color-primary));
+            -webkit-background-clip: text; background-clip: text; color: transparent;
+        }
     </style>
 </head>
 <body>
 
-    <div class="sticky-header" id="stickyHeader">
-        <div style="font-weight: 800; font-size: 1.2rem; display: flex; align-items: center; gap: 8px;">
-            <i data-feather="zap" style="color: var(--color-primary)"></i> TaskBot
+    <nav class="sticky-nav" id="stickyNav">
+        <div class="nav-container">
+            <a href="#" class="nav-logo">
+                <i data-feather="zap" style="color: var(--color-primary)"></i> TaskBot
+            </a>
+            <div style="display: flex; gap: 15px; align-items: center;">
+                <a href="#features" style="color: var(--color-text-light); text-decoration: none; font-size: 0.9em; display: none; margin-right: 10px;">Можливості</a>
+                <a href="login.html" class="btn" style="background: transparent; border: 1px solid rgba(255,255,255,0.2); padding: 8px 16px; font-size: 0.9rem;">Вхід</a>
+                <a href="login.html" class="btn btn-primary" style="padding: 8px 20px; font-size: 0.9rem; box-shadow: 0 4px 15px rgba(var(--color-primary-rgb), 0.4);">Почати</a>
+            </div>
         </div>
-        <a href="login.html" class="btn btn-primary" style="padding: 8px 20px; font-size: 0.9rem;">Вхід / Реєстрація</a>
-    </div>
+    </nav>
 
     <div class="container-main" style="max-width: 1200px;">
         
@@ -152,73 +191,74 @@
                 </div>
                 TaskBot
             </div>
-            <div style="display: flex; gap: 15px;">
-                <a href="login.html" class="btn" style="background: transparent; border: 1px solid var(--color-border);">Вхід</a>
-                <a href="login.html" class="btn btn-primary" style="box-shadow: 0 4px 15px rgba(var(--color-primary-rgb), 0.4);">Спробувати безкоштовно</a>
+            <div style="display: flex; gap: 20px; align-items: center;">
+                <a href="login.html" style="color: var(--color-text-light); text-decoration: none; font-weight: 500;">Увійти</a>
+                <a href="login.html" class="btn btn-primary" style="padding: 10px 25px; box-shadow: 0 4px 15px rgba(var(--color-primary-rgb), 0.4);">Реєстрація</a>
             </div>
         </nav>
 
         <section class="hero-section">
             <div class="hero-glow"></div>
             <div class="hero-text">
-                <div style="display: inline-flex; align-items: center; gap: 8px; padding: 6px 16px; background: rgba(var(--color-primary-rgb), 0.1); color: var(--color-primary); border-radius: 20px; font-size: 0.9rem; font-weight: 600; margin-bottom: 25px; border: 1px solid rgba(var(--color-primary-rgb), 0.2);">
-                    <span style="display: block; width: 8px; height: 8px; background: var(--color-primary); border-radius: 50%; box-shadow: 0 0 10px var(--color-primary);"></span>
-                    V2.0: AI-Powered Automation
+                <div style="display: inline-flex; align-items: center; gap: 8px; padding: 6px 16px; background: rgba(var(--color-primary-rgb), 0.1); color: var(--color-primary); border-radius: 20px; font-size: 0.85rem; font-weight: 600; margin-bottom: 25px; border: 1px solid rgba(var(--color-primary-rgb), 0.2);">
+                    <span style="display: block; width: 6px; height: 6px; background: var(--color-primary); border-radius: 50%; box-shadow: 0 0 10px var(--color-primary);"></span>
+                    AI Automation 2.0
                 </div>
                 <h1 class="hero-title">Ваш Telegram-канал<br>на автопілоті</h1>
-                <p style="font-size: 1.25rem; color: var(--color-text-light); margin-bottom: 2.5rem; line-height: 1.6;">
-                    Єдина платформа для планування, роботи з командою та <b>AI-рерайтингу</b> новин. Створено для адмінів, які цінують свій час.
+                <p style="font-size: 1.2rem; color: var(--color-text-light); margin-bottom: 2.5rem; line-height: 1.6; max-width: 500px;">
+                    Єдина платформа для планування, роботи з командою та <b>AI-рерайтингу</b> новин. Більше ніякого ручного постингу.
                 </p>
                 <div style="display: flex; gap: 15px; flex-wrap: wrap;">
-                    <a href="login.html" class="btn btn-primary" style="padding: 16px 45px; font-size: 1.1rem;">
-                        <i data-feather="rocket" style="vertical-align: middle; margin-right: 8px;"></i> Почати роботу
+                    <a href="login.html" class="btn btn-primary" style="padding: 16px 45px; font-size: 1.1rem; width: auto;">
+                        <i data-feather="rocket" style="vertical-align: middle; margin-right: 8px;"></i> Почати безкоштовно
                     </a>
-                    <button onclick="document.getElementById('demo').scrollIntoView({behavior: 'smooth'})" class="btn" style="background: rgba(255,255,255,0.05); border: 1px solid var(--color-border); padding: 16px 30px; display: flex; align-items: center; gap: 8px;">
-                        <i data-feather="play-circle"></i> Live Demo
+                    <button onclick="document.getElementById('demo').scrollIntoView({behavior: 'smooth'})" class="btn" style="background: rgba(255,255,255,0.03); border: 1px solid var(--color-border); padding: 16px 30px; width: auto; color: var(--color-text-dark);">
+                        <i data-feather="play-circle" style="vertical-align: middle; margin-right: 8px;"></i> Як це працює?
                     </button>
-                </div>
-                <div style="margin-top: 30px; display: flex; gap: 20px; align-items: center; color: var(--color-text-light); font-size: 0.9em; opacity: 0.8;">
-                    <span><i data-feather="check" style="width: 14px; color: var(--color-success);"></i> Без картки</span>
-                    <span><i data-feather="check" style="width: 14px; color: var(--color-success);"></i> Швидкий старт</span>
-                    <span><i data-feather="check" style="width: 14px; color: var(--color-success);"></i> Rust Speed ⚡️</span>
                 </div>
             </div>
 
             <div class="hero-visual mockup-wrapper">
                 <div class="floating-badge fb-1">
-                    <div style="background: var(--color-success); width: 30px; height: 30px; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white;"><i data-feather="trending-up" style="width: 16px;"></i></div>
-                    <div>+120% <span style="font-size: 0.8em; font-weight: 400; display: block; color: var(--color-text-light);">Охоплення</span></div>
+                    <div style="background: var(--color-success); width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: white;"><i data-feather="trending-up" style="width: 20px;"></i></div>
+                    <div>
+                        <div style="font-size: 0.75rem; color: var(--color-text-light); font-weight: 500;">Ефективність</div>
+                        <div style="font-size: 1.1rem;">+120%</div>
+                    </div>
                 </div>
                 
                 <div class="floating-badge fb-2">
-                    <div style="background: #3b82f6; width: 30px; height: 30px; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white;"><i data-feather="cpu" style="width: 16px;"></i></div>
-                    <div>AI Ready <span style="font-size: 0.8em; font-weight: 400; display: block; color: var(--color-text-light);">Gemini Inside</span></div>
+                    <div style="background: #3b82f6; width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: white;"><i data-feather="cpu" style="width: 20px;"></i></div>
+                    <div>
+                        <div style="font-size: 0.75rem; color: var(--color-text-light); font-weight: 500;">Технологія</div>
+                        <div style="font-size: 1.1rem;">Gemini AI</div>
+                    </div>
                 </div>
 
                 <div class="mockup-container">
-                    <div style="border-bottom: 1px solid var(--color-border); padding-bottom: 15px; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+                    <div style="border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 20px; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
                         <div style="width: 12px; height: 12px; background: #ff5f56; border-radius: 50%;"></div>
                         <div style="width: 12px; height: 12px; background: #ffbd2e; border-radius: 50%;"></div>
                         <div style="width: 12px; height: 12px; background: #27c93f; border-radius: 50%;"></div>
-                        <div style="margin-left: auto; font-size: 0.8rem; background: rgba(255,255,255,0.1); padding: 4px 10px; border-radius: 4px;">admin.html</div>
+                        <div style="margin-left: auto; font-size: 0.8rem; background: rgba(255,255,255,0.1); padding: 4px 12px; border-radius: 6px; color: var(--color-text-light);">Dashboard</div>
                     </div>
                     
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
-                        <div style="background: rgba(var(--color-primary-rgb), 0.1); padding: 15px; border-radius: 12px; border: 1px solid rgba(var(--color-primary-rgb), 0.2);">
-                            <div style="font-size: 2rem; font-weight: 800; color: var(--color-primary);">24</div>
-                            <div style="font-size: 0.8rem; opacity: 0.7;">Активні пости</div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px;">
+                        <div style="background: linear-gradient(135deg, rgba(var(--color-primary-rgb), 0.2), rgba(var(--color-primary-rgb), 0.05)); padding: 20px; border-radius: 16px; border: 1px solid rgba(var(--color-primary-rgb), 0.2);">
+                            <div style="font-size: 2.5rem; font-weight: 800; color: var(--color-primary); line-height: 1;">24</div>
+                            <div style="font-size: 0.9rem; opacity: 0.7; margin-top: 5px;">Активні пости</div>
                         </div>
-                        <div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 12px; border: 1px solid var(--color-border);">
-                            <div style="font-size: 2rem; font-weight: 800;">5</div>
-                            <div style="font-size: 0.8rem; opacity: 0.7;">В черзі</div>
+                        <div style="background: rgba(255,255,255,0.03); padding: 20px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.05);">
+                            <div style="font-size: 2.5rem; font-weight: 800; color: white; line-height: 1;">5</div>
+                            <div style="font-size: 0.9rem; opacity: 0.7; margin-top: 5px;">На модерації</div>
                         </div>
                     </div>
                     
-                    <div style="background: #1e1e1e; padding: 15px; border-radius: 12px; font-family: monospace; font-size: 0.85rem; color: #a5f3fc; border: 1px solid var(--color-border);">
-                        > System: New task created<br>
-                        > AI: Processing "News Headline..."<br>
-                        > AI: Rewriting complete (0.4s)<br>
-                        > Bot: Scheduled for 18:00 ✅
+                    <div style="background: #020617; padding: 20px; border-radius: 12px; font-family: 'Roboto Mono', monospace; font-size: 0.85rem; color: #a5f3fc; border: 1px solid rgba(255,255,255,0.1); line-height: 1.6;">
+                        <span style="color: #64748b">18:00</span> [System] New task created<br>
+                        <span style="color: #64748b">18:01</span> [AI] Processing "Tech News..."<br>
+                        <span style="color: #64748b">18:01</span> [AI] Rewriting complete (0.4s)<br>
+                        <span style="color: var(--color-success)">18:02</span> [Bot] Scheduled successfully ✅
                     </div>
                 </div>
             </div>
@@ -239,29 +279,78 @@
             </div>
         </div>
 
-        <section class="reveal" style="text-align: center; padding: 4rem 0;">
-            <h2 style="margin-bottom: 10px;">Побудовано на сучасних технологіях</h2>
-            <p style="color: var(--color-text-light);">Швидкість Rust, гнучкість Actix та інтелект Google.</p>
-            <div class="tech-stack">
-                <div class="tech-item"><i data-feather="settings" style="color: #dea584;"></i> Rust (Backend)</div>
-                <div class="tech-item"><i data-feather="server" style="color: #a5f3fc;"></i> Actix-Web</div>
-                <div class="tech-item"><i data-feather="database" style="color: #336791;"></i> PostgreSQL</div>
-                <div class="tech-item"><i data-feather="cpu" style="color: #8ab4f8;"></i> Google Gemini AI</div>
+        <section class="reveal" style="padding: 5rem 0;">
+            <div style="text-align: center; max-width: 700px; margin: 0 auto;">
+                <h2 style="font-size: 2.5rem; margin-bottom: 1rem;">Досить працювати руками</h2>
+                <p style="color: var(--color-text-light);">Відмовтесь від хаосу в чатах та Excel-таблиць.</p>
+            </div>
+
+            <div class="comparison-grid">
+                <div class="comp-card comp-bad">
+                    <h3 style="color: var(--color-danger); display: flex; align-items: center; gap: 10px;">
+                        <i data-feather="x-circle"></i> Звичайний Адмін
+                    </h3>
+                    <ul class="comp-list">
+                        <li><i data-feather="x" style="color: var(--color-danger)"></i> Ручне копіювання текстів</li>
+                        <li><i data-feather="x" style="color: var(--color-danger)"></i> Постійне перемикання акаунтів</li>
+                        <li><i data-feather="x" style="color: var(--color-danger)"></i> "Скинь текст мені в особисті"</li>
+                        <li><i data-feather="x" style="color: var(--color-danger)"></i> Відсутність контролю за рекламою</li>
+                    </ul>
+                </div>
+                
+                <div class="comp-card comp-good">
+                    <h3 style="color: var(--color-primary); display: flex; align-items: center; gap: 10px;">
+                        <i data-feather="check-circle"></i> TaskBot Admin
+                    </h3>
+                    <ul class="comp-list">
+                        <li><i data-feather="check" style="color: var(--color-success)"></i> <strong>AI</strong> сам пише і форматує пости</li>
+                        <li><i data-feather="check" style="color: var(--color-success)"></i> Єдина панель для всіх каналів</li>
+                        <li><i data-feather="check" style="color: var(--color-success)"></i> Система ролей (Редактор / Адмін)</li>
+                        <li><i data-feather="check" style="color: var(--color-success)"></i> Авто-видалення реклами</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section id="demo" class="reveal" style="padding: 3rem 0;">
+            <h2 style="text-align: center; font-size: 2.5rem; margin-bottom: 3rem;">Шлях до автоматизації</h2>
+            <div class="timeline">
+                <div class="timeline-item">
+                    <div class="timeline-number">1</div>
+                    <div class="timeline-content">
+                        <h3>Реєстрація</h3>
+                        <p style="color: var(--color-text-light);">Створіть акаунт за 30 секунд. Картка не потрібна.</p>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-number">2</div>
+                    <div class="timeline-content">
+                        <h3>Підключення</h3>
+                        <p style="color: var(--color-text-light);">Додайте бота в адміністратори вашого каналу.</p>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-number">3</div>
+                    <div class="timeline-content">
+                        <h3>Автопілот</h3>
+                        <p style="color: var(--color-text-light);">Плануйте контент, а AI та бот зроблять решту.</p>
+                    </div>
+                </div>
             </div>
         </section>
 
         <section class="stats-grid reveal">
             <div class="stat-card">
                 <div class="stat-num" data-target="150">0</div>
-                <div style="color: var(--color-text-light);">Підключено каналів</div>
+                <div style="color: var(--color-text-light);">Каналів</div>
             </div>
             <div class="stat-card">
                 <div class="stat-num" data-target="8500">0</div>
-                <div style="color: var(--color-text-light);">Опубліковано постів</div>
+                <div style="color: var(--color-text-light);">Постів</div>
             </div>
             <div class="stat-card">
                 <div class="stat-num" data-target="450">0</div>
-                <div style="color: var(--color-text-light);">Активних редакторів</div>
+                <div style="color: var(--color-text-light);">Редакторів</div>
             </div>
             <div class="stat-card">
                 <div class="stat-num" data-target="99.9">0</div>
@@ -269,55 +358,9 @@
             </div>
         </section>
 
-        <section id="demo" class="ai-section reveal">
-            <div style="text-align: center; margin-bottom: 3rem;">
-                <div style="color: var(--color-primary); font-weight: bold; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 2px;">Live Demo</div>
-                <h2 style="font-size: 2.5rem;">AI, який розуміє контекст</h2>
-                <p style="color: var(--color-text-light); max-width: 600px; margin: 0 auto;">Вставте будь-який "сирий" текст, і подивіться, як бот перетворить його на ідеальний пост для Telegram.</p>
-            </div>
-
-            <div class="chat-ui">
-                <div class="chat-messages" id="demoChatBody">
-                    <div class="msg msg-ai">
-                        Привіт! Я твій AI-помічник. Скинь мені новину, і я зроблю з неї цукерочку 🍬
-                    </div>
-                </div>
-                <div class="chat-input-area">
-                    <input type="text" id="demoInput" class="chat-input-fake" placeholder="Напишіть щось (напр. 'Запуск ракети Starship пройшов успішно...')">
-                    <button id="demoSendBtn" class="btn btn-primary" style="width: auto; border-radius: 50%; width: 40px; height: 40px; padding: 0; display: flex; align-items: center; justify-content: center;"><i data-feather="arrow-up"></i></button>
-                </div>
-            </div>
-        </section>
-
         <section class="reveal" style="padding: 4rem 0;">
-            <h2 style="text-align: center; font-size: 2.5rem; margin-bottom: 3rem;">Все необхідне в одному місці</h2>
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px;">
-                <div style="background: var(--color-bg-card); padding: 30px; border-radius: 16px; border: 1px solid var(--color-border);">
-                    <div style="width: 50px; height: 50px; background: rgba(var(--color-primary-rgb), 0.1); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: var(--color-primary); margin-bottom: 20px;">
-                        <i data-feather="calendar"></i>
-                    </div>
-                    <h3>Smart Scheduler</h3>
-                    <p style="color: var(--color-text-light);">Drag & Drop календар. Плануйте контент на місяць вперед. Підтримка часових поясів та авто-видалення.</p>
-                </div>
-                <div style="background: var(--color-bg-card); padding: 30px; border-radius: 16px; border: 1px solid var(--color-border);">
-                    <div style="width: 50px; height: 50px; background: rgba(var(--color-success-rgb), 0.1); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: var(--color-success); margin-bottom: 20px;">
-                        <i data-feather="users"></i>
-                    </div>
-                    <h3>Team Access</h3>
-                    <p style="color: var(--color-text-light);">Ролі "Адмін" та "Редактор". Ви контролюєте, хто може постити, а хто тільки пропонувати новини.</p>
-                </div>
-                <div style="background: var(--color-bg-card); padding: 30px; border-radius: 16px; border: 1px solid var(--color-border);">
-                    <div style="width: 50px; height: 50px; background: rgba(220, 38, 38, 0.1); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: var(--color-danger); margin-bottom: 20px;">
-                        <i data-feather="shield"></i>
-                    </div>
-                    <h3>Audit Logs</h3>
-                    <p style="color: var(--color-text-light);">Повний журнал дій. Хто, коли і з якого IP зробив пост. Безпека вашого каналу понад усе.</p>
-                </div>
-            </div>
-        </section>
-
-        <section class="reveal" style="padding: 4rem 0;">
-            <h2 style="text-align: center; margin-bottom: 20px;">Прозорі тарифи</h2>
+            <h2 style="text-align: center; font-size: 2.5rem;">Прозорі тарифи</h2>
+            <p style="text-align: center; color: var(--color-text-light); margin-bottom: 30px;">Створено для росту вашого бізнесу.</p>
             
             <div class="pricing-toggle">
                 <div class="toggle-btn active" onclick="switchPricing('monthly', this)">Щомісяця</div>
@@ -328,105 +371,92 @@
                 <div class="pricing-card">
                     <h3>Starter</h3>
                     <div class="price" id="price-starter">₴0<span>/міс</span></div>
-                    <ul style="list-style:none; padding:0; text-align:left; color: var(--color-text-light); margin-bottom: 25px; line-height: 2;">
+                    <ul style="list-style:none; padding:0; text-align:left; color: var(--color-text-light); margin-bottom: 30px; line-height: 2.2;">
                         <li>✅ 1 Канал</li>
                         <li>✅ Базовий планувальник</li>
                         <li>❌ AI Асистент</li>
-                        <li>❌ Команда</li>
+                        <li>❌ Командний доступ</li>
                     </ul>
-                    <a href="login.html" class="btn" style="border: 1px solid var(--color-border); background: transparent;">Старт</a>
+                    <a href="login.html" class="btn" style="border: 1px solid var(--color-border); background: transparent; margin-top: auto;">Почати</a>
                 </div>
 
-                <div class="pricing-card popular" style="transform: scale(1.05);">
-                    <span class="badge-popular">TOP CHOICE</span>
+                <div class="pricing-card popular">
+                    <div style="position: absolute; top: 0; left: 0; width: 100%; height: 5px; background: var(--color-primary);"></div>
+                    <div style="position: absolute; top: 15px; right: 15px; background: var(--color-primary); color: white; padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: bold;">POPULAR</div>
+                    
                     <h3>Pro</h3>
-                    <div class="price" id="price-pro">₴450<span>/міс</span></div>
-                    <ul style="list-style:none; padding:0; text-align:left; color: var(--color-text-light); margin-bottom: 25px; line-height: 2;">
+                    <div class="price text-gradient" id="price-pro">₴450<span>/міс</span></div>
+                    <ul style="list-style:none; padding:0; text-align:left; color: var(--color-text-light); margin-bottom: 30px; line-height: 2.2;">
                         <li>✅ <b>Безліміт</b> каналів</li>
                         <li>✅ <b>Gemini AI</b> (Unlimited)</li>
                         <li>✅ До 5 редакторів</li>
                         <li>✅ Пріоритетна підтримка</li>
                     </ul>
-                    <a href="login.html" class="btn btn-primary">Спробувати Pro</a>
+                    <a href="login.html" class="btn btn-primary" style="margin-top: auto;">Спробувати Pro</a>
                 </div>
 
                 <div class="pricing-card">
                     <h3>Enterprise</h3>
                     <div class="price" id="price-ent">₴1200<span>/міс</span></div>
-                    <ul style="list-style:none; padding:0; text-align:left; color: var(--color-text-light); margin-bottom: 25px; line-height: 2;">
+                    <ul style="list-style:none; padding:0; text-align:left; color: var(--color-text-light); margin-bottom: 30px; line-height: 2.2;">
                         <li>✅ Все з Pro</li>
                         <li>✅ <b>Whitelabel</b> (Ваш бренд)</li>
-                        <li>✅ Персональний сервер</li>
+                        <li>✅ Власний сервер</li>
                         <li>✅ API Доступ</li>
                     </ul>
-                    <a href="#" class="btn" style="border: 1px solid var(--color-border); background: transparent;">Зв'язатися</a>
+                    <a href="#" class="btn" style="border: 1px solid var(--color-border); background: transparent; margin-top: auto;">Зв'язатися</a>
                 </div>
             </div>
         </section>
 
-        <section class="reveal" style="padding: 4rem 0;">
-            <h2 style="text-align: center; margin-bottom: 3rem;">Що кажуть адміни?</h2>
-            <div class="testimonials-grid">
-                <div class="review-card">
-                    <div class="review-header">
-                        <div class="avatar" style="background: #4f46e5;">OM</div>
-                        <div>
-                            <div style="font-weight: bold;">Олег М.</div>
-                            <div style="font-size: 0.8rem; color: var(--color-text-light);">Admin "Новини Тек"</div>
-                        </div>
-                    </div>
-                    <div class="stars">⭐⭐⭐⭐⭐</div>
-                    <p style="font-size: 0.95rem; line-height: 1.5;">"Раніше я витрачав 2 години на день на оформлення постів. З TaskBot і AI це займає 15 хвилин. Просто магія."</p>
-                </div>
-                <div class="review-card">
-                    <div class="review-header">
-                        <div class="avatar" style="background: #db2777;">AK</div>
-                        <div>
-                            <div style="font-weight: bold;">Анна К.</div>
-                            <div style="font-size: 0.8rem; color: var(--color-text-light);">Lifestyle Blog</div>
-                        </div>
-                    </div>
-                    <div class="stars">⭐⭐⭐⭐⭐</div>
-                    <p style="font-size: 0.95rem; line-height: 1.5;">"Функція командної роботи — це те, чого не вистачало. Мої редактори кидають чернетки, а я лише аппрувлю з телефону."</p>
-                </div>
-                <div class="review-card">
-                    <div class="review-header">
-                        <div class="avatar" style="background: #ea580c;">DV</div>
-                        <div>
-                            <div style="font-weight: bold;">Дмитро В.</div>
-                            <div style="font-size: 0.8rem; color: var(--color-text-light);">Crypto Insider</div>
-                        </div>
-                    </div>
-                    <div class="stars">⭐⭐⭐⭐⭐</div>
-                    <p style="font-size: 0.95rem; line-height: 1.5;">"Рекламний кабінет супер. Авто-видалення постів через 24 години економить мені купу нервів."</p>
-                </div>
-            </div>
+        <section style="text-align: center; padding: 6rem 1rem; background: linear-gradient(180deg, rgba(var(--color-primary-rgb), 0.1) 0%, transparent 100%); border-radius: 30px; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 2rem;" class="reveal">
+            <h2 style="font-size: 3rem; margin-bottom: 1.5rem; line-height: 1.1;">Готові до зростання?</h2>
+            <p style="font-size: 1.2rem; color: var(--color-text-light); margin-bottom: 2.5rem; max-width: 600px; margin-left: auto; margin-right: auto;">Приєднуйтесь до 150+ каналів, які вже автоматизували рутину та збільшили охоплення.</p>
+            <a href="login.html" class="btn btn-primary" style="padding: 20px 50px; font-size: 1.2rem; box-shadow: 0 10px 40px rgba(var(--color-primary-rgb), 0.3);">Створити акаунт</a>
         </section>
 
-        <section style="text-align: center; padding: 6rem 1rem; background: radial-gradient(circle, rgba(var(--color-primary-rgb), 0.15) 0%, transparent 70%); border-radius: 20px; margin-bottom: 2rem;" class="reveal">
-            <h2 style="font-size: 3.5rem; margin-bottom: 1.5rem; line-height: 1.1;">Зробіть свій канал<br>найкращим</h2>
-            <p style="font-size: 1.2rem; color: var(--color-text-light); margin-bottom: 2.5rem;">Приєднуйтесь до 150+ каналів, які вже автоматизували рутину.</p>
-            <a href="login.html" class="btn btn-primary" style="padding: 20px 60px; font-size: 1.3rem; box-shadow: 0 10px 30px rgba(var(--color-primary-rgb), 0.4);">Створити акаунт</a>
-        </section>
-
-        <footer style="border-top: 1px solid var(--color-border); padding: 40px 0; color: var(--color-text-light); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 20px;">
-            <div>
-                <div style="font-weight: 800; font-size: 1.2rem; margin-bottom: 10px; color: var(--color-text-dark);">TaskBot</div>
-                <p style="font-size: 0.9rem;">Made with ❤️ & Rust.</p>
-            </div>
-            <div style="text-align: right;">
-                <div style="display: flex; gap: 20px; justify-content: flex-end; margin-bottom: 15px;">
-                    <a href="#" style="color: var(--color-text-light);">Privacy</a>
-                    <a href="#" style="color: var(--color-text-light);">Terms</a>
-                    <a href="#" style="color: var(--color-text-light);">API</a>
+        <footer class="footer-grid">
+            <div class="footer-col">
+                <div style="font-weight: 800; font-size: 1.5rem; display: flex; align-items: center; gap: 10px; margin-bottom: 15px; color: white;">
+                    <i data-feather="zap" style="color: var(--color-primary)"></i> TaskBot
                 </div>
-                <div style="display: flex; gap: 15px; justify-content: flex-end;">
-                    <a href="#" style="color: var(--color-text-light);"><i data-feather="github"></i></a>
-                    <a href="#" style="color: var(--color-text-light);"><i data-feather="twitter"></i></a>
-                    <a href="#" style="color: var(--color-text-light);"><i data-feather="send"></i></a>
+                <p style="color: var(--color-text-light); font-size: 0.9rem; line-height: 1.6;">
+                    Найкращий інструмент для автоматизації Telegram каналів з використанням штучного інтелекту.
+                </p>
+            </div>
+            <div class="footer-col">
+                <h4>Продукт</h4>
+                <ul>
+                    <li><a href="#">Можливості</a></li>
+                    <li><a href="#">Інтеграції</a></li>
+                    <li><a href="#">Тарифи</a></li>
+                    <li><a href="#">Оновлення</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Компанія</h4>
+                <ul>
+                    <li><a href="#">Про нас</a></li>
+                    <li><a href="#">Кар'єра</a></li>
+                    <li><a href="#">Контакти</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Legal</h4>
+                <ul>
+                    <li><a href="#">Privacy Policy</a></li>
+                    <li><a href="#">Terms of Service</a></li>
+                </ul>
+                <div style="display: flex; gap: 15px; margin-top: 20px;">
+                    <a href="#"><i data-feather="twitter"></i></a>
+                    <a href="#"><i data-feather="github"></i></a>
+                    <a href="#"><i data-feather="linkedin"></i></a>
                 </div>
             </div>
         </footer>
+        <div style="text-align: center; padding: 20px; color: var(--color-text-light); font-size: 0.85rem; border-top: 1px solid var(--color-border);">
+            &copy; 2025 Telegram Task Bot. Made with ❤️ & Rust.
+        </div>
 
     </div>
 
@@ -447,11 +477,20 @@
         }, { threshold: 0.1 });
         document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 
-        // --- Sticky Header ---
+        // --- Sticky Header Logic ---
+        const header = document.getElementById('stickyNav');
+        let lastScroll = 0;
+        
         window.addEventListener('scroll', () => {
-            const header = document.getElementById('stickyHeader');
-            if (window.scrollY > 600) header.classList.add('visible');
-            else header.classList.remove('visible');
+            const currentScroll = window.scrollY;
+            
+            // Show header only after scrolling past Hero (approx 600px)
+            if (currentScroll > 600) {
+                header.classList.add('visible');
+            } else {
+                header.classList.remove('visible');
+            }
+            lastScroll = currentScroll;
         });
 
         // --- Pricing Toggle ---
@@ -487,41 +526,6 @@
                 updateCounter();
             });
         }
-
-        // --- AI Demo Logic ---
-        const demoInput = document.getElementById('demoInput');
-        const demoSendBtn = document.getElementById('demoSendBtn');
-        const demoChatBody = document.getElementById('demoChatBody');
-
-        const simulateAIResponse = (userText) => {
-            return `<b>⚡️ Новина:</b> ${userText.substring(0, 15)}...<br><br>🚀 <b>Головне:</b> ${userText} 🔥<br><br>#news #update`;
-        };
-
-        const handleDemoSend = () => {
-            const text = demoInput.value.trim();
-            if (!text) return;
-
-            // User msg
-            const userBubble = document.createElement('div');
-            userBubble.className = 'msg msg-user';
-            userBubble.textContent = text;
-            demoChatBody.appendChild(userBubble);
-            demoInput.value = '';
-            demoChatBody.scrollTop = demoChatBody.scrollHeight;
-
-            // AI Response
-            setTimeout(() => {
-                const aiBubble = document.createElement('div');
-                aiBubble.className = 'msg msg-ai';
-                aiBubble.innerHTML = simulateAIResponse(text);
-                demoChatBody.appendChild(aiBubble);
-                demoChatBody.scrollTop = demoChatBody.scrollHeight;
-            }, 800);
-        };
-
-        demoSendBtn.addEventListener('click', handleDemoSend);
-        demoInput.addEventListener('keypress', (e) => { if(e.key === 'Enter') handleDemoSend(); });
-
     </script>
     <script src="garland.js" type="module"></script>
     <script>
