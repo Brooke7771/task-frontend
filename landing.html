@@ -12,7 +12,7 @@
     <style>
         /* --- Landing Specific Styles --- */
         
-        /* Hero Section Split */
+        /* Hero Section */
         .hero-section {
             display: grid;
             grid-template-columns: 1fr;
@@ -24,110 +24,92 @@
             .hero-section { grid-template-columns: 1fr 1fr; text-align: left; }
         }
 
-        .hero-text {
-            animation: fadeInLeft 0.8s ease-out;
-        }
-
+        .hero-text { animation: fadeInLeft 0.8s ease-out; }
         .hero-title {
-            font-size: 3.5rem;
-            font-weight: 900;
-            line-height: 1.1;
+            font-size: 3.5rem; font-weight: 900; line-height: 1.1;
             background: linear-gradient(135deg, var(--color-primary), #fff);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
+            -webkit-background-clip: text; background-clip: text; color: transparent;
             margin-bottom: 1.5rem;
         }
 
-        .hero-visual {
-            position: relative;
-            animation: float 6s ease-in-out infinite;
-        }
+        .hero-visual { position: relative; animation: float 6s ease-in-out infinite; }
 
-        /* 3D Mockup Effect */
+        /* 3D Mockup */
         .mockup-container {
             background: var(--color-bg-card);
             border: 1px solid var(--color-border);
-            border-radius: 20px;
-            padding: 20px;
+            border-radius: 20px; padding: 20px;
             box-shadow: 0 20px 50px rgba(0,0,0,0.5);
             transform: perspective(1000px) rotateY(-5deg) rotateX(5deg);
             transition: transform 0.3s;
         }
-        .mockup-container:hover {
-            transform: perspective(1000px) rotateY(0deg) rotateX(0deg);
-        }
+        .mockup-container:hover { transform: perspective(1000px) rotateY(0deg) rotateX(0deg); }
 
         /* Stats Section */
         .stats-bar {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 20px;
-            background: var(--color-bg-card);
-            border: 1px solid var(--color-border);
-            border-radius: 16px;
-            padding: 30px;
-            margin: 4rem 0;
-            backdrop-filter: blur(10px);
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px; background: var(--color-bg-card);
+            border: 1px solid var(--color-border); border-radius: 16px;
+            padding: 30px; margin: 4rem 0; backdrop-filter: blur(10px);
         }
-        .stat-item { text-align: center; }
         .stat-num { font-size: 2.5rem; font-weight: 800; color: var(--color-primary); }
         .stat-label { color: var(--color-text-light); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; }
 
-        /* Workflow Steps */
-        .steps-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 30px;
-            margin-top: 3rem;
+        /* --- 🔥 NEW: AI DEMO SECTION --- */
+        .ai-demo-section {
+            display: grid; grid-template-columns: 1fr; gap: 40px; margin: 6rem 0; align-items: center;
         }
-        .step-card {
-            background: rgba(255,255,255,0.03);
-            border: 1px solid var(--color-border);
-            padding: 25px;
-            border-radius: 16px;
-            position: relative;
-            transition: 0.3s;
+        @media(min-width: 900px) { .ai-demo-section { grid-template-columns: 1fr 1fr; } }
+        
+        .ai-chat-window {
+            background: #0f172a; border-radius: 16px; border: 1px solid var(--color-border);
+            overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+            display: flex; flex-direction: column; height: 400px;
         }
-        .step-card:hover { transform: translateY(-5px); background: var(--color-bg-card); }
-        .step-num {
-            position: absolute; top: -15px; left: 20px;
-            background: var(--color-primary); color: white;
-            width: 40px; height: 40px; border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            font-weight: bold; font-size: 1.2rem;
-            box-shadow: 0 5px 15px rgba(var(--color-primary-rgb), 0.4);
-        }
+        .chat-header { padding: 15px; background: rgba(255,255,255,0.05); border-bottom: 1px solid var(--color-border); display: flex; align-items: center; gap: 10px; }
+        .chat-body { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
+        .chat-bubble { padding: 10px 15px; border-radius: 12px; max-width: 85%; line-height: 1.4; font-size: 0.95rem; }
+        .bubble-user { background: var(--color-primary); color: white; align-self: flex-end; border-bottom-right-radius: 2px; }
+        .bubble-ai { background: rgba(255,255,255,0.1); color: var(--color-text-dark); align-self: flex-start; border-bottom-left-radius: 2px; border: 1px solid var(--color-border); }
+        .typing-indicator { display: none; color: var(--color-text-light); font-size: 0.8rem; margin-left: 10px; }
 
-        /* FAQ Accordion */
-        .faq-section { max-width: 800px; margin: 0 auto 4rem auto; }
-        details {
-            background: var(--color-bg-card);
-            border: 1px solid var(--color-border);
-            border-radius: 12px;
-            margin-bottom: 10px;
-            overflow: hidden;
-            transition: 0.3s;
+        .demo-controls { padding: 15px; border-top: 1px solid var(--color-border); display: flex; gap: 10px; }
+        .demo-input { flex: 1; background: transparent; border: 1px solid var(--color-border); padding: 10px; border-radius: 8px; color: white; }
+
+        /* Comparison Table */
+        .comparison-table { width: 100%; border-collapse: collapse; margin: 2rem 0; }
+        .comparison-table th, .comparison-table td { padding: 15px; text-align: center; border-bottom: 1px solid var(--color-border); }
+        .comparison-table th:first-child, .comparison-table td:first-child { text-align: left; }
+        .check { color: var(--color-success); }
+        .cross { color: var(--color-danger); opacity: 0.5; }
+
+        /* Pricing Cards */
+        .pricing-grid { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; margin-top: 3rem; }
+        .pricing-card {
+            background: var(--color-bg-card); border: 1px solid var(--color-border);
+            border-radius: 16px; padding: 30px; width: 300px; text-align: center;
+            transition: 0.3s; position: relative;
         }
+        .pricing-card:hover { transform: translateY(-10px); box-shadow: var(--shadow-lg); border-color: var(--color-primary); }
+        .pricing-card.popular { border: 2px solid var(--color-primary); background: rgba(var(--color-primary-rgb), 0.05); }
+        .badge-popular {
+            position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
+            background: var(--color-primary); color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: bold;
+        }
+        .price { font-size: 2.5rem; font-weight: 800; margin: 20px 0; }
+        .price span { font-size: 1rem; color: var(--color-text-light); font-weight: 400; }
+
+        /* FAQ & Footer */
+        details { background: var(--color-bg-card); border: 1px solid var(--color-border); border-radius: 12px; margin-bottom: 10px; padding: 5px; transition: 0.3s; }
         details[open] { border-color: var(--color-primary); }
-        summary {
-            padding: 15px 20px;
-            cursor: pointer;
-            font-weight: 600;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            list-style: none;
-        }
-        summary::-webkit-details-marker { display: none; }
+        summary { padding: 15px; cursor: pointer; font-weight: 600; list-style: none; display: flex; justify-content: space-between; }
         summary::after { content: '+'; font-size: 1.5rem; transition: 0.3s; }
         details[open] summary::after { transform: rotate(45deg); }
-        .faq-content { padding: 0 20px 20px 20px; color: var(--color-text-light); line-height: 1.6; }
+        .faq-content { padding: 0 15px 15px 15px; color: var(--color-text-light); line-height: 1.6; }
 
         /* Animations */
         @keyframes fadeInLeft { from { opacity: 0; transform: translateX(-30px); } to { opacity: 1; transform: translateX(0); } }
         @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
-        
         .reveal { opacity: 0; transform: translateY(30px); transition: 0.8s all ease; }
         .reveal.active { opacity: 1; transform: translateY(0); }
     </style>
@@ -152,23 +134,24 @@
         <section class="hero-section">
             <div class="hero-text">
                 <div style="display: inline-block; padding: 5px 15px; background: rgba(var(--color-primary-rgb), 0.1); color: var(--color-primary); border-radius: 20px; font-size: 0.9rem; font-weight: 600; margin-bottom: 20px; border: 1px solid rgba(var(--color-primary-rgb), 0.2);">
-                    🚀 Версія 2.0 вже доступна
+                    🚀 Найкращий вибір для адмінів 2025
                 </div>
                 <h1 class="hero-title">Ваш Telegram-канал<br>на автопілоті</h1>
                 <p class="hero-subtitle" style="font-size: 1.2rem; color: var(--color-text-light); margin-bottom: 2rem; line-height: 1.6;">
-                    Плануйте пости, керуйте редакторами та використовуйте <b>AI Gemini</b> для написання вірусного контенту. Все в одній зручній панелі.
+                    Забудьте про рутину. Плануйте пости, делегуйте завдання команді та використовуйте <b>AI Gemini</b> для створення вірусного контенту за секунди.
                 </p>
                 <div style="display: flex; gap: 15px; flex-wrap: wrap;">
                     <a href="login.html" class="btn btn-primary" style="padding: 15px 40px; font-size: 1.1rem;">
-                        <i data-feather="play-circle" style="vertical-align: middle; margin-right: 5px;"></i> Почати безкоштовно
+                        <i data-feather="play-circle" style="vertical-align: middle; margin-right: 5px;"></i> Спробувати
                     </a>
-                    <a href="#features" class="btn" style="background: transparent; border: 1px solid var(--color-border); padding: 15px 30px;">
-                        Як це працює?
+                    <a href="#demo" class="btn" style="background: transparent; border: 1px solid var(--color-border); padding: 15px 30px;">
+                        Дивитись демо
                     </a>
                 </div>
-                <p style="margin-top: 15px; font-size: 0.9rem; color: var(--color-text-light); opacity: 0.7;">
-                    * Не потребує навичок програмування
-                </p>
+                <div style="margin-top: 30px; display: flex; gap: 15px; align-items: center; color: var(--color-text-light); font-size: 0.9em;">
+                    <span>✅ Без кредитної картки</span>
+                    <span>✅ Setup за 2 хв</span>
+                </div>
             </div>
 
             <div class="hero-visual">
@@ -177,19 +160,19 @@
                         <div style="width: 12px; height: 12px; background: #ff5f56; border-radius: 50%;"></div>
                         <div style="width: 12px; height: 12px; background: #ffbd2e; border-radius: 50%;"></div>
                         <div style="width: 12px; height: 12px; background: #27c93f; border-radius: 50%;"></div>
-                        <span style="margin-left: auto; font-size: 0.8rem; color: var(--color-text-light);">Admin Panel</span>
+                        <span style="margin-left: auto; font-size: 0.8rem; color: var(--color-text-light);">Admin Dashboard</span>
                     </div>
                     
                     <div style="display: flex; gap: 10px; margin-bottom: 15px;">
                         <div style="background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px; flex: 1;">
                             <div style="height: 8px; width: 60%; background: var(--color-text-light); opacity: 0.3; border-radius: 4px; margin-bottom: 8px;"></div>
                             <div style="font-size: 1.5rem; font-weight: bold; color: var(--color-success);">24</div>
-                            <div style="font-size: 0.8rem; color: var(--color-text-light);">Активні пости</div>
+                            <div style="font-size: 0.8rem; color: var(--color-text-light);">Опубліковано</div>
                         </div>
                         <div style="background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px; flex: 1;">
                             <div style="height: 8px; width: 60%; background: var(--color-text-light); opacity: 0.3; border-radius: 4px; margin-bottom: 8px;"></div>
                             <div style="font-size: 1.5rem; font-weight: bold; color: var(--color-warning);">5</div>
-                            <div style="font-size: 0.8rem; color: var(--color-text-light);">На перевірці</div>
+                            <div style="font-size: 0.8rem; color: var(--color-text-light);">В черзі</div>
                         </div>
                     </div>
 
@@ -209,11 +192,11 @@
         <section class="stats-bar reveal">
             <div class="stat-item">
                 <div class="stat-num" data-target="150">0</div>
-                <div class="stat-label">Каналів підключено</div>
+                <div class="stat-label">Каналів</div>
             </div>
             <div class="stat-item">
                 <div class="stat-num" data-target="8500">0</div>
-                <div class="stat-label">Постів опубліковано</div>
+                <div class="stat-label">Постів</div>
             </div>
             <div class="stat-item">
                 <div class="stat-num" data-target="450">0</div>
@@ -225,137 +208,153 @@
             </div>
         </section>
 
-        <section id="features" style="padding: 4rem 0;">
-            <div style="text-align: center; margin-bottom: 3rem;">
-                <h2 style="font-size: 2.5rem;">Все, що потрібно адміну</h2>
-                <p style="color: var(--color-text-light);">Більше ніяких excel-таблиць та ручного постингу.</p>
+        <section id="demo" class="ai-demo-section reveal">
+            <div>
+                <h2 style="font-size: 2.5rem; margin-bottom: 1rem;">Спробуйте AI-магію ✨</h2>
+                <p style="font-size: 1.1rem; color: var(--color-text-light); margin-bottom: 20px;">
+                    Вам не потрібно витрачати години на редагування. Просто вставте "сирий" текст новини, і наш бот перетворить його на ідеальний пост для Telegram.
+                </p>
+                <ul style="list-style: none; padding: 0; color: var(--color-text-light);">
+                    <li style="margin-bottom: 10px;"><i data-feather="check-circle" style="color: var(--color-success); width: 18px; margin-right: 8px; vertical-align:middle;"></i> Виправляє помилки та пунктуацію</li>
+                    <li style="margin-bottom: 10px;"><i data-feather="check-circle" style="color: var(--color-success); width: 18px; margin-right: 8px; vertical-align:middle;"></i> Додає структуру (HTML теги)</li>
+                    <li style="margin-bottom: 10px;"><i data-feather="check-circle" style="color: var(--color-success); width: 18px; margin-right: 8px; vertical-align:middle;"></i> Скорочує до суті</li>
+                </ul>
             </div>
-
-            <div class="features-grid">
-                <div class="feature-card reveal">
-                    <div style="background: rgba(var(--color-primary-rgb), 0.1); width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 20px; color: var(--color-primary);">
-                        <i data-feather="calendar"></i>
-                    </div>
-                    <h3>📅 Планувальник 2.0</h3>
-                    <p style="color: var(--color-text-light);">
-                        Плануйте контент на місяць вперед. Drag & Drop інтерфейс, підтримка медіа-альбомів та форматування Markdown.
-                    </p>
-                </div>
-
-                <div class="feature-card reveal">
-                    <div style="background: rgba(var(--color-success-rgb), 0.1); width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 20px; color: var(--color-success);">
-                        <i data-feather="users"></i>
-                    </div>
-                    <h3>👥 Командний доступ</h3>
-                    <p style="color: var(--color-text-light);">
-                        Роздавайте завдання редакторам. Вони пропонують пости, ви - затверджуєте. Повний контроль прав доступу.
-                    </p>
-                </div>
-
-                <div class="feature-card reveal">
-                    <div style="background: rgba(220, 38, 38, 0.1); width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 20px; color: var(--color-danger);">
-                        <i data-feather="cpu"></i>
-                    </div>
-                    <h3>🤖 Gemini AI Всередині</h3>
-                    <p style="color: var(--color-text-light);">
-                        Не знаєте що написати? AI перепише новину, скоротить текст, виправить помилки та розставить смайли.
-                    </p>
-                </div>
-
-                <div class="feature-card reveal">
-                    <div style="background: rgba(250, 204, 21, 0.1); width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 20px; color: var(--color-warning);">
-                        <i data-feather="bar-chart-2"></i>
-                    </div>
-                    <h3>📢 Рекламний менеджер</h3>
-                    <p style="color: var(--color-text-light);">
-                        Автоматичний постинг реклами з інтервалами. Автоматичне видалення через 24/48 годин.
-                    </p>
-                </div>
-                
-                <div class="feature-card reveal">
-                    <div style="background: rgba(59, 130, 246, 0.1); width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 20px; color: #3b82f6;">
-                        <i data-feather="shield"></i>
-                    </div>
-                    <h3>🛡 Audit Log</h3>
-                    <p style="color: var(--color-text-light);">
-                        Безпека понад усе. Логування IP та пристроїв всіх дій. Ви завжди знаєте, хто і коли змінив пост.
-                    </p>
-                </div>
-
-                <div class="feature-card reveal">
-                    <div style="background: rgba(236, 72, 153, 0.1); width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 20px; color: #ec4899;">
-                        <i data-feather="smartphone"></i>
-                    </div>
-                    <h3>📱 Мобільна адаптація</h3>
-                    <p style="color: var(--color-text-light);">
-                        Керуйте каналом з телефону. Інтерфейс повністю адаптований під мобільні пристрої та Telegram WebApp.
-                    </p>
-                </div>
-            </div>
-        </section>
-
-        <section style="padding: 4rem 0;">
-            <h2 style="text-align: center; font-size: 2.5rem; margin-bottom: 3rem;">Як почати за 3 хвилини?</h2>
-            <div class="steps-grid">
-                <div class="step-card reveal">
-                    <div class="step-num">1</div>
-                    <h3>Реєстрація</h3>
-                    <p style="color: var(--color-text-light);">Створіть акаунт в системі та додайте свого першого бота (Token).</p>
-                </div>
-                <div class="step-card reveal">
-                    <div class="step-num">2</div>
-                    <h3>Підключення</h3>
-                    <p style="color: var(--color-text-light);">Додайте бота в адміністратори вашого каналу в Telegram.</p>
-                </div>
-                <div class="step-card reveal">
-                    <div class="step-num">3</div>
-                    <h3>Постинг</h3>
-                    <p style="color: var(--color-text-light);">Створіть завдання або заплануйте перший пост через панель.</p>
-                </div>
-            </div>
-        </section>
-
-        <section class="faq-section reveal">
-            <h2 style="text-align: center; margin-bottom: 2rem;">Часті запитання</h2>
             
+            <div class="ai-chat-window">
+                <div class="chat-header">
+                    <div style="width: 10px; height: 10px; background: #ff5f56; border-radius: 50%;"></div>
+                    <div style="width: 10px; height: 10px; background: #ffbd2e; border-radius: 50%;"></div>
+                    <div style="width: 10px; height: 10px; background: #27c93f; border-radius: 50%;"></div>
+                    <span style="font-size: 0.9rem; color: white; margin-left: 10px;">🤖 TaskBot AI Demo</span>
+                </div>
+                <div class="chat-body" id="demoChatBody">
+                    <div class="chat-bubble bubble-ai">
+                        Привіт! Надішли мені будь-яку новину або текст, і я зроблю з нього красивий пост. 📝
+                    </div>
+                </div>
+                <div class="typing-indicator" id="typingIndicator">Бот пише...</div>
+                <div class="demo-controls">
+                    <input type="text" id="demoInput" class="demo-input" placeholder="Введіть текст новини тут...">
+                    <button id="demoSendBtn" class="btn btn-primary" style="width: auto; padding: 0 15px;"><i data-feather="send"></i></button>
+                </div>
+            </div>
+        </section>
+
+        <section class="reveal" style="padding: 4rem 0;">
+            <h2 style="text-align: center;">Чому обирають TaskBot?</h2>
+            <div style="overflow-x: auto;">
+                <table class="comparison-table">
+                    <thead>
+                        <tr>
+                            <th>Функція</th>
+                            <th style="color: var(--color-text-light);">Звичайний адмін</th>
+                            <th style="color: var(--color-primary); font-size: 1.1em;">TaskBot Admin 👑</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Планування постів</td>
+                            <td><span class="check">✅</span> (Обмежено)</td>
+                            <td><span class="check">✅</span> (Безліміт + Календар)</td>
+                        </tr>
+                        <tr>
+                            <td>Робота з командою</td>
+                            <td><span class="cross">❌</span> (Давати логін/пароль)</td>
+                            <td><span class="check">✅</span> (Рівні доступу)</td>
+                        </tr>
+                        <tr>
+                            <td>AI Рерайтинг</td>
+                            <td><span class="cross">❌</span> (Вручну)</td>
+                            <td><span class="check">✅</span> (Автоматично)</td>
+                        </tr>
+                        <tr>
+                            <td>Звіти та логи</td>
+                            <td><span class="cross">❌</span> (Немає)</td>
+                            <td><span class="check">✅</span> (Audit Log + IP)</td>
+                        </tr>
+                        <tr>
+                            <td>Мобільна версія</td>
+                            <td><span class="cross">❌</span> (Незручно)</td>
+                            <td><span class="check">✅</span> (PWA / WebApp)</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="reveal" style="padding: 2rem 0;">
+            <h2 style="text-align: center;">Прості та прозорі тарифи</h2>
+            <div class="pricing-grid">
+                <div class="pricing-card">
+                    <h3>Старт</h3>
+                    <div class="price">₴0<span>/міс</span></div>
+                    <ul style="list-style:none; padding:0; text-align:left; color: var(--color-text-light); margin-bottom: 20px;">
+                        <li>✅ 1 Канал</li>
+                        <li>✅ Планувальник постів</li>
+                        <li>❌ AI Редактор</li>
+                        <li>❌ Командний доступ</li>
+                    </ul>
+                    <a href="login.html" class="btn">Почати</a>
+                </div>
+
+                <div class="pricing-card popular">
+                    <span class="badge-popular">Найкращий вибір</span>
+                    <h3>Pro</h3>
+                    <div class="price">₴450<span>/міс</span></div>
+                    <ul style="list-style:none; padding:0; text-align:left; color: var(--color-text-light); margin-bottom: 20px;">
+                        <li>✅ <b>Безліміт</b> каналів</li>
+                        <li>✅ <b>Gemini AI</b> (GPT-4 class)</li>
+                        <li>✅ До 5 редакторів</li>
+                        <li>✅ Пріоритетна підтримка</li>
+                    </ul>
+                    <a href="login.html" class="btn btn-primary">Спробувати Pro</a>
+                </div>
+
+                <div class="pricing-card">
+                    <h3>Бізнес</h3>
+                    <div class="price">₴1200<span>/міс</span></div>
+                    <ul style="list-style:none; padding:0; text-align:left; color: var(--color-text-light); margin-bottom: 20px;">
+                        <li>✅ Все з тарифу Pro</li>
+                        <li>✅ <b>Whitelabel</b> (ваш бренд)</li>
+                        <li>✅ API Доступ</li>
+                        <li>✅ Персональний менеджер</li>
+                    </ul>
+                    <a href="login.html" class="btn">Зв'язатися</a>
+                </div>
+            </div>
+        </section>
+
+        <section class="faq-section reveal" style="max-width: 800px; margin: 4rem auto;">
+            <h2 style="text-align: center; margin-bottom: 2rem;">Часті запитання</h2>
             <details>
                 <summary>Чи це безпечно для мого каналу?</summary>
-                <div class="faq-content">
-                    Так. Бот використовує офіційний Telegram Bot API. Ми не просимо доступ до вашого особистого акаунту, лише токен бота, якого ви самі створили.
-                </div>
+                <div class="faq-content">Так. Бот використовує офіційний Telegram Bot API. Ми не просимо доступ до вашого особистого акаунту.</div>
             </details>
-
-            <details>
-                <summary>Скільки каналів можна підключити?</summary>
-                <div class="faq-content">
-                    В даній версії обмежень немає. Ви можете додавати необмежену кількість каналів та керувати ними з одного кабінету.
-                </div>
-            </details>
-
             <details>
                 <summary>Як працює AI редактор?</summary>
-                <div class="faq-content">
-                    Ми інтегрували Google Gemini AI. Ви просто вставляєте сирий текст або пересилаєте повідомлення боту, а він переписує його в гарний пост за заданим промптом.
-                </div>
+                <div class="faq-content">Ми інтегрували Google Gemini AI. Ви вставляєте текст, а бот переписує його, зберігаючи суть, але роблячи стиль професійним.</div>
+            </details>
+            <details>
+                <summary>Чи є пробний період?</summary>
+                <div class="faq-content">Так, ви можете користуватися тарифом "Старт" безкоштовно необмежений час.</div>
             </details>
         </section>
 
         <section style="text-align: center; padding: 5rem 1rem; background: linear-gradient(135deg, rgba(var(--color-primary-rgb), 0.1), transparent); border-radius: 20px; margin-bottom: 4rem;" class="reveal">
             <h2 style="font-size: 3rem; margin-bottom: 1rem;">Готові автоматизувати рутину?</h2>
-            <p style="font-size: 1.2rem; color: var(--color-text-light); margin-bottom: 2rem;">Приєднуйтесь до команди ефективних адміністраторів.</p>
             <a href="login.html" class="btn btn-primary" style="padding: 18px 50px; font-size: 1.2rem;">Створити акаунт</a>
         </section>
 
         <footer style="border-top: 1px solid var(--color-border); padding: 40px 0; color: var(--color-text-light); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 20px;">
             <div>
                 <div style="font-weight: 800; font-size: 1.2rem; margin-bottom: 10px; color: var(--color-text-dark);">TaskBot</div>
-                <p style="font-size: 0.9rem;">Найкращий інструмент для Telegram адміністраторів.</p>
+                <p style="font-size: 0.9rem;">Made with ❤️ in Ukraine.</p>
             </div>
             <div style="text-align: right;">
                 <p>&copy; 2025 Telegram Task Bot System.</p>
                 <div style="display: flex; gap: 15px; justify-content: flex-end; margin-top: 10px;">
                     <a href="#" style="color: var(--color-text-light);"><i data-feather="github"></i></a>
-                    <a href="#" style="color: var(--color-text-light);"><i data-feather="twitter"></i></a>
                     <a href="#" style="color: var(--color-text-light);"><i data-feather="send"></i></a>
                 </div>
             </div>
@@ -371,17 +370,13 @@
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
                     entry.target.classList.add('active');
-                    
-                    // Trigger counter animation only once
                     if(entry.target.classList.contains('stats-bar')) {
                         startCounters();
-                        // Disable observer for stats after triggering
                         observer.unobserve(entry.target); 
                     }
                 }
             });
         }, { threshold: 0.1 });
-
         document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 
         // --- Counters Animation ---
@@ -389,9 +384,8 @@
             const counters = document.querySelectorAll('.stat-num');
             counters.forEach(counter => {
                 const target = +counter.getAttribute('data-target');
-                const duration = 2000; // 2 seconds
-                const increment = target / (duration / 16); // 60 FPS
-                
+                const duration = 2000; 
+                const increment = target / (duration / 16); 
                 let current = 0;
                 const updateCounter = () => {
                     current += increment;
@@ -405,10 +399,54 @@
                 updateCounter();
             });
         }
+
+        // --- 🔥 NEW: SIMULATED AI DEMO ---
+        const demoInput = document.getElementById('demoInput');
+        const demoSendBtn = document.getElementById('demoSendBtn');
+        const demoChatBody = document.getElementById('demoChatBody');
+        const typingIndicator = document.getElementById('typingIndicator');
+
+        const simulateAIResponse = (userText) => {
+            // Імітація "розумної" відповіді без бекенду
+            let aiText = `<b>⚡️ Новина:</b> ${userText.substring(0, 20)}...<br><br>`;
+            aiText += `Ось відредагований варіант:\n\n`;
+            aiText += `🚀 <b>Головне:</b> ${userText}<br><br>`;
+            aiText += `<i>Деталі:</i> Це демонстрація роботи AI. В реальній версії тут буде професійний рерайт тексту з виправленням помилок. #новини #demo`;
+            return aiText;
+        };
+
+        const handleDemoSend = () => {
+            const text = demoInput.value.trim();
+            if (!text) return;
+
+            // 1. User Message
+            const userBubble = document.createElement('div');
+            userBubble.className = 'chat-bubble bubble-user';
+            userBubble.textContent = text;
+            demoChatBody.appendChild(userBubble);
+            demoInput.value = '';
+            demoChatBody.scrollTop = demoChatBody.scrollHeight;
+
+            // 2. Typing...
+            typingIndicator.style.display = 'block';
+
+            // 3. AI Response (Delayed)
+            setTimeout(() => {
+                typingIndicator.style.display = 'none';
+                const aiBubble = document.createElement('div');
+                aiBubble.className = 'chat-bubble bubble-ai';
+                aiBubble.innerHTML = simulateAIResponse(text);
+                demoChatBody.appendChild(aiBubble);
+                demoChatBody.scrollTop = demoChatBody.scrollHeight;
+            }, 1500);
+        };
+
+        demoSendBtn.addEventListener('click', handleDemoSend);
+        demoInput.addEventListener('keypress', (e) => { if(e.key === 'Enter') handleDemoSend(); });
+
     </script>
     <script src="garland.js" type="module"></script>
     <script>
-        // Проста ініціалізація теми, якщо треба
         if(localStorage.getItem('theme-xmas') === 'true') {
             document.documentElement.classList.add('theme-xmas');
         }
