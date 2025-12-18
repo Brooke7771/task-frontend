@@ -1039,27 +1039,41 @@ button:disabled {
     .chat-item-title { max-width: 80%; }
 }
 /* =================================
-   🎄 REALISTIC PHYSICS GARLAND 🎄
+   🎄 ELEGANT GOLDEN CHRISTMAS THEME 🎄
    ================================= */
 
 html.theme-xmas {
+    /* Основний колір - Тепле Золото */
     --color-primary: #fbbf24; 
-    --color-bg-light: #0f172a; 
-    --color-bg-card: rgba(10, 15, 25, 0.75); 
-    --color-border: rgba(251, 191, 36, 0.3);
+    --color-primary-rgb: 251, 191, 36;
+    --color-primary-dark: #d97706;
+    
+    --color-success: #10b981; /* Ялинковий зелений */
+    --color-bg-light: #020617; /* Глибока ніч */
+    
+    /* Темне матове скло */
+    --color-bg-card: rgba(15, 23, 42, 0.85); 
+    --color-border: rgba(251, 191, 36, 0.4); /* Золота рамка */
     --color-text-dark: #fffbeb;
+    --color-text-light: #cbd5e1;
+    
+    /* Тіні з золотим світінням */
+    --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.6);
+    --shadow-lg: 0 0 25px rgba(251, 191, 36, 0.25);
 }
 
 /* Фон */
 html.theme-xmas body {
-    background: radial-gradient(circle at 50% 0%, #1e293b 0%, #020617 100%);
+    background: radial-gradient(circle at 50% 0%, #1e293b 0%, #000000 100%);
     background-attachment: fixed;
-    overflow-x: hidden; /* Щоб гірлянда не розширювала екран */
+    /* Відступ зверху для гірлянди */
+    padding-top: 15px; 
 }
 
-html.theme-xmas body::before { display: none; } /* Вимикаємо старі ефекти */
+/* Вимикаємо старі ефекти фону */
+html.theme-xmas body::before { display: none; }
 
-/* --- КОНТЕЙНЕР ГІРЛЯНДИ --- */
+/* --- ГІРЛЯНДА (КОНТЕЙНЕР) --- */
 #xmas-garland-container {
     position: fixed;
     top: 0;
@@ -1067,109 +1081,117 @@ html.theme-xmas body::before { display: none; } /* Вимикаємо старі
     width: 100%;
     height: 100%;
     z-index: 99999;
-    pointer-events: none; /* Кліки проходять крізь неї */
+    pointer-events: none;
+    overflow: hidden;
 }
 
-/* Спільний стиль для дротів */
-.garland-strand {
+/* --- ВЕРХНІ ДУГИ (Дріт) --- */
+.garland-drape {
     position: absolute;
-    display: flex;
-    justify-content: space-around;
-    align-items: flex-start;
-    /* Дріт (Pine green) */
-    border-top: 3px solid #064e3b;
-    border-radius: 50%; /* Провисання */
+    top: -15px; /* Кінці ховаються за екраном */
+    height: 50px; /* Глибина провисання */
+    border: 2px solid #064e3b; /* Темно-зелений дріт */
+    border-top: none; 
+    border-radius: 0 0 50% 50%; /* Форма дуги */
+    z-index: 1000;
 }
 
-/* ВЕРХНЯ ГІРЛЯНДА */
-.garland-top {
-    top: -15px;
-    left: -2%;
-    width: 104%; /* Трохи ширше екрану */
-    height: 40px;
-    border-radius: 50% 50% 0 0 / 100% 100% 0 0; /* Вигин вгору, щоб лампи звисали */
-    border-top: none;
-    border-bottom: 4px solid #065f46; /* Дріт */
+/* --- БОКОВІ ЛІНІЇ --- */
+.garland-vertical {
+    position: absolute;
+    top: 0;
+    width: 0;
+    height: 100vh; /* На всю висоту */
+    border-left: 2px solid #064e3b;
+    z-index: 1000;
 }
+.side-left { left: 20px; }
+.side-right { right: 20px; }
 
-/* БОКОВІ ГІРЛЯНДИ (З фізикою) */
-.garland-side {
-    width: 60px;
-    height: 120vh; /* Довга */
-    top: -10px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    border-top: none;
-    border-radius: 0;
-    /* Точка обертання для фізики (цвяшок) */
-    transform-origin: top center;
-    transition: transform 0.1s ease-out; /* Плавність фізики */
-    border-left: 3px solid #065f46; /* Вертикальний дріт */
-}
-
-.garland-left { left: 20px; }
-.garland-right { right: 20px; border-left: none; border-right: 3px solid #065f46; }
-
-/* ЛАМПОЧКИ 💡 */
+/* --- ЛАМПОЧКИ 💡 --- */
 .bulb {
-    width: 14px;
-    height: 14px;
+    position: absolute;
+    width: 12px;
+    height: 12px;
     border-radius: 50%;
-    position: relative;
-    z-index: 1;
-    animation: flash 1.5s infinite alternate;
-    box-shadow: 0 0 10px currentColor;
-    margin: 5px; /* Відступ для бокових */
+    z-index: 1001;
+    box-shadow: 0 0 5px currentColor;
+    animation: glow 2s infinite alternate ease-in-out;
 }
 
-/* Кріплення лампочки */
+/* Цоколь лампочки */
 .bulb::before {
     content: '';
     position: absolute;
-    top: -4px;
-    left: 3px;
-    width: 8px;
-    height: 6px;
-    background: #333;
+    background: #222;
+    width: 4px;
+    height: 4px;
     border-radius: 2px;
 }
 
-/* Бокові лампочки мають кріплення збоку */
-.garland-left .bulb::before { top: 4px; left: -6px; transform: rotate(90deg); }
-.garland-right .bulb::before { top: 4px; left: 12px; transform: rotate(-90deg); }
+/* Позиція цоколя для верхніх лампочок */
+.garland-drape .bulb::before { top: -3px; left: 4px; }
 
-/* Кольори лампочок (через nth-child) */
-.bulb:nth-child(4n+1) { background: #ef4444; color: #ef4444; animation-delay: 0s; } /* Червона */
-.bulb:nth-child(4n+2) { background: #fbbf24; color: #fbbf24; animation-delay: 0.4s; } /* Золота */
-.bulb:nth-child(4n+3) { background: #3b82f6; color: #3b82f6; animation-delay: 0.8s; } /* Синя */
-.bulb:nth-child(4n+4) { background: #10b981; color: #10b981; animation-delay: 1.2s; } /* Зелена */
+/* Позиція цоколя для бокових (кріпляться збоку до дроту) */
+.side-left .bulb { left: -6px; }
+.side-left .bulb::before { top: 4px; left: 10px; transform: rotate(90deg); }
 
-@keyframes flash {
-    0% { opacity: 0.5; filter: brightness(0.8); transform: scale(0.9); }
-    100% { opacity: 1; filter: brightness(1.5); transform: scale(1.1); box-shadow: 0 0 20px currentColor; }
+.side-right .bulb { left: -6px; }
+.side-right .bulb::before { top: 4px; left: -6px; transform: rotate(-90deg); }
+
+/* Кольори лампочок */
+.bulb.red { background: #ef4444; color: #ef4444; animation-delay: 0s; }
+.bulb.gold { background: #fbbf24; color: #fbbf24; animation-delay: 0.5s; }
+.bulb.green { background: #10b981; color: #10b981; animation-delay: 1.0s; }
+.bulb.blue { background: #3b82f6; color: #3b82f6; animation-delay: 1.5s; }
+
+/* Анімація світіння */
+@keyframes glow {
+    0% { opacity: 0.7; transform: scale(0.9); filter: brightness(0.8); }
+    100% { opacity: 1; transform: scale(1.1); filter: brightness(1.4); box-shadow: 0 0 15px currentColor; }
 }
 
-/* Сніг (фоновий) */
+/* --- СНІГ --- */
 html.theme-xmas::after {
     content: "";
     position: fixed;
-    top: 0; left: 0; width: 100%; height: 100%;
+    top: -50%; left: 0; width: 200%; height: 200%;
     pointer-events: none; z-index: 0;
     background-image: 
         radial-gradient(3px 3px at 10% 10%, #fff 50%, transparent 50%),
-        radial-gradient(2px 2px at 50% 50%, rgba(255,255,255,0.8) 50%, transparent 50%),
-        radial-gradient(4px 4px at 90% 90%, #fff 50%, transparent 50%);
-    background-size: 400px 400px;
-    animation: snowfall 20s linear infinite;
-    opacity: 0.5;
+        radial-gradient(2px 2px at 20% 30%, rgba(255,255,255,0.8) 50%, transparent 50%),
+        radial-gradient(3px 3px at 40% 70%, #fff 50%, transparent 50%),
+        radial-gradient(2px 2px at 60% 40%, rgba(255,255,255,0.9) 50%, transparent 50%);
+    background-size: 500px 500px;
+    animation: snowfall 25s linear infinite;
+    opacity: 0.4;
 }
-@keyframes snowfall { 100% { background-position: 50px 400px; } }
+@keyframes snowfall {
+    100% { transform: translateY(200px); }
+}
 
-/* Стиль карток */
-html.theme-xmas .card, html.theme-xmas .tg-window {
-    background: linear-gradient(145deg, rgba(20, 25, 40, 0.85) 0%, rgba(5, 10, 20, 0.7) 100%);
-    backdrop-filter: blur(15px);
-    border: 1px solid rgba(251, 191, 36, 0.3);
-    box-shadow: 0 0 30px rgba(251, 191, 36, 0.15);
+/* --- КНОПКИ (Золоті) --- */
+html.theme-xmas .btn-primary, 
+html.theme-xmas button[type="submit"] {
+    background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%) !important;
+    color: #fff !important;
+    border: none !important;
+    border-top: 1px solid rgba(255,255,255,0.4) !important;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+    box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3) !important;
+}
+html.theme-xmas .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(245, 158, 11, 0.5) !important;
+}
+
+/* Поля вводу */
+html.theme-xmas input, html.theme-xmas textarea, html.theme-xmas select {
+    background: rgba(0, 0, 0, 0.4) !important;
+    border-color: rgba(251, 191, 36, 0.3) !important;
+    color: #fff !important;
+}
+html.theme-xmas input:focus {
+    border-color: #fbbf24 !important;
+    box-shadow: 0 0 15px rgba(251, 191, 36, 0.3) !important;
 }

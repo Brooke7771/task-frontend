@@ -38,113 +38,105 @@ document.addEventListener('DOMContentLoaded', () => {
     const permChannelSelect = document.getElementById('perm_channel_select');
     const permissionsList = document.getElementById('permissionsList');
 
-    // --- 🔥 ЛОГІКА ІНТЕРФЕЙСУ (ТЕМА + НОВИЙ РІК) ---
-    const themeText = document.getElementById('theme-text');
-    const themeBtn = document.getElementById('settings-theme-toggle');
-    const xmasBtn = document.getElementById('settings-xmas-toggle');
-    const htmlEl = document.documentElement;
+    // --- 1. ІНІЦІАЛІЗАЦІЯ ІНТЕРФЕЙСУ (Тема + Свято) ---
+    const initUI = () => {
+        const themeBtn = document.getElementById('settings-theme-toggle');
+        const xmasBtn = document.getElementById('settings-xmas-toggle');
+        const htmlEl = document.documentElement;
 
-    // Функція оновлення вигляду кнопок
-    const updateButtonsState = () => {
-        const isDark = htmlEl.classList.contains('dark');
-        const isXmas = htmlEl.classList.contains('theme-xmas');
+        const updateButtonsState = () => {
+            const isDark = htmlEl.classList.contains('dark');
+            const isXmas = htmlEl.classList.contains('theme-xmas');
 
-        // 1. Кнопка Теми
-        if (themeBtn) {
-            const iconMoon = themeBtn.querySelector('.icon-moon');
-            const iconSun = themeBtn.querySelector('.icon-sun');
-            const textSpan = themeBtn.querySelector('span');
+            // Кнопка Теми
+            if (themeBtn) {
+                const iconMoon = themeBtn.querySelector('.icon-moon');
+                const iconSun = themeBtn.querySelector('.icon-sun');
+                const textSpan = themeBtn.querySelector('span');
 
-            if (isDark) {
-                iconMoon.style.display = 'block';
-                iconSun.style.display = 'none';
-                textSpan.textContent = 'Темна тема';
-                themeBtn.style.background = 'var(--color-bg-card)';
-                themeBtn.style.color = 'var(--color-text-dark)';
-            } else {
-                iconMoon.style.display = 'none';
-                iconSun.style.display = 'block';
-                textSpan.textContent = 'Світла тема';
-                themeBtn.style.background = '#fff';
-                themeBtn.style.color = '#333';
+                if (isDark) {
+                    if(iconMoon) iconMoon.style.display = 'block';
+                    if(iconSun) iconSun.style.display = 'none';
+                    if(textSpan) textSpan.textContent = 'Темна тема';
+                    themeBtn.style.background = 'var(--color-bg-card)';
+                    themeBtn.style.color = 'var(--color-text-dark)';
+                } else {
+                    if(iconMoon) iconMoon.style.display = 'none';
+                    if(iconSun) iconSun.style.display = 'block';
+                    if(textSpan) textSpan.textContent = 'Світла тема';
+                    themeBtn.style.background = '#fff';
+                    themeBtn.style.color = '#333';
+                }
             }
+
+            // Кнопка Свята
+            if (xmasBtn) {
+                if (isXmas) {
+                    xmasBtn.classList.add('btn-success');
+                    xmasBtn.style.background = 'var(--color-success)';
+                    xmasBtn.style.color = '#fff';
+                    xmasBtn.style.borderColor = 'transparent';
+                    xmasBtn.innerHTML = '<i data-feather="gift"></i> <span>Свято ввімкнено! 🎅</span>';
+                } else {
+                    xmasBtn.classList.remove('btn-success');
+                    xmasBtn.style.background = 'transparent';
+                    xmasBtn.style.color = 'var(--color-danger)';
+                    xmasBtn.style.borderColor = 'var(--color-danger)';
+                    xmasBtn.innerHTML = '<i data-feather="gift"></i> <span>Ввімкнути свято 🎄</span>';
+                }
+                if (window.feather) feather.replace();
+            }
+        };
+
+        // Завантаження стану
+        const savedXmas = localStorage.getItem('theme-xmas') === 'true';
+        if (savedXmas) {
+            htmlEl.classList.add('theme-xmas');
+            htmlEl.classList.add('dark');
+        }
+        updateButtonsState();
+
+        // Обробник: ТЕМА
+        if (themeBtn) {
+            themeBtn.onclick = (e) => {
+                e.preventDefault();
+                htmlEl.classList.toggle('dark');
+                const isDark = htmlEl.classList.contains('dark');
+                localStorage.setItem('theme', isDark ? 'dark' : 'light');
+
+                // Якщо вимикаємо темну тему -> вимикаємо і свято
+                if (!isDark && htmlEl.classList.contains('theme-xmas')) {
+                    htmlEl.classList.remove('theme-xmas');
+                    localStorage.setItem('theme-xmas', 'false');
+                    if (window.refreshGarland) window.refreshGarland();
+                }
+                updateButtonsState();
+            };
         }
 
-        // 2. Кнопка Свята
+        // Обробник: СВЯТО
         if (xmasBtn) {
-            if (isXmas) {
-                xmasBtn.classList.add('btn-success');
-                xmasBtn.style.background = 'var(--color-success)';
-                xmasBtn.style.color = '#fff';
-                xmasBtn.style.borderColor = 'transparent';
-                xmasBtn.innerHTML = '<i data-feather="gift"></i> <span>Свято ввімкнено! 🎅</span>';
-            } else {
-                xmasBtn.classList.remove('btn-success');
-                xmasBtn.style.background = 'transparent';
-                xmasBtn.style.color = 'var(--color-danger)';
-                xmasBtn.style.borderColor = 'var(--color-danger)';
-                xmasBtn.innerHTML = '<i data-feather="gift"></i> <span>Ввімкнути свято 🎄</span>';
-            }
-            if (window.feather) feather.replace();
+            xmasBtn.onclick = (e) => {
+                e.preventDefault();
+                const isActive = htmlEl.classList.contains('theme-xmas');
+                
+                if (!isActive) {
+                    htmlEl.classList.add('theme-xmas');
+                    htmlEl.classList.add('dark'); 
+                    localStorage.setItem('theme-xmas', 'true');
+                    localStorage.setItem('theme', 'dark');
+                } else {
+                    htmlEl.classList.remove('theme-xmas');
+                    localStorage.setItem('theme-xmas', 'false');
+                }
+                
+                if (window.refreshGarland) window.refreshGarland();
+                updateButtonsState();
+            };
         }
     };
 
-    // Ініціалізація стану при завантаженні сторінки
-    if (localStorage.getItem('theme-xmas') === 'true') {
-        htmlEl.classList.add('theme-xmas');
-        htmlEl.classList.add('dark'); // Свято завжди темне
-    } else if (localStorage.getItem('theme') === 'dark') {
-        htmlEl.classList.add('dark');
-    }
-    updateButtonsState();
-
-    // ОБРОБНИК: Темна/Світла тема
-    if (themeBtn) {
-        themeBtn.onclick = (e) => {
-            e.preventDefault();
-            htmlEl.classList.toggle('dark');
-            const isDark = htmlEl.classList.contains('dark');
-            
-            localStorage.setItem('theme', isDark ? 'dark' : 'light');
-            
-            // Якщо вимикаємо темну тему -> вимикаємо і свято
-            if (!isDark && htmlEl.classList.contains('theme-xmas')) {
-                htmlEl.classList.remove('theme-xmas');
-                localStorage.setItem('theme-xmas', 'false');
-                // Оновлюємо гірлянду (якщо функція доступна)
-                if (window.refreshGarland) window.refreshGarland();
-            }
-            
-            updateButtonsState();
-        };
-    }
-
-    // ОБРОБНИК: Свято
-    if (xmasBtn) {
-        xmasBtn.onclick = (e) => {
-            e.preventDefault();
-            const isActive = htmlEl.classList.contains('theme-xmas');
-            
-            if (!isActive) {
-                // Вмикаємо
-                htmlEl.classList.add('theme-xmas');
-                htmlEl.classList.add('dark'); // Примусово темна
-                localStorage.setItem('theme-xmas', 'true');
-                localStorage.setItem('theme', 'dark');
-            } else {
-                // Вимикаємо
-                htmlEl.classList.remove('theme-xmas');
-                localStorage.setItem('theme-xmas', 'false');
-                // Залишаємо темну тему, щоб не сліпити очі різко
-            }
-            
-            // Викликаємо глобальну функцію з auth-guard.js для перемальовки гірлянди
-            if (window.refreshGarland) window.refreshGarland();
-            
-            updateButtonsState();
-        };
-    }
-});
+    initUI();
 
     // 1. Завантаження налаштувань AI
     const loadSettings = async () => {
