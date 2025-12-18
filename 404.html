@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="uk" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>404 - Не знайдено</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    <script src="auth-guard.js"></script>
+    <style>
+        body {
+            display: flex; align-items: center; justify-content: center;
+            min-height: 100vh; text-align: center;
+        }
+        .error-code {
+            font-size: 6rem; font-weight: 900;
+            background: linear-gradient(135deg, var(--color-danger), #ef4444);
+            -webkit-background-clip: text; background-clip: text; color: transparent;
+            margin: 0; line-height: 1;
+        }
+        .icon-container {
+            margin-bottom: 20px; animation: float 3s ease-in-out infinite;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container-main" style="max-width: 500px;">
+        <div class="card">
+            <div class="icon-container">
+                <i data-feather="map-pin" style="width: 60px; height: 60px; color: var(--color-text-light)"></i>
+            </div>
+            
+            <h1 class="error-code">404</h1>
+            <h2>Упс! Сторінку не знайдено.</h2>
+            
+            <p style="color: var(--color-text-light); margin-bottom: 30px;">
+                Здається, ви заблукали у цифровому просторі. Сторінка, яку ви шукаєте, була видалена або переміщена.
+            </p>
+
+            <a href="index.html" class="btn btn-primary">
+                <i data-feather="home" style="vertical-align: middle;"></i> На головну
+            </a>
+        </div>
+    </div>
+
+    <script>feather.replace();</script>
+</body>
+</html>

@@ -3,12 +3,23 @@
 // Перевіряємо, чи є маркер входу
 function checkAuth() {
     const isLoggedIn = localStorage.getItem('isLoggedIn');
-    const currentPage = window.location.pathname.split('/').pop() || 'chat.html, login.html'; // Обробка кореня
+    const path = window.location.pathname;
+    const currentPage = path.split('/').pop() || 'landing.html'; // Якщо корінь - то landing
 
-    // Сторінки, які не потребують авторизації
-    if (currentPage === 'login.html') return;
+    // 🔥 СПИСОК ПУБЛІЧНИХ СТОРІНОК
+    const publicPages = ['login.html', 'landing.html', '404.html'];
 
-    // 1. Перевірка логіну
+    // Якщо це публічна сторінка - пускаємо
+    if (publicPages.includes(currentPage)) {
+        // (Опціонально) Якщо юзер вже залогінений і зайшов на landing/login,
+        // можна перекинути його в адмінку/індекс.
+        // if (isLoggedIn === 'true' && (currentPage === 'login.html' || currentPage === 'landing.html')) {
+        //     window.location.href = 'index.html';
+        // }
+        return; 
+    }
+
+    // 1. Перевірка логіну для інших сторінок
     if (isLoggedIn !== 'true') {
         window.location.href = 'login.html';
         return;
