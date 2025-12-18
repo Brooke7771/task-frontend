@@ -1045,23 +1045,23 @@ button:disabled {
    ================================= */
 
 html.theme-xmas {
-    /* Основні кольори: Цукерковий червоний, Золотий, Глибокий зелений */
-    --color-primary: #FF3333; 
-    --color-primary-rgb: 255, 51, 51;
-    --color-primary-dark: #cc0000;
+    /* --- ЗМІНЕНО: Замість червоного ставимо Золотий/Бурштиновий --- */
+    --color-primary: #F59E0B; /* Amber */
+    --color-primary-rgb: 245, 158, 11;
+    --color-primary-dark: #B45309;
     
-    --color-success: #00D68F; /* Neon Mint */
+    --color-success: #10B981; /* Emerald */
     --color-bg-light: #0f172a; 
     
     /* Крижане скло */
-    --color-bg-card: rgba(20, 30, 48, 0.6); 
-    --color-border: rgba(255, 255, 255, 0.2); 
-    --color-text-dark: #ffffff;
+    --color-bg-card: rgba(15, 23, 42, 0.65); 
+    --color-border: rgba(255, 255, 255, 0.15); 
+    --color-text-dark: #f8fafc;
     --color-text-light: #cbd5e1;
     
-    /* Тіні з світінням */
+    /* Тіні стали золотистими */
     --shadow-md: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
-    --shadow-lg: 0 0 25px rgba(255, 51, 51, 0.3);
+    --shadow-lg: 0 0 25px rgba(245, 158, 11, 0.25);
 }
 
 /* 1. Магічний Фон (Градієнт + Сніг) */
@@ -1126,18 +1126,20 @@ html.theme-xmas h1 {
 /* 3. Кнопки: "Різдвяна іграшка" */
 html.theme-xmas .btn-primary, 
 html.theme-xmas button[type="submit"] {
-    background: linear-gradient(135deg, #ff4d4d 0%, #b30000 100%);
+    /* Градієнт від жовтого до помаранчевого */
+    background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%);
     border: none;
-    border-top: 1px solid rgba(255,255,255,0.4);
-    box-shadow: 0 5px 15px rgba(255, 0, 0, 0.4), inset 0 0 10px rgba(255,255,255,0.2);
-    color: white;
-    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+    border-top: 1px solid rgba(255,255,255,0.5); /* Блік зверху */
+    box-shadow: 0 4px 15px rgba(217, 119, 6, 0.4), inset 0 0 10px rgba(255,255,255,0.2);
+    color: #fff; /* Або #1e293b для темного тексту, якщо хочете контрасту */
+    text-shadow: 0 1px 2px rgba(0,0,0,0.3);
     font-weight: 700;
     transition: transform 0.2s, box-shadow 0.2s;
 }
 html.theme-xmas .btn-primary:hover {
     transform: translateY(-2px) scale(1.02);
-    box-shadow: 0 8px 25px rgba(255, 0, 0, 0.6), inset 0 0 10px rgba(255,255,255,0.3);
+    /* Яскравіше світіння при наведенні */
+    box-shadow: 0 8px 25px rgba(251, 191, 36, 0.6), inset 0 0 10px rgba(255,255,255,0.3);
 }
 
 /* Поля вводу: Темне скло */
@@ -1151,8 +1153,8 @@ html.theme-xmas select {
 }
 html.theme-xmas input:focus, 
 html.theme-xmas textarea:focus {
-    border-color: #FFD700 !important;
-    box-shadow: 0 0 15px rgba(255, 215, 0, 0.2), inset 0 2px 5px rgba(0,0,0,0.5) !important;
+    border-color: #fbbf24 !important;
+    box-shadow: 0 0 15px rgba(251, 191, 36, 0.3), inset 0 2px 5px rgba(0,0,0,0.5) !important;
 }
 
 /* 4. Гірлянда (CSS Lights) - Висить зверху */
