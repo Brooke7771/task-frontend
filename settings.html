@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Налаштування Бота</title>
+    <title>Налаштування</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -13,112 +13,81 @@
 <body>
 
     <div class="container-main">
-        
+        <h1>⚙️ Налаштування</h1>
+
         <div class="card" style="margin-bottom: 20px;">
-            <h2 style="text-align: left; margin-bottom: 15px;">🎨 Інтерфейс</h2>
-                <div style="display: flex; gap: 15px; flex-wrap: wrap;">
-                    
-                    <button id="settings-theme-toggle" class="btn" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 10px;">
-                        <i data-feather="moon" class="icon-moon"></i>
-                        <i data-feather="sun" class="icon-sun" style="display: none;"></i>
-                        <span id="theme-text">Темна тема</span>
-                    </button>
-
-                    <button id="settings-xmas-toggle" class="btn" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 10px; border-color: var(--color-danger); color: var(--color-danger);">
-                        <i data-feather="gift"></i>
-                        <span>Ввімкнути свято 🎄</span>
-                    </button>
-
-                    <button id="settings-physics-toggle" class="btn" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 5px; border-color: #fbbf24; color: #fbbf24; min-width: 220px;">
-                        <i data-feather="zap"></i>
-                        <span>Гірлянда з фізикою</span>
-                        <span class="badge-warning">CPU⚠️</span>
-                    </button>
-                </div>
-        </div>
-        <div class="card"> 
-            <h1>Налаштування AI 🧠</h1>
-            <p style="color: var(--color-text-light); margin-bottom: 20px;">
-                Тут ви можете налаштувати системний промпт, який використовує нейромережа для переписування новин.
-            </p>
-            
-            <form id="settingsForm">
-                <div class="form-group">
-                    <label for="system_prompt">Системний Промпт:</label>
-                    <textarea id="system_prompt" name="system_prompt" rows="12" required></textarea>
-                    <small class="form-hint">Використовуйте цей текст, щоб задати тон, стиль та правила форматування.</small>
-                </div>
-                
-                <div class="form-actions">
-                    <button type="submit" id="saveBtn" class="btn btn-primary">Зберегти налаштування</button>
-                    <button type="button" id="resetBtn" class="btn btn-warning">Скинути до базового</button>
-                </div>
-            </form>
-            <div id="statusMessage"></div>
-        </div>
-
-        <hr style="border: 0; border-top: 1px solid var(--color-border); margin: 30px 0;">
-
-        <h2>👥 Довірені користувачі (Редактори)</h2>
-        <p style="color: var(--color-text-light); margin-bottom: 20px;">
-            Ці користувачі можуть пересилати повідомлення боту для обробки AI.
-        </p>
-        <div class="whitelist-container card">
-            <form id="addUserForm" style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px;">
-                <input type="text" id="new_tg_id" placeholder="Telegram ID" required style="flex: 1;">
-                <input type="text" id="new_note" placeholder="Нотатка (Ім'я)" required style="flex: 1;">
-                <button type="submit" class="btn btn-success" style="width: auto;">Додати</button>
-            </form>
-            <div id="whitelistItems" class="user-list">
-                <p>Завантаження...</p>
-            </div>
-        </div>
-
-        <hr style="border: 0; border-top: 1px solid var(--color-border); margin: 30px 0;">
-
-        <h2>📢 Керування Каналами</h2>
-        <div class="whitelist-container card">
-            <form id="addChannelForm" style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px;">
-                <input type="text" id="channel_id" placeholder="ID каналу (-100...)" required style="flex: 1;">
-                <input type="text" id="channel_title" placeholder="Назва каналу" required style="flex: 1;">
-                <button type="submit" class="btn btn-success" style="width: auto;">Додати канал</button>
-            </form>
-            <div id="channelsList" class="user-list"></div>
-        </div>
-
-        <hr style="border: 0; border-top: 1px solid var(--color-border); margin: 30px 0;">
-
-        <h2>🔐 Доступ Редакторів до Каналів</h2>
-        <p style="color: var(--color-text-light); margin-bottom: 20px;">
-            Прив'яжіть редакторів до каналів, у які вони можуть публікувати. Адміністратор завжди має доступ до всіх каналів.
-        </p>
-
-        <div class="whitelist-container card">
-            <form id="grantAccessForm" style="display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 20px;">
-                <div style="flex: 1; min-width: 200px;">
-                    <label for="perm_user_select">Редактор:</label>
-                    <select id="perm_user_select" required style="width: 100%; padding: 10px;">
-                        <option value="">Оберіть користувача...</option>
-                    </select>
-                </div>
-                <div style="flex: 1; min-width: 200px;">
-                    <label for="perm_channel_select">Канал:</label>
-                    <select id="perm_channel_select" required style="width: 100%; padding: 10px;">
-                        <option value="">Оберіть канал...</option>
-                    </select>
-                </div>
-                <button type="submit" class="btn btn-primary" style="width: auto; margin-bottom: 2px;">
-                    <i data-feather="link"></i> Надати доступ
+            <h2 style="text-align: left; margin-bottom: 15px;">🎨 Вигляд</h2>
+            <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                <button id="settings-theme-toggle" class="btn" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 10px;">
+                    <i data-feather="moon" class="icon-moon"></i>
+                    <i data-feather="sun" class="icon-sun" style="display: none;"></i>
+                    <span id="theme-text">Темна тема</span>
                 </button>
-            </form>
 
-            <div id="permissionsList" class="user-list">
-                <p>Завантаження прав...</p>
+                <button id="settings-xmas-toggle" class="btn" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 10px; border-color: var(--color-danger); color: var(--color-danger);">
+                    <i data-feather="gift"></i>
+                    <span>Ввімкнути свято 🎄</span>
+                </button>
+
+                <button id="settings-physics-toggle" class="btn" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 5px; border-color: #fbbf24; color: #fbbf24; min-width: 220px;">
+                    <i data-feather="zap"></i>
+                    <span>Гірлянда з фізикою</span>
+                    <span class="badge-warning">CPU⚠️</span>
+                </button>
             </div>
         </div>
-    </div>
 
-    <script type="module" src="settings.js"></script>
+        <div class="card" style="margin-bottom: 20px;">
+            <h2 style="text-align: left; margin-bottom: 15px;">👤 Мій Профіль</h2>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 20px;">
+                <div class="form-group">
+                    <label>Логін:</label>
+                    <input type="text" id="profile-username" readonly style="opacity: 0.7; cursor: not-allowed;">
+                </div>
+                <div class="form-group">
+                    <label>Роль:</label>
+                    <input type="text" id="profile-role" readonly style="opacity: 0.7; cursor: not-allowed;">
+                </div>
+                <div class="form-group">
+                    <label>Telegram:</label>
+                    <input type="text" id="profile-tg" readonly style="opacity: 0.7; cursor: not-allowed;">
+                </div>
+            </div>
+        </div>
+
+        <div class="card" style="margin-bottom: 20px;">
+            <h2 style="text-align: left; margin-bottom: 15px;">🔐 Безпека</h2>
+            <form id="passwordForm">
+                <div class="form-group">
+                    <label>Новий пароль:</label>
+                    <input type="password" id="new_pass" required placeholder="Введіть новий пароль">
+                </div>
+                <div class="form-group">
+                    <label>Підтвердження:</label>
+                    <input type="password" id="confirm_pass" required placeholder="Повторіть пароль">
+                </div>
+                <button type="submit" class="btn btn-warning">Змінити пароль</button>
+            </form>
+        </div>
+
+        <div class="card" id="aiSettingsCard">
+            <h2>🧠 Налаштування AI (Глобальні)</h2>
+            <p style="color: var(--color-text-light); margin-bottom: 10px; font-size: 0.9em;">
+                Цей промпт впливає на роботу бота для всіх користувачів.
+            </p>
+            <form id="aiForm">
+                <div class="form-group">
+                    <textarea id="system_prompt" name="system_prompt" rows="6" required></textarea>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" id="saveAiBtn" class="btn btn-primary">Зберегти промпт</button>
+                </div>
+            </form>
+        </div>
+
+        <div id="statusMessage" style="text-align: center; margin-top: 20px; font-weight: bold;"></div>
+    </div>
 
     <div class="fab-container">
         <div class="fab-options">
@@ -129,12 +98,11 @@
             <a href="task-list.html" class="fab-option"><i data-feather="list"></i><span>Список Завдань</span></a>
             <a href="schedule.html" class="fab-option"><i data-feather="calendar"></i><span>Запланувати Пост</span></a>
             <a href="schedule-list.html" class="fab-option"><i data-feather="clock"></i><span>Список Постів</span></a>
-            
             <a href="ads.html" class="fab-option"><i data-feather="megaphone"></i><span>Реклама</span></a>
             <a href="history.html" class="fab-option"><i data-feather="archive"></i><span>Історія</span></a>
             <a href="chat.html" class="fab-option"><i data-feather="message-circle"></i><span>AI Чат</span></a>
-            <a href="settings.html" class="fab-option"><i data-feather="settings"></i><span>Налаштування</span></a>
-            <a href="admin.html" class="fab-option"><i data-feather="settings"></i><span>ADMIN</span></a>
+            <a href="settings.html" class="fab-option active"><i data-feather="settings"></i><span>Налаштування</span></a>
+            <a href="admin.html" class="fab-option"><i data-feather="shield"></i><span>ADMIN</span></a>
         </div>
         <button class="fab-main" id="fab-toggle">
             <i class="fab-main-icon fab-icon-menu" data-feather="menu"></i>
@@ -142,42 +110,21 @@
         </button>
     </div>
 
+    <script type="module" src="settings.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
     <script>
         feather.replace(); 
-        // ... (ваш скрипт для меню залишається тут, він довгий, тому не дублюю повністю, але він має бути) ...
         const fabContainer = document.querySelector('.fab-container');
-        window.addEventListener('pageshow', (event) => { if (fabContainer) fabContainer.classList.remove('active'); });
+        window.addEventListener('pageshow', () => { if (fabContainer) fabContainer.classList.remove('active'); });
         let idleTimer;
-        const setIdle = () => { if (fabContainer && !fabContainer.classList.contains('active')) { fabContainer.classList.add('is-idle'); } };
+        const setIdle = () => { if (fabContainer && !fabContainer.classList.contains('active')) fabContainer.classList.add('is-idle'); };
         const resetIdleTimer = () => { clearTimeout(idleTimer); if (fabContainer) fabContainer.classList.remove('is-idle'); idleTimer = setTimeout(setIdle, 4000); };
         resetIdleTimer();
         ['scroll', 'touchstart', 'click', 'keypress'].forEach(event => document.addEventListener(event, resetIdleTimer));
-        if (fabContainer) {
-            fabContainer.addEventListener('mouseenter', () => { clearTimeout(idleTimer); fabContainer.classList.remove('is-idle'); });
-            fabContainer.addEventListener('mouseleave', resetIdleTimer);
-        }
-        document.getElementById('fab-toggle').addEventListener('click', (e) => {
-            e.stopPropagation(); fabContainer.classList.toggle('active');
-            if (fabContainer.classList.contains('active')) { fabContainer.classList.remove('is-idle'); clearTimeout(idleTimer); } else { resetIdleTimer(); }
-        });
-        document.addEventListener('click', (e) => {
-            if (fabContainer && fabContainer.classList.contains('active') && !fabContainer.contains(e.target)) { fabContainer.classList.remove('active'); resetIdleTimer(); }
-        });
-        (function() {
-            // Тільки застосовуємо тему, без обробки кліків (кнопки тут немає)
-            const htmlEl = document.documentElement;
-            const savedTheme = localStorage.getItem('theme');
-            const isXmas = localStorage.getItem('theme-xmas') === 'true';
-
-            if (isXmas) {
-                htmlEl.classList.add('theme-xmas');
-                htmlEl.classList.add('dark');
-            } else {
-                if (savedTheme === 'light') htmlEl.classList.remove('dark'); 
-                else htmlEl.classList.add('dark');
-            }
-        })();
+        if (fabContainer) { fabContainer.addEventListener('mouseenter', () => { clearTimeout(idleTimer); fabContainer.classList.remove('is-idle'); }); fabContainer.addEventListener('mouseleave', resetIdleTimer); }
+        document.getElementById('fab-toggle').addEventListener('click', (e) => { e.stopPropagation(); fabContainer.classList.toggle('active'); if (fabContainer.classList.contains('active')) { fabContainer.classList.remove('is-idle'); clearTimeout(idleTimer); } else { resetIdleTimer(); } });
+        document.addEventListener('click', (e) => { if (fabContainer && fabContainer.classList.contains('active') && !fabContainer.contains(e.target)) { fabContainer.classList.remove('active'); resetIdleTimer(); } });
+        (function() { const htmlEl = document.documentElement; const savedTheme = localStorage.getItem('theme'); const isXmas = localStorage.getItem('theme-xmas') === 'true'; if (isXmas) { htmlEl.classList.add('theme-xmas'); htmlEl.classList.add('dark'); } else { if (savedTheme === 'light') htmlEl.classList.remove('dark'); else htmlEl.classList.add('dark'); } })();
     </script>
 </body>
 </html>

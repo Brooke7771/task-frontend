@@ -121,3 +121,12 @@ export const sendChatMessageToSession = (id, content) => apiFetch(`/api/chat/ses
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ content })
 });
+
+// --- API ПРОФІЛЮ ---
+export const getMyProfile = () => apiFetch('/api/user/me');
+
+export const changePassword = (newPassword) => apiFetch('/api/user/change_password', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ new_password: newPassword })
+});
