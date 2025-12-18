@@ -77,42 +77,72 @@ document.addEventListener('DOMContentLoaded', async () => {
     const toggleDecorations = (show) => {
         const treeId = 'xmas-tree-decor';
         const santaId = 'santa-btn';
-        
+        const flySantaId = 'santa-fly-container';
+
         let tree = document.getElementById(treeId);
         let santa = document.getElementById(santaId);
+        let flySanta = document.getElementById(flySantaId);
 
         if (show) {
+            // 🎄 Створення ЯЛИНКИ
             if (!tree) {
                 tree = document.createElement('div');
                 tree.id = treeId;
                 tree.className = 'xmas-tree-container';
-                // HTML для CSS-ялинки
+                // Оновлений, деталізований HTML ялинки
                 tree.innerHTML = `
                     <div class="tree-trunk"></div>
                     <div class="tree-layer tree-bot"></div>
                     <div class="tree-layer tree-mid"></div>
                     <div class="tree-layer tree-top"></div>
+                    <div class="tree-garland"></div>
                     <div class="tree-star">★</div>
-                    <div class="tree-bauble t-1"></div>
-                    <div class="tree-bauble t-2"></div>
-                    <div class="tree-bauble t-3"></div>
-                    <div class="tree-bauble t-4"></div>
-                    <div class="tree-gift"></div>
+                    <div class="tree-bauble t-1"></div><div class="tree-bauble t-2"></div>
+                    <div class="tree-bauble t-3"></div><div class="tree-bauble t-4"></div>
+                    <div class="tree-bauble t-5"></div>
+                    <div class="tree-gift"><div class="gift-bow"></div></div>
                 `;
                 document.body.appendChild(tree);
+
+                // 🔥 ДОДАЄМО ОБРОБНИК КЛІКУ ДЛЯ АНІМАЦІЇ
+                tree.addEventListener('click', () => {
+                    const container = document.getElementById(flySantaId);
+                    if (container) {
+                        // Відтворюємо звук (опціонально)
+                        // new Audio('hohoho.mp3').play();
+
+                        container.style.display = 'block'; // Показуємо контейнер
+                        
+                        // Перезапуск анімації (клон елемента)
+                        const santaEl = container.querySelector('.flying-santa');
+                        const newSanta = santaEl.cloneNode(true);
+                        container.replaceChild(newSanta, santaEl);
+
+                        // Ховаємо після завершення
+                        setTimeout(() => { container.style.display = 'none'; }, 4000);
+                    }
+                });
             }
+
+            // 🎅 Створення контейнера для ЛЕТЮЧОГО САНТИ
+            if (!flySanta) {
+                flySanta = document.createElement('div');
+                flySanta.id = flySantaId;
+                flySanta.innerHTML = '<div class="flying-santa">🎅🛷</div>';
+                document.body.appendChild(flySanta);
+            }
+            
+            // Кнопка Санти (стара, якщо треба)
             if (!santa) {
                 santa = document.createElement('div');
                 santa.id = santaId;
-                santa.onclick = () => {
-                    alert("🎅 Хо-хо-хо! Щасливого кодингу!");
-                    // Тут можна додати запуск феєрверку або музики
-                };
+                santa.onclick = () => alert("🎅 Хо-хо-хо! Щасливого кодингу!");
                 document.body.appendChild(santa);
             }
         } else {
             if (tree) tree.remove();
             if (santa) santa.remove();
+            if (flySanta) flySanta.remove();
         }
     };
 
