@@ -5,6 +5,7 @@ let selectedPosts = new Set();
 let currentCalendarDate = new Date();
 
 document.addEventListener('DOMContentLoaded', () => {
+    // Безпечна ініціалізація
     loadPosts();
     renderCalendar();
 });
@@ -12,10 +13,14 @@ document.addEventListener('DOMContentLoaded', () => {
 // --- LOAD DATA ---
 window.loadPosts = async () => {
     const timeline = document.getElementById('timelineView');
-    // timeline.innerHTML = '<div style="text-align: center; padding: 50px; color: #64748b;"><span class="loader"></span> Оновлення...</div>';
+    if(timeline) {
+        // timeline.innerHTML = '<div style="text-align: center; padding: 50px; color: #64748b;"><span class="loader"></span> Оновлення...</div>';
+    }
     
     try {
         const posts = await getScheduledPosts();
+        if(!Array.isArray(posts)) throw new Error("Invalid response");
+
         // Сортуємо за датою (від найближчої)
         allPosts = posts.sort((a, b) => new Date(a.postAt) - new Date(b.postAt));
         
@@ -24,24 +29,33 @@ window.loadPosts = async () => {
         unselectAll();
     } catch (e) {
         console.error(e);
-        timeline.innerHTML = '<div style="text-align: center; color: #ef4444;">Помилка завантаження даних</div>';
+        if(timeline) {
+            timeline.innerHTML = '<div style="text-align: center; color: #ef4444;">Помилка завантаження даних. Перевірте з\'єднання.</div>';
+        }
     }
 };
 
 // --- VIEW SWITCHER ---
 window.switchView = (view) => {
-    document.getElementById('timelineView').classList.remove('active');
-    document.getElementById('calendarView').classList.remove('active');
-    document.getElementById('btn-timeline').classList.remove('active');
-    document.getElementById('btn-calendar').classList.remove('active');
+    const views = ['timeline', 'calendar'];
+    views.forEach(v => {
+        const el = document.getElementById(`${v}View`);
+        const btn = document.getElementById(`btn-${v}`);
+        if(el) el.classList.remove('active');
+        if(btn) btn.classList.remove('active');
+    });
 
-    document.getElementById(`${view}View`).classList.add('active');
-    document.getElementById(`btn-${view}`).classList.add('active');
+    const activeEl = document.getElementById(`${view}View`);
+    const activeBtn = document.getElementById(`btn-${view}`);
+    if(activeEl) activeEl.classList.add('active');
+    if(activeBtn) activeBtn.classList.add('active');
 };
 
 // --- TIMELINE RENDER ---
 function renderTimeline() {
     const container = document.getElementById('timelineView');
+    if (!container) return;
+
     if(allPosts.length === 0) {
         container.innerHTML = '<div style="text-align: center; padding: 50px; color: #64748b;">Немає запланованих постів</div>';
         return;
@@ -63,7 +77,10 @@ function renderTimeline() {
         groups[dateLabel].forEach(post => {
             const date = new Date(post.postAt);
             const timeStr = date.toLocaleTimeString('uk-UA', {hour: '2-digit', minute:'2-digit'});
-            const cleanText = post.text.replace(/<[^>]*>?/gm, '').substring(0, 120) + '...';
+            
+            // 🔥 FIX: Check if post.text exists
+            const rawText = post.text || "";
+            const cleanText = rawText.replace(/<[^>]*>?/gm, '').substring(0, 120) + (rawText.length > 120 ? '...' : '');
             
             const mediaIcon = (post.photoIds?.length > 0 || post.videoIds?.length > 0) 
                 ? `<i data-feather="image" style="width:14px; vertical-align:middle; margin-left:5px;"></i>` 
@@ -131,6 +148,8 @@ window.changeMonth = (delta) => {
 
 function renderCalendar() {
     const grid = document.querySelector('.calendar-grid');
+    if(!grid) return; // Safety check
+
     // Зберігаємо заголовки
     const headers = Array.from(grid.querySelectorAll('.cal-day-name'));
     grid.innerHTML = '';
@@ -141,7 +160,8 @@ function renderCalendar() {
     
     // Оновлюємо заголовок
     const monthNames = ["Січень", "Лютий", "Березень", "Квітень", "Травень", "Червень", "Липень", "Серпень", "Вересень", "Жовтень", "Листопад", "Грудень"];
-    document.getElementById('calMonthLabel').innerText = `${monthNames[month]} ${year}`;
+    const labelEl = document.getElementById('calMonthLabel');
+    if(labelEl) labelEl.innerText = `${monthNames[month]} ${year}`;
 
     // Логіка календаря
     const firstDay = new Date(year, month, 1).getDay(); // 0 = Sun
@@ -178,9 +198,10 @@ function renderCalendar() {
             const dot = document.createElement('div');
             dot.className = 'post-dot';
             const time = new Date(p.postAt).toLocaleTimeString('uk-UA', {hour:'2-digit', minute:'2-digit'});
-            dot.innerText = `${time} ${p.text.replace(/<[^>]*>?/gm, '')}`;
-            dot.title = p.text; // Tooltip
-            // Клік по посту в календарі - перехід на редагування
+            const rawText = p.text || "";
+            dot.innerText = `${time} ${rawText.replace(/<[^>]*>?/gm, '')}`;
+            dot.title = rawText; // Tooltip
+            // Клік по посту в календарі
             dot.onclick = (e) => {
                 e.stopPropagation();
                 window.location.href = `schedule-edit.html?id=${p.id}`;
@@ -208,6 +229,8 @@ window.unselectAll = () => {
 function updateBulkBar() {
     const bar = document.getElementById('bulkBar');
     const count = document.getElementById('selectedCount');
+    if(!bar || !count) return;
+
     count.innerText = selectedPosts.size;
     
     if(selectedPosts.size > 0) bar.classList.add('visible');
@@ -233,8 +256,6 @@ window.singlePostNow = async (id) => {
 
 window.bulkDelete = async () => {
     if(!confirm(`Видалити обрані пости (${selectedPosts.size})?`)) return;
-    
-    // Послідовне видалення (API не підтримує bulk, тому робимо цикл)
     for(let id of selectedPosts) {
         await deleteScheduledPost(id);
     }
