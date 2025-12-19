@@ -163,19 +163,32 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     };
 
-    // 3. Головна функція оновлення
+   // 3. Головна функція оновлення
     window.refreshGarland = () => {
-        const isXmas = localStorage.getItem('theme-xmas') === 'true';
-        const usePhysics = localStorage.getItem('theme-physics') === 'true';
+        // 🔥 ЗМІНА: Тепер тема увімкнена за замовчуванням (якщо в localStorage немає 'false')
+        const storedXmas = localStorage.getItem('theme-xmas');
+        const isXmas = storedXmas === null || storedXmas === 'true'; 
+        
+        // Фізика теж увімкнена за замовчуванням, якщо не вимкнено явно
+        const storedPhysics = localStorage.getItem('theme-physics');
+        const usePhysics = storedPhysics === null || storedPhysics === 'true';
 
-        // Базові декорації
+        // Базові декорації (Ялинка, Санта)
         toggleDecorations(isXmas);
 
-        // Гірлянда
+        // Гірлянда та сніг
         if (isXmas && usePhysics) {
             loadPhysicsGarland();
+            // Додаємо клас до HTML, якщо його раптом немає
+            if (!document.documentElement.classList.contains('theme-xmas')) {
+                document.documentElement.classList.add('theme-xmas');
+            }
         } else {
             destroyPhysicsGarland();
+            // Видаляємо клас, якщо тему вимкнено
+            if (!isXmas) {
+                document.documentElement.classList.remove('theme-xmas');
+            }
         }
     };
 
