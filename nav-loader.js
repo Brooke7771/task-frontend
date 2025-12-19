@@ -355,7 +355,11 @@ document.addEventListener("DOMContentLoaded", () => {
     // 8. Логіка активного стану
     const currentPath = window.location.pathname.split('/').pop() || 'index.html';
     document.querySelectorAll('.nav-link, .mob-link').forEach(el => {
-        if (el.getAttribute('href') === currentPath) el.classList.add('active');
+        const href = el.getAttribute('href');
+        // Перевірка на точний збіг або якщо href міститься в шляху (для підменю, якщо будуть)
+        if (href === currentPath || (href !== '#' && currentPath.includes(href))) {
+            el.classList.add('active');
+        }
     });
 
     // 9. Ініціалізація Feather
