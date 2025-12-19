@@ -248,28 +248,6 @@
         <button class="bulk-btn bulk-delete" onclick="bulkDelete()"><i data-feather="trash-2"></i> Видалити</button>
     </div>
 
-    <!-- FAB Menu -->
-    <div class="fab-container">
-        <div class="fab-options">
-            <a href="#" onclick="logout(); return false;" class="fab-option" style="color: var(--color-danger);">
-                <i data-feather="log-out"></i><span>Вийти</span>
-            </a>
-            <a href="index.html" class="fab-option"><i data-feather="plus-circle"></i><span>Створити Завдання</span></a>
-            <a href="task-list.html" class="fab-option"><i data-feather="list"></i><span>Список Завдань</span></a>
-            <a href="schedule.html" class="fab-option"><i data-feather="calendar"></i><span>Запланувати Пост</span></a>
-            <a href="schedule-list.html" class="fab-option active"><i data-feather="clock"></i><span>Список Постів</span></a>
-            <a href="ads.html" class="fab-option"><i data-feather="megaphone"></i><span>Реклама</span></a>
-            <a href="history.html" class="fab-option"><i data-feather="archive"></i><span>Історія</span></a>
-            <a href="chat.html" class="fab-option"><i data-feather="message-circle"></i><span>AI Чат</span></a>
-            <a href="settings.html" class="fab-option"><i data-feather="settings"></i><span>Налаштування</span></a>
-            <a href="admin.html" class="fab-option"><i data-feather="settings"></i><span>ADMIN</span></a>
-        </div>
-        <button class="fab-main" id="fab-toggle">
-            <i class="fab-main-icon fab-icon-menu" data-feather="menu"></i>
-            <i class="fab-main-icon fab-icon-close" data-feather="x"></i>
-        </button>
-    </div>
-
     <div class="mobile-nav">
         <a href="index.html" class="mobile-nav-item">
             <i data-feather="plus-circle"></i>
@@ -313,5 +291,6 @@
             if (fabContainer && fabContainer.classList.contains('active') && !fabContainer.contains(e.target)) { fabContainer.classList.remove('active'); resetIdleTimer(); }
         });
     </script>
+    <script src="fab-loader.js"></script>
 </body>
 </html>
