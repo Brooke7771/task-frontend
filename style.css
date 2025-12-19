@@ -1278,33 +1278,6 @@ html.theme-xmas select {
     overflow: hidden; /* Щоб лід не вилазив за межі */
 }
 
-/* Шар льоду (Текстура + Анімація) */
-html.theme-xmas .card::before,
-html.theme-xmas .tg-window::before,
-html.theme-xmas .btn::before,
-html.theme-xmas input::before {
-    content: '';
-    position: absolute;
-    inset: 0; /* Розтягнути на весь блок */
-    pointer-events: none; /* Пропускає кліки */
-    z-index: 2;
-    
-    /* Текстура морозу (SVG Noise) */
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.15'/%3E%3C/svg%3E");
-    
-    /* Крижаний відтінок */
-    background-color: rgba(220, 250, 255, 0.05);
-    
-    /* Внутрішнє світіння холодом */
-    box-shadow: inset 0 0 30px rgba(165, 243, 252, 0.2);
-    
-    /* Змішування для реалізму */
-    mix-blend-mode: overlay;
-    
-    /* Анімація появи морозу */
-    opacity: 0;
-    animation: freezeEffect 4s ease-out forwards;
-}
 
 /* Додатковий блік (блиск льоду) */
 html.theme-xmas .card::after,
