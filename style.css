@@ -1351,3 +1351,61 @@ html.theme-xmas .btn::before {
     opacity: 0.5; /* Менше льоду на кнопках */
     mix-blend-mode: soft-light;
 }
+
+/* --- Updates for Schedule List --- */
+
+/* Минулі дні - напівпрозорі і неклікабельні (опціонально) */
+.cal-day.past {
+    opacity: 0.4;
+    background: rgba(0,0,0,0.2);
+    cursor: not-allowed;
+}
+
+/* Обраний день (клік) */
+.cal-day.selected {
+    border-color: var(--color-primary);
+    background: rgba(var(--color-primary-rgb), 0.2);
+    box-shadow: 0 0 15px rgba(var(--color-primary-rgb), 0.3);
+    transform: scale(1.05);
+    z-index: 2;
+}
+
+/* Сьогоднішній день (просто підсвітка цифри) */
+.cal-day.today .day-num {
+    color: var(--color-success);
+    font-weight: 900;
+    text-decoration: underline;
+}
+
+/* Контейнер для списку завдань під календарем */
+#selectedDayPanel {
+    margin-top: 20px;
+    padding: 20px;
+    background: rgba(30, 41, 59, 0.4);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 16px;
+    display: none; /* Сховано за замовчуванням */
+    animation: fadeIn 0.3s ease;
+}
+#selectedDayPanel.active { display: block; }
+
+.day-task-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+    background: rgba(255,255,255,0.03);
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    border-radius: 8px;
+    margin-bottom: 8px;
+}
+.day-task-row:hover { background: rgba(255,255,255,0.06); }
+
+.reschedule-input {
+    background: rgba(0,0,0,0.3);
+    border: 1px solid var(--color-border);
+    color: white;
+    padding: 5px;
+    border-radius: 6px;
+    font-size: 0.9em;
+}
