@@ -1624,3 +1624,93 @@ html.theme-xmas .btn::before {
 }
 
 @keyframes slideUpPanel { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+
+/* =================================
+   📱 MOBILE OPTIMIZATIONS
+   ================================= */
+
+/* 1. Нижня навігаційна панель (Bottom Nav) */
+.mobile-nav {
+    display: none; /* Ховаємо на десктопі */
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: rgba(15, 23, 42, 0.85); /* Темний напівпрозорий фон */
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    z-index: 9999;
+    justify-content: space-around;
+    padding: 10px 0 25px 0; /* Більший відступ знизу для iOS Home bar */
+    box-shadow: 0 -5px 20px rgba(0,0,0,0.5);
+}
+
+.mobile-nav-item {
+    color: #94a3b8;
+    text-decoration: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-size: 0.7rem;
+    font-weight: 500;
+    gap: 4px;
+    transition: 0.2s;
+    width: 20%;
+}
+
+.mobile-nav-item i {
+    width: 24px;
+    height: 24px;
+}
+
+.mobile-nav-item.active {
+    color: var(--color-primary);
+}
+
+.mobile-nav-item:active {
+    transform: scale(0.9);
+}
+
+/* 2. Загальні виправлення для мобільних */
+@media (max-width: 768px) {
+    /* Ховаємо FAB меню, якщо використовуємо нижню панель */
+    .fab-container {
+        display: none !important; 
+    }
+
+    /* Показуємо нижню панель */
+    .mobile-nav {
+        display: flex;
+    }
+
+    /* Додаємо відступ знизу, щоб контент не перекривався панеллю */
+    body {
+        padding-bottom: 90px !important;
+    }
+
+    .container-main {
+        padding: 10px;
+        width: 100%;
+    }
+
+    /* 3. Адаптація карток */
+    .card {
+        padding: 20px;
+        border-radius: 20px;
+    }
+
+    /* 4. Адаптація таблиць (Адмінка та Історія) */
+    .table-container {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    table {
+        min-width: 600px; /* Примусово розширюємо таблицю, щоб з'явився скрол */
+    }
+
+    /* 5. Адаптація сітки статистики */
+    .stats-grid {
+        grid-template-columns: 1fr 1fr; /* 2 колонки на телефоні */
+    }
+}
