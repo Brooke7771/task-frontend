@@ -12,6 +12,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const sendBtn = document.getElementById('sendBtn');
     const newChatBtn = document.getElementById('newChatBtn');
     const sessionsList = document.getElementById('sessionsList');
+    const sidebar = document.querySelector('.chat-sidebar');
+    const backBtn = document.getElementById('backToList');
+
+    if(backBtn) {
+        backBtn.addEventListener('click', () => {
+            sidebar.classList.remove('hidden-mobile'); // Показати список
+        });
+    }
 
     let currentSessionId = null;
 
@@ -85,6 +93,10 @@ document.addEventListener('DOMContentLoaded', () => {
         messageInput.disabled = false;
         sendBtn.disabled = false;
         messageInput.focus();
+
+        if (window.innerWidth <= 768) {
+        sidebar.classList.add('hidden-mobile'); // Сховати список, показати чат
+        }
 
         try {
             const messages = await getChatMessages(id);

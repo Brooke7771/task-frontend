@@ -1714,3 +1714,72 @@ html.theme-xmas .btn::before {
         grid-template-columns: 1fr 1fr; /* 2 колонки на телефоні */
     }
 }
+
+@media (max-width: 768px) {
+    /* ... попередній код ... */
+
+    /* Логіка Чату */
+    .chat-container {
+        height: calc(100vh - 140px); /* Висота екрану мінус хедер і навбар */
+        flex-direction: column;
+        position: relative;
+        overflow: hidden;
+    }
+
+    /* Список чатів (Sidebar) */
+    .chat-sidebar {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        z-index: 10;
+        background: #0f172a; /* Суцільний фон, щоб перекрити чат */
+        transition: transform 0.3s ease;
+    }
+
+    /* Основна зона чату */
+    .chat-main {
+        width: 100%;
+        height: 100%;
+    }
+
+    /* Клас для приховування сайдбару, коли чат відкритий */
+    .chat-sidebar.hidden-mobile {
+        transform: translateX(-100%);
+    }
+
+    /* Кнопка "Назад" в чаті (треба додати в HTML) */
+    .back-to-list-btn {
+        display: inline-block !important; /* Показуємо тільки на мобільному */
+        margin-right: 10px;
+        background: none;
+        border: none;
+        color: white;
+    }
+}
+
+/* На десктопі кнопка "Назад" не потрібна */
+.back-to-list-btn {
+    display: none;
+}
+
+@media (max-width: 1024px) {
+    .main-container {
+        display: flex;
+        flex-direction: column-reverse; /* Прев'ю зверху або знизу, залежить від смаку */
+    }
+    
+    /* Зробимо прев'ю липким зверху, але компактним */
+    .preview-card {
+        position: relative;
+        top: 0;
+        margin-bottom: 30px;
+        transform: scale(0.9); /* Трохи зменшити */
+        transform-origin: top center;
+    }
+    
+    /* Або, якщо хочете сховати прев'ю на мобільних і показати кнопкою */
+    /*
+    .preview-card { display: none; }
+    .preview-card.active { display: block; }
+    */
+}
