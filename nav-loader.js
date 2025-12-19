@@ -18,6 +18,10 @@ document.addEventListener("DOMContentLoaded", () => {
             --nav-width-expanded: 260px;
             --primary: #6366f1;
             --primary-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+            
+            /* Spotlight Variables */
+            --spotlight-x: 50%;
+            --spotlight-y: 50%;
         }
 
         /* --- DESKTOP: NEBULA SIDEBAR --- */
@@ -38,10 +42,28 @@ document.addEventListener("DOMContentLoaded", () => {
             box-shadow: 5px 0 30px rgba(0,0,0,0.3);
         }
 
+        /* Ефект прожектора (Spotlight) */
+        .nebula-sidebar::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: radial-gradient(
+                600px circle at var(--spotlight-x) var(--spotlight-y), 
+                rgba(99, 102, 241, 0.06),
+                transparent 40%
+            );
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
         .nebula-sidebar:hover {
             width: var(--nav-width-expanded);
             background: rgba(10, 15, 30, 0.95); /* Темнішає при відкритті */
         }
+        
+        .nebula-sidebar:hover::before { opacity: 1; }
 
         /* Логотип */
         .nav-logo {
@@ -50,6 +72,7 @@ document.addEventListener("DOMContentLoaded", () => {
             color: white; text-decoration: none;
             white-space: nowrap; overflow: hidden;
             transition: 0.3s;
+            position: relative; z-index: 2;
         }
         
         .logo-icon {
@@ -70,7 +93,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         /* Групи посилань */
         .nav-group {
-            display: flex; flex-direction: column; gap: 5px;
+            display: flex; flex-direction: column; gap: 5px; position: relative; z-index: 2;
         }
         .nav-group.main { flex: 1; overflow-y: auto; scrollbar-width: none; margin-bottom: 20px; }
         .nav-group.main::-webkit-scrollbar { display: none; }
@@ -256,6 +279,15 @@ document.addEventListener("DOMContentLoaded", () => {
     sidebarHTML += `</div>`;
     sidebar.innerHTML = sidebarHTML;
     document.body.appendChild(sidebar);
+
+    // Додаємо слухач для Spotlight ефекту
+    sidebar.addEventListener('mousemove', (e) => {
+        const rect = sidebar.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        sidebar.style.setProperty('--spotlight-x', `${x}px`);
+        sidebar.style.setProperty('--spotlight-y', `${y}px`);
+    });
 
     function renderLink(l) {
         const action = l.action === 'logout' ? 'onclick="logout(); return false;"' : '';
