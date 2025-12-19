@@ -4,20 +4,161 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Створити Нове Завдання</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
     <script src="auth-guard.js"></script>
+    <style>
+        /* --- Cosmic Creator Styles (Shared with Schedule) --- */
+        body {
+            background-color: #020617;
+            min-height: 100vh;
+            color: white;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+            padding-bottom: 100px;
+        }
+
+        /* Background Effects */
+        .noise-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E");
+            pointer-events: none; z-index: -1;
+        }
+        .bg-orb {
+            position: fixed; border-radius: 50%; filter: blur(100px); opacity: 0.3; z-index: -2;
+            animation: floatOrb 20s ease-in-out infinite alternate;
+        }
+        .orb-1 { width: 600px; height: 600px; background: #ec4899; top: -200px; right: -100px; opacity: 0.2; } /* Pink */
+        .orb-2 { width: 500px; height: 500px; background: #8b5cf6; bottom: -150px; left: -150px; animation-delay: -5s; } /* Violet */
+        
+        @keyframes floatOrb { 0% { transform: translate(0, 0); } 100% { transform: translate(30px, 30px); } }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Layout */
+        .container-main { max-width: 1300px; margin: 0 auto; padding: 20px; }
+        
+        .main-container {
+            display: grid; grid-template-columns: 1fr; gap: 30px;
+        }
+        @media (min-width: 1024px) {
+            .main-container { grid-template-columns: 1.4fr 1fr; align-items: start; }
+        }
+
+        /* Glass Card */
+        .card {
+            background: rgba(30, 41, 59, 0.4);
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 24px; padding: 30px;
+            box-shadow: 0 20px 50px -10px rgba(0, 0, 0, 0.3);
+            animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        h1 {
+            font-weight: 800; margin-bottom: 25px; font-size: 1.8rem; margin-top: 0;
+            background: linear-gradient(135deg, #fff, #94a3b8);
+            -webkit-background-clip: text; background-clip: text; color: transparent;
+            display: flex; align-items: center; gap: 10px;
+        }
+
+        /* Inputs & Form */
+        .form-group { margin-bottom: 20px; }
+        
+        label {
+            color: #94a3b8; font-size: 0.85rem; font-weight: 600; text-transform: uppercase;
+            letter-spacing: 0.5px; margin-bottom: 8px; display: block;
+        }
+        
+        input, select, textarea {
+            background: rgba(0, 0, 0, 0.2) !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            color: white !important; border-radius: 12px !important;
+            padding: 12px 15px !important; font-size: 1rem !important;
+            transition: 0.3s !important; width: 100%; box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+        input:focus, select:focus, textarea:focus {
+            border-color: var(--color-primary) !important;
+            box-shadow: 0 0 0 3px rgba(var(--color-primary-rgb), 0.2) !important;
+            background: rgba(0, 0, 0, 0.4) !important; outline: none;
+        }
+
+        /* File Input Styling */
+        input[type="file"] {
+            padding: 10px; cursor: pointer; font-size: 0.9em;
+        }
+        input[type="file"]::file-selector-button {
+            background: rgba(255,255,255,0.1); border: none; color: white;
+            padding: 5px 10px; border-radius: 6px; margin-right: 10px; cursor: pointer; transition: 0.2s;
+        }
+        input[type="file"]::file-selector-button:hover { background: rgba(255,255,255,0.2); }
+
+        /* Buttons */
+        .btn-primary {
+            background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark)); 
+            border: none; color: white; padding: 14px; border-radius: 12px; font-weight: 700; 
+            cursor: pointer; transition: 0.2s; width: 100%; margin-top: 20px;
+            box-shadow: 0 4px 15px rgba(var(--color-primary-rgb), 0.4);
+        }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(var(--color-primary-rgb), 0.5); }
+
+        .quick-link {
+            display: inline-block; margin-top: 20px; color: #94a3b8; text-decoration: none; 
+            font-size: 0.9em; transition: 0.2s; border-bottom: 1px dashed rgba(255,255,255,0.2);
+        }
+        .quick-link:hover { color: var(--color-primary); border-color: var(--color-primary); }
+
+        /* Preview Card Specifics */
+        .preview-card {
+            position: sticky; top: 20px; padding: 0 !important; border: none !important;
+            background: transparent !important; box-shadow: none !important;
+        }
+        
+        .iphone-mockup {
+            border: 1px solid rgba(255,255,255,0.1); border-radius: 40px;
+            background: #000; padding: 12px; box-shadow: 0 30px 80px rgba(0,0,0,0.5);
+            max-width: 400px; margin: 0 auto;
+        }
+        
+        .tg-window {
+            background-color: #0e1621; height: 650px; border-radius: 30px;
+            display: flex; flex-direction: column; overflow: hidden; position: relative;
+        }
+        
+        /* Task Specific Preview Elements */
+        .task-meta-preview {
+            margin-top: 15px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.1);
+            font-size: 0.9em; color: #cbd5e1;
+        }
+        .task-badge {
+            display: inline-block; padding: 2px 8px; border-radius: 4px; 
+            font-size: 0.8em; font-weight: bold; text-transform: uppercase;
+            margin-right: 5px;
+        }
+        .badge-open { background: rgba(34, 197, 94, 0.2); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.3); }
+
+        /* Status Message */
+        #statusMessage { margin-top: 15px; text-align: center; font-weight: 600; padding: 10px; border-radius: 10px; display: none; }
+        #statusMessage.success { display: block; background: rgba(16, 185, 129, 0.1); color: #34d399; }
+        #statusMessage.error { display: block; background: rgba(239, 68, 68, 0.1); color: #f87171; }
+    </style>
 </head>
 <body>
 
+    <div class="noise-overlay"></div>
+    <div class="bg-orb orb-1"></div>
+    <div class="bg-orb orb-2"></div>
+
     <div class="container-main">
         <div class="main-container">
+            
+            <!-- EDITOR COLUMN -->
             <div class="card">
-                <h1>Створення нового завдання</h1>
+                <h1><i data-feather="check-square"></i> Нове Завдання</h1>
+                
                 <div class="form-group">
-                    <label for="template-select">Оберіть шаблон завдання:</label>
+                    <label for="template-select"><i data-feather="layout" style="width:14px; vertical-align:middle"></i> Шаблон завдання</label>
                     <select id="template-select">
                         <option value="simple">Просте повідомлення</option>
                         <option value="announcement">Оголошення</option>
@@ -26,77 +167,106 @@
                         <option value="urgent">Термінове завдання</option>
                     </select>
                 </div>
+                
                 <form id="taskForm">
+                    <!-- Dynamic fields -->
                     <div id="dynamic-form-fields"></div>
-                    <div class="form-group">
-                        <label for="task_photo">Фото (необов'язково):</label>
+                    
+                    <div class="form-group" style="margin-top: 20px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 20px;">
+                        <label for="task_photo"><i data-feather="image" style="width:14px; vertical-align:middle"></i> Фото (необов'язково)</label>
                         <input type="file" id="task_photo" name="task_photo" accept="image/*">
                     </div>
+                    
                     <div class="form-group">
-                        <label for="people_needed">Кількість людей:</label>
-                        <input type="number" id="people_needed" name="people_needed" min="1" value="1">
+                        <label for="people_needed"><i data-feather="users" style="width:14px; vertical-align:middle"></i> Потрібно людей</label>
+                        <input type="number" id="people_needed" name="people_needed" min="1" value="1" style="max-width: 100px;">
                     </div>
-                    <button type="submit" class="btn btn-primary">Створити завдання</button>
+                    
+                    <button type="submit" class="btn-primary">
+                        <i data-feather="plus-circle" style="vertical-align:middle; margin-right: 5px;"></i> Створити завдання
+                    </button>
                 </form>
-                <a href="task-list.html" class="quick-link">Переглянути список завдань →</a>
-                <div id="statusMessage"></div>
+                
+                <div style="text-align:center;">
+                    <div id="statusMessage"></div>
+                    <a href="task-list.html" class="quick-link">Переглянути список завдань →</a>
+                </div>
             </div>
-            <div class="card preview-card">
-                <div class="tg-window">
-                    <div class="tg-header">
-                        <div class="tg-avatar">
-                            <span>N</span> 
-                        </div>
-                        <div class="tg-header-info">
-                            <span class="tg-name">Новини Капіталу 🇺🇦</span>
-                             <span class="tg-subs">5 432 підписників</span>
-                        </div>
-                    </div>
 
-                    <div class="tg-chat-area">
-                        <div class="tg-date-badge">Сьогодні</div>
-
-                        <div class="tg-message">
-                            <div id="preview-media" class="tg-media-wrapper"></div>
-                            
-                            <div class="tg-text-content">
-                                <span id="preview-content"></span>
-                                <span class="tg-meta">
-                                    <span class="tg-views-icon"></span>
-                                    <span class="tg-views-count">1.2K</span>
-                                    <span class="tg-time" id="preview-time">14:05</span>
-                                </span>
+            <!-- PREVIEW COLUMN -->
+            <div class="preview-card">
+                <div style="text-align: center; color: #94a3b8; font-weight: 600; margin-bottom: 10px; font-size: 0.9em; text-transform: uppercase; letter-spacing: 1px;">Live Preview</div>
+                <div class="iphone-mockup">
+                    <div class="tg-window">
+                        <!-- Telegram Header -->
+                        <div class="tg-header">
+                            <div class="tg-avatar">
+                                <span>N</span> 
+                            </div>
+                            <div class="tg-header-info">
+                                <span class="tg-name">Work Chat 🇺🇦</span>
+                                <span class="tg-subs">12 учасників</span>
                             </div>
                         </div>
-                    </div>
 
-                    <div class="tg-footer-bar">
-                        <i data-feather="paperclip" class="tg-icon"></i>
-                        <div class="tg-input-fake">Транслювати...</div>
-                        <i data-feather="mic" class="tg-icon"></i>
+                        <!-- Chat Area -->
+                        <div class="tg-chat-area">
+                            <div class="tg-date-badge">Сьогодні</div>
+
+                            <div class="tg-message">
+                                <div id="preview-media" class="tg-media-wrapper"></div>
+                                
+                                <div class="tg-text-content">
+                                    <span style="font-family: monospace; opacity: 0.6; font-size: 0.8em;">#task123</span><br><br>
+                                    <span id="preview-content"></span>
+                                    
+                                    <div class="task-meta-preview">
+                                        <div><span class="task-badge badge-open">🟢 Вільне</span></div>
+                                        <div style="margin-top: 5px;">Потрібно людей: 0/<span id="preview-people">1</span></div>
+                                    </div>
+
+                                    <span class="tg-meta">
+                                        <span class="tg-time" id="preview-time">14:05</span>
+                                    </span>
+                                </div>
+                                
+                                <!-- Fake Keyboard -->
+                                <div style="padding: 5px; display:flex; justify-content:center;">
+                                    <div style="background:rgba(255,255,255,0.1); padding:8px 15px; border-radius:8px; font-size:0.9em; cursor:default; width:90%; text-align:center;">📌 Взяти завдання</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Footer -->
+                        <div class="tg-footer-bar">
+                            <i data-feather="paperclip" class="tg-icon"></i>
+                            <div class="tg-input-fake">Транслювати...</div>
+                            <i data-feather="mic" class="tg-icon"></i>
+                        </div>
                     </div>
                 </div>
             </div>
+            
         </div>
     </div>
     
     <script type="module" src="script.js"></script>
 
+    <!-- FAB Menu -->
     <div class="fab-container">
         <div class="fab-options">
             <a href="#" onclick="logout(); return false;" class="fab-option" style="color: var(--color-danger);">
                 <i data-feather="log-out"></i><span>Вийти</span>
             </a>
-            <a href="index.html" class="fab-option"><i data-feather="plus-circle"></i><span>Створити Завдання</span></a>
+            <a href="index.html" class="fab-option active"><i data-feather="plus-circle"></i><span>Створити Завдання</span></a>
             <a href="task-list.html" class="fab-option"><i data-feather="list"></i><span>Список Завдань</span></a>
             <a href="schedule.html" class="fab-option"><i data-feather="calendar"></i><span>Запланувати Пост</span></a>
             <a href="schedule-list.html" class="fab-option"><i data-feather="clock"></i><span>Список Постів</span></a>
-            
             <a href="ads.html" class="fab-option"><i data-feather="megaphone"></i><span>Реклама</span></a>
             <a href="history.html" class="fab-option"><i data-feather="archive"></i><span>Історія</span></a>
             <a href="chat.html" class="fab-option"><i data-feather="message-circle"></i><span>AI Чат</span></a>
             <a href="settings.html" class="fab-option"><i data-feather="settings"></i><span>Налаштування</span></a>
-            <a href="admin.html" class="fab-option"><i data-feather="settings"></i><span>ADMIN</span></a>
+            <a href="admin.html" class="fab-option"><i data-feather="shield"></i><span>ADMIN</span></a>
         </div>
         <button class="fab-main" id="fab-toggle">
             <i class="fab-main-icon fab-icon-menu" data-feather="menu"></i>
@@ -104,104 +274,62 @@
         </button>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
     <script>
         feather.replace(); 
 
-        const fabContainer = document.querySelector('.fab-container');
-        
-        // --- Виправлення "стрибка" кнопки при завантаженні ---
-        window.addEventListener('pageshow', (event) => {
-            if (fabContainer) fabContainer.classList.remove('active');
-        });
-
-        // --- Логіка "Ховання" в бік ---
-        let idleTimer;
-        
-        // Функція: ховаємо кнопку (додаємо клас .is-idle)
-        const setIdle = () => {
-            // Ховаємо, тільки якщо меню НЕ відкрите
-            if (fabContainer && !fabContainer.classList.contains('active')) {
-                fabContainer.classList.add('is-idle');
-            }
-        };
-
-        // Функція: показуємо кнопку (скидаємо таймер)
-        const resetIdleTimer = () => {
-            clearTimeout(idleTimer);
-            if (fabContainer) fabContainer.classList.remove('is-idle');
-            // Через 4 секунди бездіяльності - ховаємо
-            idleTimer = setTimeout(setIdle, 4000);
-        };
-
-        // Запускаємо таймер одразу
-        resetIdleTimer();
-
-        // --- ВАЖЛИВО: Прибираємо 'mousemove' з глобальних подій ---
-        // Тепер кнопка не вилазить, якщо ви просто водите мишкою по центру екрану.
-        // Вона вилізе тільки якщо ви наведете на неї (CSS :hover) або почнете скролити/писати.
-        ['scroll', 'touchstart', 'click', 'keypress'].forEach(event => 
-            document.addEventListener(event, resetIdleTimer)
-        );
-
-        // Якщо навели мишку саме на кнопку - вона прокидається і не ховається
-        if (fabContainer) {
-            fabContainer.addEventListener('mouseenter', () => {
-                clearTimeout(idleTimer);
-                fabContainer.classList.remove('is-idle');
+        // Live preview for people count
+        const peopleInput = document.getElementById('people_needed');
+        const peoplePreview = document.getElementById('preview-people');
+        if (peopleInput && peoplePreview) {
+            peopleInput.addEventListener('input', () => {
+                peoplePreview.textContent = peopleInput.value || '1';
             });
-            
-            // Коли мишка йде з кнопки - запускаємо таймер знову
-            fabContainer.addEventListener('mouseleave', resetIdleTimer);
         }
 
-        // --- Логіка кліку (відкриття меню) ---
-        document.getElementById('fab-toggle').addEventListener('click', (e) => {
-            e.stopPropagation(); // Щоб не спрацював клік на document
-            fabContainer.classList.toggle('active');
-            
-            // Якщо відкрили - прибираємо idle
-            if (fabContainer.classList.contains('active')) {
-                fabContainer.classList.remove('is-idle');
-                clearTimeout(idleTimer);
-            } else {
-                resetIdleTimer();
-            }
-        });
-
-        // Закриття при кліку поза кнопкою
-        document.addEventListener('click', (e) => {
-            if (fabContainer && fabContainer.classList.contains('active') && !fabContainer.contains(e.target)) {
-                fabContainer.classList.remove('active');
-                resetIdleTimer();
-            }
-        });
+        // Preview Media logic (Basic)
+        const taskPhoto = document.getElementById('task_photo');
+        const mediaWrapper = document.getElementById('preview-media');
         
-        // ... (код активного посилання та теми залишається без змін) ...
-        try {
-            const currentPage = window.location.pathname.split('/').pop() || 'index.html';
-            document.querySelectorAll('.fab-option[href]').forEach(link => {
-                // Спрощена перевірка
-                if (link.getAttribute('href') === currentPage) {
-                    link.classList.add('active');
+        if(taskPhoto && mediaWrapper) {
+            taskPhoto.addEventListener('change', function() {
+                mediaWrapper.innerHTML = '';
+                mediaWrapper.style.display = 'none';
+                if (this.files && this.files[0]) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        mediaWrapper.style.display = 'block';
+                        const img = document.createElement('img');
+                        img.src = e.target.result;
+                        mediaWrapper.appendChild(img);
+                        // Fix corners
+                        document.querySelector('.tg-message').style.borderRadius = '12px 12px 12px 0';
+                        mediaWrapper.style.borderRadius = '12px 12px 0 0';
+                    }
+                    reader.readAsDataURL(this.files[0]);
                 }
             });
-        } catch (e) { console.error(e); }
+        }
 
-        (function() {
-            // Тільки застосовуємо тему, без обробки кліків (кнопки тут немає)
-            const htmlEl = document.documentElement;
-            const savedTheme = localStorage.getItem('theme');
-            const isXmas = localStorage.getItem('theme-xmas') === 'true';
+        const fabContainer = document.querySelector('.fab-container');
+        window.addEventListener('pageshow', () => { if (fabContainer) fabContainer.classList.remove('active'); });
+        let idleTimer;
+        const setIdle = () => { if (fabContainer && !fabContainer.classList.contains('active')) fabContainer.classList.add('is-idle'); };
+        const resetIdleTimer = () => { clearTimeout(idleTimer); if (fabContainer) fabContainer.classList.remove('is-idle'); idleTimer = setTimeout(setIdle, 4000); };
+        resetIdleTimer();
+        ['scroll', 'touchstart', 'click', 'keypress'].forEach(event => document.addEventListener(event, resetIdleTimer));
+        
+        document.getElementById('fab-toggle').addEventListener('click', (e) => {
+            e.stopPropagation(); fabContainer.classList.toggle('active');
+            if (fabContainer.classList.contains('active')) { fabContainer.classList.remove('is-idle'); clearTimeout(idleTimer); } else { resetIdleTimer(); }
+        });
+        document.addEventListener('click', (e) => {
+            if (fabContainer && fabContainer.classList.contains('active') && !fabContainer.contains(e.target)) { fabContainer.classList.remove('active'); resetIdleTimer(); }
+        });
 
-            if (isXmas) {
-                htmlEl.classList.add('theme-xmas');
-                htmlEl.classList.add('dark');
-            } else {
-                if (savedTheme === 'light') htmlEl.classList.remove('dark'); 
-                else htmlEl.classList.add('dark');
-            }
-        })();
+        // Initialize Theme if needed
+        if(localStorage.getItem('theme-xmas') === 'true') {
+            document.documentElement.classList.add('theme-xmas');
+        }
     </script>
 </body>
 </html>
