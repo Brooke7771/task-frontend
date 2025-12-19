@@ -114,7 +114,7 @@ function renderCalendar() {
     const grid = document.querySelector('.calendar-grid');
     if(!grid) return;
 
-    // Очищаємо все, крім заголовків
+    // Зберігаємо заголовки днів тижня
     const headers = Array.from(grid.querySelectorAll('.cal-day-name'));
     grid.innerHTML = '';
     headers.forEach(h => grid.appendChild(h));
@@ -126,60 +126,64 @@ function renderCalendar() {
     document.getElementById('calMonthLabel').innerText = `${monthNames[month]} ${year}`;
 
     const firstDay = new Date(year, month, 1).getDay();
-    const startOffset = firstDay === 0 ? 6 : firstDay - 1; // Коригування для Пн
+    const startOffset = firstDay === 0 ? 6 : firstDay - 1;
     const daysInMonth = new Date(year, month + 1, 0).getDate();
 
     const today = new Date();
-    today.setHours(0,0,0,0); // Скидаємо час для порівняння
+    today.setHours(0,0,0,0);
 
     // Пусті клітинки
     for(let i=0; i<startOffset; i++) {
         const empty = document.createElement('div');
         empty.className = 'cal-day empty';
+        // empty.style.visibility = 'hidden'; // Можна сховати, або лишити пустими
         grid.appendChild(empty);
     }
 
     // Дні
     for(let d=1; d<=daysInMonth; d++) {
-        const currentDayDate = new Date(year, month, d);
+        const dateObj = new Date(year, month, d);
         const dayCell = document.createElement('div');
         dayCell.className = 'cal-day';
         
-        // 1. Перевірка на минуле (блокуємо)
-        if (currentDayDate < today) {
-            dayCell.classList.add('past');
-            // dayCell.title = "Минуле"; // Можна додати підказку
-        } 
-        
-        // 2. Перевірка на "Сьогодні"
-        if (currentDayDate.getTime() === today.getTime()) {
-            dayCell.classList.add('today');
-        }
-
-        // 3. Перевірка на "Обраний"
-        if (selectedDate && currentDayDate.getTime() === selectedDate.getTime()) {
+        if(dateObj < today) dayCell.classList.add('past');
+        if(dateObj.getTime() === today.getTime()) dayCell.classList.add('today');
+        if (selectedDate && dateObj.toDateString() === selectedDate.toDateString()) {
             dayCell.classList.add('selected');
         }
 
+        // Номер дня
         dayCell.innerHTML = `<div class="day-num">${d}</div>`;
         
-        // Пости в цей день (точки)
+        // Фільтруємо пости для цього дня
         const postsForDay = allPosts.filter(p => {
             const pd = new Date(p.postAt);
             return pd.getDate() === d && pd.getMonth() === month && pd.getFullYear() === year;
         });
 
-        postsForDay.forEach(p => {
+        // Додаємо точки постів (максимум 3, щоб не розтягувати)
+        const maxDots = 3;
+        postsForDay.slice(0, maxDots).forEach(p => {
             const dot = document.createElement('div');
             dot.className = 'post-dot';
             const time = new Date(p.postAt).toLocaleTimeString('uk-UA', {hour:'2-digit', minute:'2-digit'});
-            dot.innerText = time;
+            // Вирізаємо HTML теги для прев'ю
+            const plainText = (p.text || "").replace(/<[^>]*>?/gm, ''); 
+            dot.innerText = `${time} ${plainText.substring(0, 10)}...`;
             dayCell.appendChild(dot);
         });
+        
+        // Якщо постів більше
+        if(postsForDay.length > maxDots) {
+            const more = document.createElement('div');
+            more.style.fontSize = '0.7em'; more.style.color='#64748b'; more.style.textAlign='center';
+            more.innerText = `+ ще ${postsForDay.length - maxDots}`;
+            dayCell.appendChild(more);
+        }
 
-        // 4. Обробка кліку
-        if (currentDayDate >= today) {
-            dayCell.onclick = () => selectDate(currentDayDate);
+        // Клік (блокуємо минуле)
+        if(dateObj >= today) {
+            dayCell.onclick = () => selectDate(dateObj);
         }
         
         grid.appendChild(dayCell);
@@ -189,47 +193,72 @@ function renderCalendar() {
 // --- 🔥 SELECTED DAY PANEL & RESCHEDULE ---
 window.selectDate = (date) => {
     selectedDate = date;
-    renderCalendar(); // Перемалювати, щоб оновити клас .selected
+    renderCalendar(); // Оновити підсвітку
     
     const panel = document.getElementById('selectedDayPanel');
     const list = document.getElementById('selectedDayList');
     const titleText = document.querySelector('#selectedDayTitle span');
     
     panel.classList.add('active');
-    if(titleText) titleText.innerText = date.toLocaleDateString('uk-UA', { day: 'numeric', month: 'long', year: 'numeric' });
     
-    // Фільтруємо пости для цього дня
+    // Форматуємо дату для заголовка: "20 Грудня, П'ятниця"
+    const dateOptions = { day: 'numeric', month: 'long', weekday: 'long' };
+    titleText.innerText = date.toLocaleDateString('uk-UA', dateOptions);
+    
     const dayPosts = allPosts.filter(p => {
         const pd = new Date(p.postAt);
         return pd.toDateString() === date.toDateString();
     });
 
     if (dayPosts.length === 0) {
-        list.innerHTML = '<div style="color:#94a3b8; padding:20px; text-align:center;">Немає завдань на цей день. Можете запланувати нове!</div>';
+        list.innerHTML = `
+            <div style="text-align:center; padding:30px; color:#64748b;">
+                <i data-feather="coffee" style="width:40px; height:40px; opacity:0.5; margin-bottom:10px;"></i>
+                <div style="font-size:1.1em;">Вільний день</div>
+                <div style="font-size:0.9em; margin-top:5px;">Запланованих постів немає</div>
+                <button onclick="window.location.href='schedule.html'" class="btn btn-primary" style="width:auto; margin-top:15px; padding:8px 20px;">
+                    <i data-feather="plus"></i> Запланувати
+                </button>
+            </div>`;
     } else {
         list.innerHTML = dayPosts.map(post => {
             const d = new Date(post.postAt);
-            // Формуємо value для input type="datetime-local" (враховуючи часовий пояс)
             const tzOffset = d.getTimezoneOffset() * 60000;
             const isoTime = (new Date(d - tzOffset)).toISOString().slice(0, 16);
 
-            const rawText = post.text || "";
+            const rawText = post.text || "Без тексту";
             const cleanText = rawText.replace(/<[^>]*>?/gm, '').substring(0, 60) + (rawText.length > 60 ? '...' : '');
+            
+            // Визначаємо тип медіа для іконки
+            let mediaIcon = '';
+            if(post.photoIds?.length) mediaIcon = '<i data-feather="image" style="width:14px"></i>';
+            if(post.videoIds?.length) mediaIcon = '<i data-feather="video" style="width:14px"></i>';
 
             return `
             <div class="day-task-row">
-                <div class="task-info-mini">
-                    <span class="task-time-badge">${d.toLocaleTimeString('uk-UA', {hour:'2-digit', minute:'2-digit'})}</span>
-                    <span style="font-weight:600; color:white;">${cleanText}</span>
-                    <div style="font-size:0.8em; color:#94a3b8; margin-top:4px;">${post.targetChannelId || 'Канал'}</div>
+                <div class="task-time-box">
+                    ${d.toLocaleTimeString('uk-UA', {hour:'2-digit', minute:'2-digit'})}
                 </div>
                 
-                <div style="display:flex; align-items:center; gap:10px;">
-                    <label style="font-size:0.8em; color:#94a3b8;">Перенести:</label>
+                <div class="task-content">
+                    <h4 title="${rawText.replace(/"/g, '&quot;')}">${cleanText}</h4>
+                    <p>
+                        ${mediaIcon} ${post.targetChannelId || 'Основний канал'} 
+                        <span style="opacity:0.5; margin-left:10px;">👤 ${post.createdBy || 'Admin'}</span>
+                    </p>
+                </div>
+                
+                <div class="task-actions-area">
                     <input type="datetime-local" class="quick-reschedule-input" value="${isoTime}" 
-                           onchange="quickReschedule('${post.id}', this.value)" title="Змінити час">
+                           onchange="quickReschedule('${post.id}', this.value)" title="Перенести">
                            
-                    <button class="icon-btn btn-edit" onclick="window.location.href='schedule-edit.html?id=${post.id}'"><i data-feather="edit-2"></i></button>
+                    <button class="icon-btn btn-edit" onclick="window.location.href='schedule-edit.html?id=${post.id}'" title="Редагувати" style="width:32px; height:32px;">
+                        <i data-feather="edit-2" style="width:14px;"></i>
+                    </button>
+                    
+                    <button class="icon-btn btn-delete" onclick="singleDelete('${post.id}')" title="Видалити" style="width:32px; height:32px; color:#ef4444;">
+                        <i data-feather="trash-2" style="width:14px;"></i>
+                    </button>
                 </div>
             </div>
             `;
@@ -238,8 +267,10 @@ window.selectDate = (date) => {
     
     if(window.feather) feather.replace();
     
-    // Скрол до панелі для зручності
-    panel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    // Плавний скрол до панелі
+    setTimeout(() => {
+        panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }, 100);
 };
 
 window.closeDayPanel = () => {
