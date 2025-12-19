@@ -1,97 +1,250 @@
-// frontend/schedule-list.js
 import { getScheduledPosts, deleteScheduledPost, postScheduledNow } from './api.js';
 
+let allPosts = [];
+let selectedPosts = new Set();
+let currentCalendarDate = new Date();
+
 document.addEventListener('DOMContentLoaded', () => {
-    const postListContainer = document.getElementById('postListContainer');
+    loadPosts();
+    renderCalendar();
+});
 
-    const fetchPosts = async () => {
-        // ... (без змін)
-        try {
-            const posts = await getScheduledPosts();
-            renderPosts(posts);
-        } catch (error) {
-            postListContainer.innerHTML = `<p class="error">Не вдалося завантажити пости.</p>`;
-            console.error(error);
-        }
-    };
+// --- LOAD DATA ---
+window.loadPosts = async () => {
+    const timeline = document.getElementById('timelineView');
+    // timeline.innerHTML = '<div style="text-align: center; padding: 50px; color: #64748b;"><span class="loader"></span> Оновлення...</div>';
+    
+    try {
+        const posts = await getScheduledPosts();
+        // Сортуємо за датою (від найближчої)
+        allPosts = posts.sort((a, b) => new Date(a.postAt) - new Date(b.postAt));
+        
+        renderTimeline();
+        renderCalendar();
+        unselectAll();
+    } catch (e) {
+        console.error(e);
+        timeline.innerHTML = '<div style="text-align: center; color: #ef4444;">Помилка завантаження даних</div>';
+    }
+};
 
-    const renderPosts = (posts) => {
-        // ... (без змін)
-        if (!posts || posts.length === 0) {
-            postListContainer.innerHTML = '<p>Запланованих постів немає.</p>';
-            return;
-        }
-        postListContainer.innerHTML = '';
-        posts.forEach(post => {
-            const card = document.createElement('div');
-            card.className = 'task-card';
-            const postDate = new Date(post.postAt).toLocaleString('uk-UA');
+// --- VIEW SWITCHER ---
+window.switchView = (view) => {
+    document.getElementById('timelineView').classList.remove('active');
+    document.getElementById('calendarView').classList.remove('active');
+    document.getElementById('btn-timeline').classList.remove('active');
+    document.getElementById('btn-calendar').classList.remove('active');
+
+    document.getElementById(`${view}View`).classList.add('active');
+    document.getElementById(`btn-${view}`).classList.add('active');
+};
+
+// --- TIMELINE RENDER ---
+function renderTimeline() {
+    const container = document.getElementById('timelineView');
+    if(allPosts.length === 0) {
+        container.innerHTML = '<div style="text-align: center; padding: 50px; color: #64748b;">Немає запланованих постів</div>';
+        return;
+    }
+    
+    container.innerHTML = '';
+    
+    const groups = groupPostsByDate(allPosts);
+    
+    Object.keys(groups).forEach(dateLabel => {
+        const groupDiv = document.createElement('div');
+        groupDiv.className = 'date-group';
+        
+        const label = document.createElement('div');
+        label.className = 'date-label';
+        label.innerHTML = `<i data-feather="calendar" style="width:16px"></i> ${dateLabel}`;
+        groupDiv.appendChild(label);
+        
+        groups[dateLabel].forEach(post => {
+            const date = new Date(post.postAt);
+            const timeStr = date.toLocaleTimeString('uk-UA', {hour: '2-digit', minute:'2-digit'});
+            const cleanText = post.text.replace(/<[^>]*>?/gm, '').substring(0, 120) + '...';
             
+            const mediaIcon = (post.photoIds?.length > 0 || post.videoIds?.length > 0) 
+                ? `<i data-feather="image" style="width:14px; vertical-align:middle; margin-left:5px;"></i>` 
+                : '';
+
+            const card = document.createElement('div');
+            card.className = 'post-card';
             card.innerHTML = `
-                <h2>Пост на ${postDate}</h2>
-                <div class="post-preview">${formatForPreview(post.text)}</div>
+                <input type="checkbox" class="card-select" value="${post.id}" onchange="toggleSelect('${post.id}')">
+                
+                <div class="post-time">
+                    ${timeStr}
+                    <small>${post.targetChannelId || 'Канал'}</small>
+                </div>
+                
+                <div class="post-content">
+                    <div class="post-text">${cleanText}</div>
+                    <div class="post-meta">
+                        <div class="meta-item">${mediaIcon} ${post.photoIds?.length || 0} фото</div>
+                        <div class="meta-item"><i data-feather="user" style="width:14px"></i> ${post.createdBy || 'Admin'}</div>
+                    </div>
+                </div>
+                
                 <div class="post-actions">
-                    <button class="post-now-btn" data-post-id="${post.id}">Опублікувати зараз</button>
-                    <button class="edit-btn" data-post-id="${post.id}">Редагувати</button>
-                    <button class="delete-btn" data-post-id="${post.id}">Видалити</button>
+                    <button class="icon-btn btn-now" onclick="singlePostNow('${post.id}')" title="Опублікувати зараз"><i data-feather="send" style="width:18px"></i></button>
+                    <button class="icon-btn btn-edit" onclick="window.location.href='schedule-edit.html?id=${post.id}'" title="Редагувати"><i data-feather="edit-2" style="width:18px"></i></button>
+                    <button class="icon-btn btn-delete" onclick="singleDelete('${post.id}')" title="Видалити"><i data-feather="trash" style="width:18px"></i></button>
                 </div>
             `;
-            postListContainer.appendChild(card);
+            groupDiv.appendChild(card);
         });
-    };
+        
+        container.appendChild(groupDiv);
+    });
     
-    // --- 🔥 ОНОВЛЕНА ФУНКЦІЯ форматування ---
-    function formatForPreview(text) {
-        if (!text) text = '';
-        let safeText = (text || '').replace(/</g, "&lt;").replace(/>/g, "&gt;");
-        
-        // Спочатку обробляємо екрановані символи
-        safeText = safeText.replace(/\\(.)/g, '$1');
+    if(window.feather) feather.replace();
+}
 
-        // Обробляємо і V1, і V2 форматування
-        safeText = safeText
-            .replace(/\*\*(.*?)\*\*/g, '<b>$1</b>') // **bold** (Legacy)
-            .replace(/__(.*?)__/g, '<i>$1</i>')   // __italic__ (Legacy)
-            .replace(/\*(.*?)\*/g, '<b>$1</b>')   // *bold* (V2)
-            .replace(/_(.*?)_/g, '<i>$1</i>')     // _italic_ (V2)
-            .replace(/~(.*?)~/g, '<s>$1</s>')     // ~strikethrough~ (V2)
-            .replace(/`(.*?)`/g, '<code>$1</code>') // `code`
-            .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank">$1</a>') // [link](url)
-            .replace(/\n/g, '<br>'); // Newlines
+function groupPostsByDate(posts) {
+    const groups = {};
+    const today = new Date().toDateString();
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const tomorrowStr = tomorrow.toDateString();
+
+    posts.forEach(post => {
+        const d = new Date(post.postAt);
+        const dStr = d.toDateString();
         
-        return safeText;
+        let label = d.toLocaleDateString('uk-UA', {weekday: 'long', day: 'numeric', month: 'long'});
+        if(dStr === today) label = "Сьогодні (" + label + ")";
+        else if(dStr === tomorrowStr) label = "Завтра (" + label + ")";
+        
+        if(!groups[label]) groups[label] = [];
+        groups[label].push(post);
+    });
+    return groups;
+}
+
+// --- CALENDAR RENDER ---
+window.changeMonth = (delta) => {
+    currentCalendarDate.setMonth(currentCalendarDate.getMonth() + delta);
+    renderCalendar();
+};
+
+function renderCalendar() {
+    const grid = document.querySelector('.calendar-grid');
+    // Зберігаємо заголовки
+    const headers = Array.from(grid.querySelectorAll('.cal-day-name'));
+    grid.innerHTML = '';
+    headers.forEach(h => grid.appendChild(h));
+    
+    const year = currentCalendarDate.getFullYear();
+    const month = currentCalendarDate.getMonth();
+    
+    // Оновлюємо заголовок
+    const monthNames = ["Січень", "Лютий", "Березень", "Квітень", "Травень", "Червень", "Липень", "Серпень", "Вересень", "Жовтень", "Листопад", "Грудень"];
+    document.getElementById('calMonthLabel').innerText = `${monthNames[month]} ${year}`;
+
+    // Логіка календаря
+    const firstDay = new Date(year, month, 1).getDay(); // 0 = Sun
+    // Коригуємо для Пн = 0 (укр стандарт)
+    const startOffset = firstDay === 0 ? 6 : firstDay - 1;
+    
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+    // Пусті клітинки
+    for(let i=0; i<startOffset; i++) {
+        const empty = document.createElement('div');
+        empty.className = 'cal-day empty';
+        grid.appendChild(empty);
     }
 
-    // ... (обробник 'click' без змін) ...
-    postListContainer.addEventListener('click', async (event) => {
-        const target = event.target;
-        const postId = target.dataset.postId;
-        if (!postId) return;
+    // Дні
+    for(let d=1; d<=daysInMonth; d++) {
+        const dayCell = document.createElement('div');
+        dayCell.className = 'cal-day';
+        
+        const checkDate = new Date(year, month, d).toDateString();
+        const todayStr = new Date().toDateString();
+        if(checkDate === todayStr) dayCell.classList.add('today');
 
-        let actionPromise;
+        dayCell.innerHTML = `<div class="day-num">${d}</div>`;
+        
+        // Знаходимо пости для цього дня
+        const postsForDay = allPosts.filter(p => {
+            const pd = new Date(p.postAt);
+            return pd.getDate() === d && pd.getMonth() === month && pd.getFullYear() === year;
+        });
 
-        if (target.classList.contains('delete-btn')) {
-            if (!confirm('Ви впевнені, що хочете видалити цей пост?')) return;
-            actionPromise = deleteScheduledPost(postId);
-        } else if (target.classList.contains('post-now-btn')) {
-            actionPromise = postScheduledNow(postId);
-        } else if (target.classList.contains('edit-btn')) {
-            window.location.href = `schedule-edit.html?id=${postId}`;
-            return;
-        } else {
-            return;
-        }
+        postsForDay.forEach(p => {
+            const dot = document.createElement('div');
+            dot.className = 'post-dot';
+            const time = new Date(p.postAt).toLocaleTimeString('uk-UA', {hour:'2-digit', minute:'2-digit'});
+            dot.innerText = `${time} ${p.text.replace(/<[^>]*>?/gm, '')}`;
+            dot.title = p.text; // Tooltip
+            // Клік по посту в календарі - перехід на редагування
+            dot.onclick = (e) => {
+                e.stopPropagation();
+                window.location.href = `schedule-edit.html?id=${p.id}`;
+            };
+            dayCell.appendChild(dot);
+        });
+        
+        grid.appendChild(dayCell);
+    }
+}
 
-        try {
-            target.disabled = true;
-            await actionPromise;
-            fetchPosts(); // Оновити список
-        } catch (error) {
-            alert('Сталася помилка.');
-            console.error(error);
-            target.disabled = false;
-        }
-    });
+// --- BULK ACTIONS LOGIC ---
+window.toggleSelect = (id) => {
+    if(selectedPosts.has(id)) selectedPosts.delete(id);
+    else selectedPosts.add(id);
+    updateBulkBar();
+};
 
-    fetchPosts();
-});
+window.unselectAll = () => {
+    selectedPosts.clear();
+    document.querySelectorAll('.card-select').forEach(cb => cb.checked = false);
+    updateBulkBar();
+};
+
+function updateBulkBar() {
+    const bar = document.getElementById('bulkBar');
+    const count = document.getElementById('selectedCount');
+    count.innerText = selectedPosts.size;
+    
+    if(selectedPosts.size > 0) bar.classList.add('visible');
+    else bar.classList.remove('visible');
+}
+
+// --- API WRAPPERS ---
+window.singleDelete = async (id) => {
+    if(!confirm('Видалити цей пост?')) return;
+    try {
+        await deleteScheduledPost(id);
+        loadPosts();
+    } catch(e) { alert('Помилка'); }
+};
+
+window.singlePostNow = async (id) => {
+    if(!confirm('Опублікувати зараз?')) return;
+    try {
+        await postScheduledNow(id);
+        loadPosts();
+    } catch(e) { alert('Помилка'); }
+};
+
+window.bulkDelete = async () => {
+    if(!confirm(`Видалити обрані пости (${selectedPosts.size})?`)) return;
+    
+    // Послідовне видалення (API не підтримує bulk, тому робимо цикл)
+    for(let id of selectedPosts) {
+        await deleteScheduledPost(id);
+    }
+    loadPosts();
+};
+
+window.bulkPostNow = async () => {
+    if(!confirm(`Опублікувати обрані пости (${selectedPosts.size}) зараз?`)) return;
+    for(let id of selectedPosts) {
+        await postScheduledNow(id);
+    }
+    loadPosts();
+};
