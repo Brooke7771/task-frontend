@@ -5,50 +5,304 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Рекламні Кампанії</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
     <script src="auth-guard.js"></script>
+    <style>
+        /* --- Cosmic Theme Styles --- */
+        body {
+            background-color: #020617;
+            min-height: 100vh;
+            color: white;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+            padding-bottom: 100px; /* Space for FAB */
+        }
+
+        /* Background Effects */
+        .noise-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E");
+            pointer-events: none; z-index: -1;
+        }
+        .bg-orb {
+            position: fixed; border-radius: 50%; filter: blur(100px); opacity: 0.3; z-index: -2;
+            animation: floatOrb 15s ease-in-out infinite alternate;
+        }
+        .orb-1 { width: 600px; height: 600px; background: #f59e0b; top: -200px; left: -100px; } /* Amber */
+        .orb-2 { width: 500px; height: 500px; background: #ec4899; bottom: -150px; right: -150px; animation-delay: -5s; } /* Pink */
+        .orb-3 { width: 300px; height: 300px; background: #8b5cf6; top: 40%; left: 30%; opacity: 0.15; animation-delay: -8s; } /* Purple */
+        
+        @keyframes floatOrb { 0% { transform: translate(0, 0); } 100% { transform: translate(40px, 40px); } }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Glass Containers */
+        .container-main { max-width: 900px; margin: 0 auto; padding: 20px; position: relative; z-index: 1; }
+        
+        .card {
+            background: rgba(30, 41, 59, 0.4);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 24px;
+            padding: 30px;
+            box-shadow: 0 20px 50px -10px rgba(0, 0, 0, 0.3);
+            margin-bottom: 30px;
+            animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        h1, h2 {
+            font-weight: 800; letter-spacing: -0.5px; margin-bottom: 20px;
+            background: linear-gradient(135deg, #fff, #94a3b8);
+            -webkit-background-clip: text; background-clip: text; color: transparent;
+        }
+        h2 { font-size: 1.5rem; margin-top: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px; }
+
+        /* Form Styling */
+        label { 
+            color: #94a3b8; font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; display: block; 
+        }
+        
+        input, select, textarea {
+            background: rgba(0, 0, 0, 0.2) !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            color: white !important;
+            border-radius: 12px !important;
+            padding: 12px 15px !important;
+            font-size: 1rem !important;
+            transition: 0.3s !important;
+        }
+        input:focus, select:focus, textarea:focus {
+            border-color: var(--color-primary) !important;
+            box-shadow: 0 0 0 3px rgba(var(--color-primary-rgb), 0.2) !important;
+            background: rgba(0, 0, 0, 0.4) !important;
+            outline: none;
+        }
+
+        /* Buttons */
+        .btn-primary {
+            background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
+            border: none; padding: 14px 25px; font-weight: 700; border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(var(--color-primary-rgb), 0.4);
+            width: 100%; margin-top: 10px;
+        }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(var(--color-primary-rgb), 0.5); }
+
+        /* Ads List Items */
+        #adsList { display: grid; gap: 15px; }
+        
+        .ad-item {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 16px; padding: 20px;
+            transition: 0.3s; position: relative; overflow: hidden;
+        }
+        .ad-item:hover { background: rgba(255, 255, 255, 0.05); transform: translateY(-3px); border-color: rgba(255,255,255,0.1); }
+        
+        .ad-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .ad-id { font-family: monospace; color: #64748b; font-size: 0.8rem; background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 4px; }
+        .ad-status { font-size: 0.75rem; font-weight: 800; text-transform: uppercase; padding: 4px 10px; border-radius: 20px; }
+        .status-active { background: rgba(16, 185, 129, 0.1); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.2); }
+        .status-ended { background: rgba(239, 68, 68, 0.1); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.2); }
+
+        .ad-text { color: #cbd5e1; font-size: 0.95rem; line-height: 1.5; margin-bottom: 15px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+        .ad-stats {
+            display: flex; gap: 15px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 12px; margin-top: 12px;
+        }
+        .stat-badge { font-size: 0.85rem; color: #94a3b8; display: flex; align-items: center; gap: 6px; }
+        
+        .delete-btn {
+            position: absolute; top: 15px; right: 15px;
+            background: rgba(255, 255, 255, 0.05); color: #ef4444; border: none;
+            width: 32px; height: 32px; border-radius: 8px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; transition: 0.2s;
+        }
+        .delete-btn:hover { background: rgba(239, 68, 68, 0.1); color: #f87171; }
+    </style>
 </head>
 <body>
+
+    <div class="noise-overlay"></div>
+    <div class="bg-orb orb-1"></div>
+    <div class="bg-orb orb-2"></div>
+    <div class="bg-orb orb-3"></div>
+
     <div class="container-main">
         <div class="card">
-            <h1>📢 Рекламні пости</h1>
+            <h1>📢 Менеджер Реклами</h1>
+            <p style="color: var(--color-text-light); margin-bottom: 25px; font-size: 0.95rem;">
+                Створіть кампанію, і бот буде автоматично публікувати її із заданим інтервалом.
+            </p>
+            
             <form id="adForm">
                 <div class="form-group">
-                    <label>Оберіть канал:</label>
-                    <select id="channel_select" name="target_channel_id" required></select>
+                    <label><i data-feather="radio" style="width:14px; vertical-align:middle;"></i> Канал</label>
+                    <select id="channel_select" name="target_channel_id" required>
+                        <option value="" disabled selected>Завантаження...</option>
+                    </select>
                 </div>
+                
                 <div class="form-group">
-                    <label>Текст реклами (HTML/Markdown):</label>
-                    <textarea id="post_text" name="post_text" rows="5" required placeholder="Введіть текст посту..."></textarea>
+                    <label><i data-feather="file-text" style="width:14px; vertical-align:middle;"></i> Текст посту (Markdown/HTML)</label>
+                    <textarea id="post_text" name="post_text" rows="4" required placeholder="🔥 Гаряча пропозиція! Тільки сьогодні..."></textarea>
                 </div>
+                
                 <div class="form-group">
-                    <label>Фото/Відео:</label>
-                    <input type="file" id="post_photo" name="post_photo" multiple>
+                    <label><i data-feather="image" style="width:14px; vertical-align:middle;"></i> Медіа (Фото/Відео)</label>
+                    <div style="position: relative;">
+                        <input type="file" id="post_photo" name="post_photo" multiple style="padding-left: 40px !important;">
+                        <i data-feather="upload" style="position: absolute; left: 12px; top: 12px; color: var(--color-text-light); width: 18px;"></i>
+                    </div>
                 </div>
-                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                
+                <div style="display: flex; gap: 20px; flex-wrap: wrap;">
                     <div class="form-group" style="flex:1; min-width: 150px;">
-                        <label>Інтервал (хвилин):</label>
+                        <label><i data-feather="clock" style="width:14px; vertical-align:middle;"></i> Інтервал (хв)</label>
                         <input type="number" name="interval" value="60" min="1" required>
                     </div>
                     <div class="form-group" style="flex:1; min-width: 150px;">
-                        <label>Кількість повторів:</label>
+                        <label><i data-feather="repeat" style="width:14px; vertical-align:middle;"></i> Повторів</label>
                         <input type="number" name="count" value="5" min="1" required>
                     </div>
                 </div>
-                <button type="submit" class="btn btn-primary">Запустити кампанію</button>
+                
+                <button type="submit" class="btn-primary">
+                    <i data-feather="play" style="vertical-align: middle; margin-right: 5px;"></i> Запустити кампанію
+                </button>
             </form>
         </div>
 
-        <div class="card" style="margin-top: 20px;">
+        <div class="card" style="margin-top: 40px; animation-delay: 0.2s;">
             <h2>Активні кампанії</h2>
-            <div id="adsList">Завантаження...</div>
+            <div id="adsList">
+                <div style="text-align: center; color: var(--color-text-light); padding: 20px;">
+                    <span class="loader"></span> Завантаження...
+                </div>
+            </div>
         </div>
     </div>
 
-    <script type="module" src="ads.js"></script>
+    <script type="module">
+        import { getChannels, backendUrl } from './api.js';
 
+        // Ініціалізація іконок
+        feather.replace();
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const channelSelect = document.getElementById('channel_select');
+            const form = document.getElementById('adForm');
+            const adsList = document.getElementById('adsList');
+
+            // Завантаження каналів
+            try {
+                const channels = await getChannels();
+                channelSelect.innerHTML = '<option value="" disabled selected>Оберіть канал...</option>';
+                
+                if (channels && channels.length > 0) {
+                    channels.forEach(c => {
+                        const opt = document.createElement('option');
+                        opt.value = c.telegram_id;
+                        opt.textContent = c.title;
+                        channelSelect.appendChild(opt);
+                    });
+                } else {
+                    channelSelect.innerHTML = '<option value="" disabled>Немає доступних каналів</option>';
+                }
+            } catch (e) {
+                console.error("Error loading channels", e);
+                channelSelect.innerHTML = '<option disabled>Помилка завантаження</option>';
+            }
+            
+            // Завантаження списку реклам
+            const loadAds = async () => {
+                try {
+                    const res = await fetch(`${backendUrl}/api/ads`);
+                    const ads = await res.json();
+                    
+                    if (ads.length === 0) {
+                        adsList.innerHTML = '<div style="text-align: center; color: var(--color-text-light); padding: 20px;">Немає активних кампаній</div>';
+                        return;
+                    }
+
+                    adsList.innerHTML = ads.map(ad => `
+                        <div class="ad-item">
+                            <div class="ad-header">
+                                <span class="ad-id">#${ad.id.substring(0,8)}</span>
+                                <span class="ad-status ${ad.active ? 'status-active' : 'status-ended'}">
+                                    ${ad.active ? 'Активна' : 'Завершена'}
+                                </span>
+                            </div>
+                            
+                            <div class="ad-text">${ad.text.replace(/<[^>]*>?/gm, '')}</div>
+                            
+                            <div class="ad-stats">
+                                <span class="stat-badge"><i data-feather="clock" style="width:14px"></i> ${ad.interval_minutes} хв</span>
+                                <span class="stat-badge"><i data-feather="hash" style="width:14px"></i> Залишилось: ${ad.remaining_count}</span>
+                            </div>
+
+                            <button onclick="deleteAd('${ad.id}')" class="delete-btn" title="Видалити">
+                                <i data-feather="trash-2" style="width:16px"></i>
+                            </button>
+                        </div>
+                    `).join('');
+                    
+                    feather.replace(); // Оновити іконки в новому HTML
+                } catch (e) {
+                    adsList.innerHTML = '<div style="color: #f87171; text-align:center;">Помилка завантаження списку</div>';
+                }
+            };
+            
+            // Глобальна функція видалення
+            window.deleteAd = async (id) => {
+                if(!confirm('Зупинити та видалити цю кампанію?')) return;
+                try {
+                    await fetch(`${backendUrl}/api/ads/${id}/delete`, { method: 'POST' });
+                    loadAds();
+                } catch(e) { alert("Помилка видалення"); }
+            };
+
+            loadAds();
+
+            // Створення реклами
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const btn = form.querySelector('button[type="submit"]');
+                const originalText = btn.innerHTML;
+                
+                btn.innerHTML = 'Створення...';
+                btn.disabled = true;
+
+                const formData = new FormData(form);
+                
+                try {
+                    const res = await fetch(`${backendUrl}/api/ads`, {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-Username': localStorage.getItem('username') || 'Unknown'
+                        }
+                    });
+
+                    if(res.ok) {
+                        alert('Кампанію успішно запущено! 🚀');
+                        form.reset();
+                        loadAds();
+                    } else {
+                        alert('Помилка створення');
+                    }
+                } catch (e) {
+                    alert('Помилка мережі');
+                } finally {
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                }
+            });
+        });
+    </script>
+
+    <!-- FAB Menu (Глобальне) -->
     <div class="fab-container">
         <div class="fab-options">
             <a href="#" onclick="logout(); return false;" class="fab-option" style="color: var(--color-danger);">
@@ -70,20 +324,15 @@
         </button>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
     <script>
-        feather.replace(); 
+        // --- FAB Logic ---
         const fabContainer = document.querySelector('.fab-container');
-        window.addEventListener('pageshow', (event) => { if (fabContainer) fabContainer.classList.remove('active'); });
         let idleTimer;
-        const setIdle = () => { if (fabContainer && !fabContainer.classList.contains('active')) { fabContainer.classList.add('is-idle'); } };
+        const setIdle = () => { if (fabContainer && !fabContainer.classList.contains('active')) fabContainer.classList.add('is-idle'); };
         const resetIdleTimer = () => { clearTimeout(idleTimer); if (fabContainer) fabContainer.classList.remove('is-idle'); idleTimer = setTimeout(setIdle, 4000); };
         resetIdleTimer();
         ['scroll', 'touchstart', 'click', 'keypress'].forEach(event => document.addEventListener(event, resetIdleTimer));
-        if (fabContainer) {
-            fabContainer.addEventListener('mouseenter', () => { clearTimeout(idleTimer); fabContainer.classList.remove('is-idle'); });
-            fabContainer.addEventListener('mouseleave', resetIdleTimer);
-        }
+        
         document.getElementById('fab-toggle').addEventListener('click', (e) => {
             e.stopPropagation(); fabContainer.classList.toggle('active');
             if (fabContainer.classList.contains('active')) { fabContainer.classList.remove('is-idle'); clearTimeout(idleTimer); } else { resetIdleTimer(); }
@@ -91,20 +340,14 @@
         document.addEventListener('click', (e) => {
             if (fabContainer && fabContainer.classList.contains('active') && !fabContainer.contains(e.target)) { fabContainer.classList.remove('active'); resetIdleTimer(); }
         });
-        (function() {
-            // Тільки застосовуємо тему, без обробки кліків (кнопки тут немає)
-            const htmlEl = document.documentElement;
-            const savedTheme = localStorage.getItem('theme');
-            const isXmas = localStorage.getItem('theme-xmas') === 'true';
-
-            if (isXmas) {
-                htmlEl.classList.add('theme-xmas');
-                htmlEl.classList.add('dark');
-            } else {
-                if (savedTheme === 'light') htmlEl.classList.remove('dark'); 
-                else htmlEl.classList.add('dark');
-            }
-        })();
     </script>
 </body>
 </html>
+```
+
+### Що додано:
+1.  **Orbs & Noise:** Ті самі ефекти, що на лендінгу, але з помаранчевими та рожевими акцентами, щоб відповідати темі "Реклами".
+2.  **Скляні картки:** Форма та список тепер мають ефект матового скла (`backdrop-filter`).
+3.  **Стильні елементи списку:** Кожна реклама — це окрема картка з індикатором статусу ("Активна"/"Завершена") та іконками Feather.
+4.  **Інтерактивність:** Кнопки мають ефект наведення, а список автоматично оновлюється без перезавантаження.
+5.  **Loader:** Додав просту анімацію тексту "Завантаження...", поки дані йдуть з сервера.
