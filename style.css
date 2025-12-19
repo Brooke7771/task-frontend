@@ -1062,14 +1062,8 @@ html.theme-xmas {
     --shadow-lg: 0 0 25px rgba(251, 191, 36, 0.25);
 }
 
-/* Фон */
-html.theme-xmas body {
-    background: radial-gradient(circle at 50% 0%, #1a2c4e 0%, #020617 100%);
-    background-attachment: fixed;
-    /* Додаємо відступ зверху, щоб гірлянда не перекривала контент */
-    padding-top: 25px; 
-}
-html.theme-xmas body::before { display: none; }
+
+
 
 /* Картки: Ефект темного льоду */
 html.theme-xmas .card,
