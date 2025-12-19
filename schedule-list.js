@@ -3,7 +3,7 @@ import { getScheduledPosts, deleteScheduledPost, postScheduledNow, updateSchedul
 let allPosts = [];
 let selectedPosts = new Set();
 let currentCalendarDate = new Date();
-let selectedDate = null; // Зберігає обрану дату в календарі
+let selectedDate = null; // Зберігаємо обрану дату
 
 document.addEventListener('DOMContentLoaded', () => {
     loadPosts();
@@ -15,12 +15,13 @@ window.loadPosts = async () => {
         const posts = await getScheduledPosts();
         if(!Array.isArray(posts)) throw new Error("Invalid response");
 
+        // Сортуємо від найближчого
         allPosts = posts.sort((a, b) => new Date(a.postAt) - new Date(b.postAt));
         
         renderTimeline();
         renderCalendar();
         
-        // Якщо була обрана дата, оновити її список (на випадок змін)
+        // Якщо панель відкрита, оновлюємо і її (на випадок змін)
         if(selectedDate) selectDate(selectedDate);
         
         unselectAll();
@@ -38,13 +39,11 @@ window.switchView = (view) => {
     document.getElementById(`${view}View`)?.classList.add('active');
     document.getElementById(`btn-${view}`)?.classList.add('active');
     
-    // Ховаємо панель деталей, якщо перемикаємось на таймлайн
-    if(view === 'timeline') {
-        document.getElementById('selectedDayPanel').classList.remove('active');
-    }
+    // Закриваємо панель при перемиканні на список
+    if(view === 'timeline') document.getElementById('selectedDayPanel').classList.remove('active');
 };
 
-// --- TIMELINE RENDER (Без змін) ---
+// --- TIMELINE RENDER (Standard List) ---
 function renderTimeline() {
     const container = document.getElementById('timelineView');
     if (!container) return;
@@ -52,6 +51,7 @@ function renderTimeline() {
         container.innerHTML = '<div style="text-align: center; padding: 50px; color: #64748b;">Немає запланованих постів</div>';
         return;
     }
+    
     container.innerHTML = '';
     const groups = groupPostsByDate(allPosts);
     
@@ -104,7 +104,7 @@ function groupPostsByDate(posts) {
     return groups;
 }
 
-// --- CALENDAR RENDER ---
+// --- 🔥 CALENDAR LOGIC (FIXED) ---
 window.changeMonth = (delta) => {
     currentCalendarDate.setMonth(currentCalendarDate.getMonth() + delta);
     renderCalendar();
@@ -114,7 +114,7 @@ function renderCalendar() {
     const grid = document.querySelector('.calendar-grid');
     if(!grid) return;
 
-    // Очищаємо, зберігаючи заголовки
+    // Очищаємо все, крім заголовків
     const headers = Array.from(grid.querySelectorAll('.cal-day-name'));
     grid.innerHTML = '';
     headers.forEach(h => grid.appendChild(h));
@@ -126,12 +126,11 @@ function renderCalendar() {
     document.getElementById('calMonthLabel').innerText = `${monthNames[month]} ${year}`;
 
     const firstDay = new Date(year, month, 1).getDay();
-    const startOffset = firstDay === 0 ? 6 : firstDay - 1;
+    const startOffset = firstDay === 0 ? 6 : firstDay - 1; // Коригування для Пн
     const daysInMonth = new Date(year, month + 1, 0).getDate();
 
-    // Отримуємо поточну дату без часу для порівняння
     const today = new Date();
-    today.setHours(0,0,0,0);
+    today.setHours(0,0,0,0); // Скидаємо час для порівняння
 
     // Пусті клітинки
     for(let i=0; i<startOffset; i++) {
@@ -142,27 +141,29 @@ function renderCalendar() {
 
     // Дні
     for(let d=1; d<=daysInMonth; d++) {
-        const dateObj = new Date(year, month, d);
+        const currentDayDate = new Date(year, month, d);
         const dayCell = document.createElement('div');
         dayCell.className = 'cal-day';
         
-        // Перевірка на "Сьогодні"
-        if(dateObj.getTime() === today.getTime()) dayCell.classList.add('today');
-        
-        // Перевірка на "Минуле" (блокуємо клік або стиль)
-        if(dateObj < today) {
+        // 1. Перевірка на минуле (блокуємо)
+        if (currentDayDate < today) {
             dayCell.classList.add('past');
-            // Можна заборонити клік, якщо треба: dayCell.style.pointerEvents = 'none';
+            // dayCell.title = "Минуле"; // Можна додати підказку
+        } 
+        
+        // 2. Перевірка на "Сьогодні"
+        if (currentDayDate.getTime() === today.getTime()) {
+            dayCell.classList.add('today');
         }
 
-        // Перевірка на "Обраний"
-        if (selectedDate && dateObj.toDateString() === selectedDate.toDateString()) {
+        // 3. Перевірка на "Обраний"
+        if (selectedDate && currentDayDate.getTime() === selectedDate.getTime()) {
             dayCell.classList.add('selected');
         }
 
         dayCell.innerHTML = `<div class="day-num">${d}</div>`;
         
-        // Знаходимо пости
+        // Пости в цей день (точки)
         const postsForDay = allPosts.filter(p => {
             const pd = new Date(p.postAt);
             return pd.getDate() === d && pd.getMonth() === month && pd.getFullYear() === year;
@@ -172,57 +173,60 @@ function renderCalendar() {
             const dot = document.createElement('div');
             dot.className = 'post-dot';
             const time = new Date(p.postAt).toLocaleTimeString('uk-UA', {hour:'2-digit', minute:'2-digit'});
-            dot.innerText = `${time}`;
+            dot.innerText = time;
             dayCell.appendChild(dot);
         });
 
-        // Клік по дню
-        dayCell.onclick = () => selectDate(dateObj);
+        // 4. Обробка кліку
+        if (currentDayDate >= today) {
+            dayCell.onclick = () => selectDate(currentDayDate);
+        }
         
         grid.appendChild(dayCell);
     }
 }
 
-// --- 🔥 ЛОГІКА ОБРАНОГО ДНЯ І СПИСКУ ---
+// --- 🔥 SELECTED DAY PANEL & RESCHEDULE ---
 window.selectDate = (date) => {
     selectedDate = date;
-    renderCalendar(); // Перемалювати, щоб показати .selected
+    renderCalendar(); // Перемалювати, щоб оновити клас .selected
     
     const panel = document.getElementById('selectedDayPanel');
     const list = document.getElementById('selectedDayList');
-    const title = document.getElementById('selectedDayTitle');
+    const titleText = document.querySelector('#selectedDayTitle span');
     
     panel.classList.add('active');
-    title.innerHTML = `<i data-feather="calendar"></i> Завдання на ${date.toLocaleDateString('uk-UA')}`;
+    if(titleText) titleText.innerText = date.toLocaleDateString('uk-UA', { day: 'numeric', month: 'long', year: 'numeric' });
     
-    // Фільтруємо пости
+    // Фільтруємо пости для цього дня
     const dayPosts = allPosts.filter(p => {
         const pd = new Date(p.postAt);
         return pd.toDateString() === date.toDateString();
     });
 
     if (dayPosts.length === 0) {
-        list.innerHTML = '<div style="color:#64748b; padding:10px;">Немає завдань на цей день.</div>';
+        list.innerHTML = '<div style="color:#94a3b8; padding:20px; text-align:center;">Немає завдань на цей день. Можете запланувати нове!</div>';
     } else {
         list.innerHTML = dayPosts.map(post => {
             const d = new Date(post.postAt);
-            // Для інпуту datetime-local потрібен формат YYYY-MM-DDTHH:mm
-            // Коригуємо часовий пояс
-            const tzOffset = d.getTimezoneOffset() * 60000; 
-            const localISOTime = (new Date(d - tzOffset)).toISOString().slice(0, 16);
+            // Формуємо value для input type="datetime-local" (враховуючи часовий пояс)
+            const tzOffset = d.getTimezoneOffset() * 60000;
+            const isoTime = (new Date(d - tzOffset)).toISOString().slice(0, 16);
 
             const rawText = post.text || "";
-            const cleanText = rawText.replace(/<[^>]*>?/gm, '').substring(0, 50) + (rawText.length > 50 ? '...' : '');
+            const cleanText = rawText.replace(/<[^>]*>?/gm, '').substring(0, 60) + (rawText.length > 60 ? '...' : '');
 
             return `
             <div class="day-task-row">
-                <div style="flex:1">
-                    <div style="font-weight:bold; color:white;">${cleanText}</div>
-                    <div style="font-size:0.8em; color:#94a3b8;">${post.targetChannelId || 'Основний канал'}</div>
+                <div class="task-info-mini">
+                    <span class="task-time-badge">${d.toLocaleTimeString('uk-UA', {hour:'2-digit', minute:'2-digit'})}</span>
+                    <span style="font-weight:600; color:white;">${cleanText}</span>
+                    <div style="font-size:0.8em; color:#94a3b8; margin-top:4px;">${post.targetChannelId || 'Канал'}</div>
                 </div>
                 
                 <div style="display:flex; align-items:center; gap:10px;">
-                    <input type="datetime-local" class="reschedule-input" value="${localISOTime}" 
+                    <label style="font-size:0.8em; color:#94a3b8;">Перенести:</label>
+                    <input type="datetime-local" class="quick-reschedule-input" value="${isoTime}" 
                            onchange="quickReschedule('${post.id}', this.value)" title="Змінити час">
                            
                     <button class="icon-btn btn-edit" onclick="window.location.href='schedule-edit.html?id=${post.id}'"><i data-feather="edit-2"></i></button>
@@ -234,15 +238,28 @@ window.selectDate = (date) => {
     
     if(window.feather) feather.replace();
     
-    // Скрол до панелі
-    panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    // Скрол до панелі для зручності
+    panel.scrollIntoView({ behavior: 'smooth', block: 'center' });
 };
 
-// 🔥 ШВИДКЕ ПЕРЕНЕСЕННЯ
+window.closeDayPanel = () => {
+    document.getElementById('selectedDayPanel').classList.remove('active');
+    selectedDate = null;
+    renderCalendar();
+};
+
 window.quickReschedule = async (postId, newTimeStr) => {
     if (!newTimeStr) return;
-    if (!confirm('Перенести пост на цей час?')) {
+    
+    // Перевірка на минуле
+    if (new Date(newTimeStr) < new Date()) {
+        alert("Не можна планувати пости в минулому!");
         loadPosts(); // Скинути значення
+        return;
+    }
+
+    if (!confirm('Перенести пост на цей час?')) {
+        loadPosts(); 
         return;
     }
 
@@ -250,22 +267,12 @@ window.quickReschedule = async (postId, newTimeStr) => {
         const post = allPosts.find(p => p.id === postId);
         if(!post) return;
 
-        // Створюємо FormData для відправки (як вимагає ваш бекенд updateScheduledPost)
+        // Використовуємо FormData, як вимагає ваш бекенд
         const formData = new FormData();
-        formData.append('post_text', post.text); // Текст залишаємо старим
+        formData.append('post_text', post.text); // Текст обов'язковий, передаємо старий
         formData.append('post_at', new Date(newTimeStr).toISOString());
         
-        // Якщо є медіа, їх треба передати або бекенд повинен не чіпати їх, якщо не передано нових
-        // Ваша поточна реалізація update_scheduled_post_handler оновлює фото тільки якщо передані нові.
-        // Тож можна відправляти пусті фото/відео.
-
-        // Викликаємо функцію з api.js, яку ми імпортували, але тут прямий виклик fetch для простоти або імпорт updateScheduledPost
-        // Краще використати існуючий метод, якщо він експортований. 
-        // Припустимо, ми можемо перевикористати логіку. 
-        
-        // Але оскільки updateScheduledPost вимагає form-data і це складно емулювати без файлів,
-        // простіше зробити запит тут:
-        
+        // Запит через fetch напряму (або через api.js wrapper)
         const backendUrl = 'https://my-telegram-task-bot-5c4258bd3f9b.herokuapp.com';
         await fetch(`${backendUrl}/api/scheduled_posts/${postId}/update`, {
             method: 'POST',
@@ -273,15 +280,15 @@ window.quickReschedule = async (postId, newTimeStr) => {
             body: formData
         });
 
-        // Успіх
-        loadPosts(); // Перезавантажити все
+        // Оновлюємо дані
+        await loadPosts(); 
     } catch (e) {
         alert('Помилка при перенесенні');
         console.error(e);
     }
 };
 
-// --- BULK ACTIONS ---
+// --- BULK ACTIONS (Без змін) ---
 window.toggleSelect = (id) => {
     if(selectedPosts.has(id)) selectedPosts.delete(id);
     else selectedPosts.add(id);
@@ -297,7 +304,8 @@ function updateBulkBar() {
     const count = document.getElementById('selectedCount');
     if(!bar) return;
     count.innerText = selectedPosts.size;
-    bar.classList.toggle('visible', selectedPosts.size > 0);
+    if(selectedPosts.size > 0) bar.classList.add('visible');
+    else bar.classList.remove('visible');
 }
 
 // API WRAPPERS

@@ -211,7 +211,6 @@
 
         <!-- CALENDAR VIEW -->
         <div id="calendarView" class="calendar-wrapper">
-            <div id="calendarView" class="calendar-wrapper">
             <div class="calendar-header">
                 <button class="cal-nav-btn" onclick="changeMonth(-1)"><i data-feather="chevron-left"></i></button>
                 <div class="month-label" id="calMonthLabel">Січень 2025</div>
@@ -226,11 +225,18 @@
                 <div class="cal-day-name">Пт</div>
                 <div class="cal-day-name">Сб</div>
                 <div class="cal-day-name">Нд</div>
-            </div>
+                </div>
+        </div>
 
-            <div id="selectedDayPanel">
-                <h3 id="selectedDayTitle" style="margin-top:0; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:10px;">Завдання</h3>
-            <div id="selectedDayList"></div>
+        <div id="selectedDayPanel">
+            <div class="day-panel-header">
+                <div class="day-panel-title" id="selectedDayTitle">
+                    <i data-feather="calendar"></i> <span>19 Грудня</span>
+                </div>
+                <button class="icon-btn" onclick="closeDayPanel()"><i data-feather="x"></i></button>
+            </div>
+            <div id="selectedDayList">
+                </div>
         </div>
 
     </div>
