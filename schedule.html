@@ -2,138 +2,282 @@
 <html lang="uk" class="dark">
 <head>
     <meta charset="UTF-8">
-    <script src="auth-guard.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Створити Пост</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    <script src="auth-guard.js"></script>
 
     <style>
-        .markdown-toolbar {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
-            padding: 8px;
-            margin-bottom: 8px;
-            border: 1px solid var(--color-border);
-            border-radius: var(--border-radius-sm);
-            background: var(--color-bg-light);
-            box-shadow: var(--shadow-neumorph-inset);
+        /* --- Cosmic Creator Styles --- */
+        body {
+            background-color: #020617;
+            min-height: 100vh;
+            color: white;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+            padding-bottom: 100px;
         }
-        :root.dark .markdown-toolbar {
-             background-color: rgba(0,0,0,0.1);
+
+        /* Background Effects */
+        .noise-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E");
+            pointer-events: none; z-index: -1;
+        }
+        .bg-orb {
+            position: fixed; border-radius: 50%; filter: blur(100px); opacity: 0.3; z-index: -2;
+            animation: floatOrb 20s ease-in-out infinite alternate;
+        }
+        .orb-1 { width: 600px; height: 600px; background: #10b981; top: -200px; left: -100px; opacity: 0.2; } /* Emerald */
+        .orb-2 { width: 500px; height: 500px; background: #3b82f6; bottom: -150px; right: -150px; animation-delay: -5s; } /* Blue */
+        
+        @keyframes floatOrb { 0% { transform: translate(0, 0); } 100% { transform: translate(30px, 30px); } }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Layout */
+        .container-main { max-width: 1300px; margin: 0 auto; padding: 20px; }
+        
+        .main-container {
+            display: grid; grid-template-columns: 1fr; gap: 30px;
+        }
+        @media (min-width: 1024px) {
+            .main-container { grid-template-columns: 1.4fr 1fr; align-items: start; }
+        }
+
+        /* Glass Card */
+        .card {
+            background: rgba(30, 41, 59, 0.4);
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 24px; padding: 30px;
+            box-shadow: 0 20px 50px -10px rgba(0, 0, 0, 0.3);
+            animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        h1 {
+            font-weight: 800; margin-bottom: 25px; font-size: 1.8rem; margin-top: 0;
+            background: linear-gradient(135deg, #fff, #94a3b8);
+            -webkit-background-clip: text; background-clip: text; color: transparent;
+            display: flex; align-items: center; gap: 10px;
+        }
+
+        /* Inputs & Form */
+        .form-group { margin-bottom: 20px; }
+        
+        label {
+            color: #94a3b8; font-size: 0.85rem; font-weight: 600; text-transform: uppercase;
+            letter-spacing: 0.5px; margin-bottom: 8px; display: block;
+        }
+        
+        input, select, textarea {
+            background: rgba(0, 0, 0, 0.2) !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            color: white !important; border-radius: 12px !important;
+            padding: 12px 15px !important; font-size: 1rem !important;
+            transition: 0.3s !important; width: 100%; box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+        input:focus, select:focus, textarea:focus {
+            border-color: var(--color-primary) !important;
+            box-shadow: 0 0 0 3px rgba(var(--color-primary-rgb), 0.2) !important;
+            background: rgba(0, 0, 0, 0.4) !important; outline: none;
+        }
+
+        /* Markdown Toolbar */
+        .markdown-toolbar {
+            display: flex; gap: 8px; padding: 8px; margin-bottom: 10px;
+            background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 12px; flex-wrap: wrap;
         }
         .toolbar-btn {
-            background-color: var(--color-bg-card);
-            backdrop-filter: blur(10px);
-            border: 1px solid var(--color-border);
-            color: var(--color-text-dark);
-            border-radius: 6px;
-            padding: 6px 10px;
-            cursor: pointer;
-            font-size: 0.9em;
-            font-weight: 600;
-            box-shadow: var(--shadow-sm);
-            transition: all 0.15s ease-out;
+            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+            color: #cbd5e1; border-radius: 8px; padding: 6px 12px; cursor: pointer;
+            font-size: 0.9em; font-weight: 600; transition: 0.2s;
+            display: flex; align-items: center; justify-content: center; min-width: 36px;
         }
         .toolbar-btn:hover {
-            background-color: var(--color-bg-light);
-            border-color: var(--color-primary);
-            color: var(--color-primary);
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-md);
+            background: var(--color-primary); color: white; border-color: var(--color-primary);
+            box-shadow: 0 0 15px rgba(var(--color-primary-rgb), 0.4);
         }
-        .toolbar-btn svg {
-            width: 16px;
-            height: 16px;
-            stroke: currentColor;
-            vertical-align: middle;
+
+        /* File Input Styling */
+        input[type="file"] {
+            padding: 10px; cursor: pointer; font-size: 0.9em;
         }
+        input[type="file"]::file-selector-button {
+            background: rgba(255,255,255,0.1); border: none; color: white;
+            padding: 5px 10px; border-radius: 6px; margin-right: 10px; cursor: pointer; transition: 0.2s;
+        }
+        input[type="file"]::file-selector-button:hover { background: rgba(255,255,255,0.2); }
+
+        /* Buttons */
+        .form-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 30px; }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6, #2563eb); border: none; color: white;
+            padding: 14px; border-radius: 12px; font-weight: 700; cursor: pointer; transition: 0.2s;
+            box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4);
+        }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(37, 99, 235, 0.5); }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #10b981, #059669); border: none; color: white;
+            padding: 14px; border-radius: 12px; font-weight: 700; cursor: pointer; transition: 0.2s;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+        }
+        .btn-success:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(16, 185, 129, 0.5); }
+
+        .quick-link {
+            display: inline-block; margin-top: 20px; color: #94a3b8; text-decoration: none; 
+            font-size: 0.9em; transition: 0.2s; border-bottom: 1px dashed rgba(255,255,255,0.2);
+        }
+        .quick-link:hover { color: var(--color-primary); border-color: var(--color-primary); }
+
+        /* Preview Card Specifics */
+        .preview-card {
+            position: sticky; top: 20px; padding: 0 !important; border: none !important;
+            background: transparent !important; box-shadow: none !important;
+        }
+        
+        .iphone-mockup {
+            border: 1px solid rgba(255,255,255,0.1); border-radius: 40px;
+            background: #000; padding: 12px; box-shadow: 0 30px 80px rgba(0,0,0,0.5);
+            max-width: 400px; margin: 0 auto;
+        }
+        
+        .tg-window {
+            background-color: #0e1621; height: 650px; border-radius: 30px;
+            display: flex; flex-direction: column; overflow: hidden; position: relative;
+        }
+
+        /* Status Message */
+        #statusMessage { margin-top: 15px; text-align: center; font-weight: 600; padding: 10px; border-radius: 10px; display: none; }
+        #statusMessage.success { display: block; background: rgba(16, 185, 129, 0.1); color: #34d399; }
+        #statusMessage.error { display: block; background: rgba(239, 68, 68, 0.1); color: #f87171; }
     </style>
-    </head>
+</head>
 <body>
+
+    <div class="noise-overlay"></div>
+    <div class="bg-orb orb-1"></div>
+    <div class="bg-orb orb-2"></div>
 
     <div class="container-main">
         <div class="main-container">
+            
+            <!-- EDITOR COLUMN -->
             <div class="card">
-                <h1>Планування нового поста</h1>
+                <h1><i data-feather="edit-3"></i> Новий Пост</h1>
+                
                 <div class="form-group">
-                    <label for="template-select">Оберіть шаблон новини:</label>
+                    <label for="template-select"><i data-feather="layout" style="width:14px; vertical-align:middle"></i> Шаблон</label>
                     <select id="template-select"></select>
                 </div>
                 
                 <form id="postForm">
+                    <!-- Dynamic fields from template -->
                     <div id="dynamic-form-fields"></div>
-                    <div class="form-group">
-                        <label for="channel_select">Опублікувати в канал:</label>
+                    
+                    <div class="form-group" style="margin-top: 20px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 20px;">
+                        <label for="channel_select"><i data-feather="radio" style="width:14px; vertical-align:middle"></i> Канал публікації</label>
                         <select id="channel_select" name="target_channel_id">
-                            </select>
+                            <option value="" disabled selected>Завантаження каналів...</option>
+                        </select>
                     </div>
+
                     <div class="form-group">
-                        <label for="post_text">Текст поста (MarkdownV2):</label>
-                        <small class="form-hint">Форматування: *жирний*, _курсив_, ~закреслений~, `код`</small>
+                        <label for="post_text"><i data-feather="file-text" style="width:14px; vertical-align:middle"></i> Текст (Markdown V2)</label>
                         
                         <div class="markdown-toolbar">
-                            <button type="button" class="toolbar-btn" id="toolbar-bold" title="Жирний (Ctrl+B)"><b>B</b></button>
-                            <button type="button" class="toolbar-btn" id="toolbar-italic" title="Курсив (Ctrl+I)"><i>I</i></button>
+                            <button type="button" class="toolbar-btn" id="toolbar-bold" title="Жирний"><b>B</b></button>
+                            <button type="button" class="toolbar-btn" id="toolbar-italic" title="Курсив"><i>I</i></button>
                             <button type="button" class="toolbar-btn" id="toolbar-strike" title="Закреслений"><s>S</s></button>
-                            <button type="button" class="toolbar-btn" id="toolbar-code" title="Код">`&lt;/&gt;`</button>
-                            <button type="button" class="toolbar-btn" id="toolbar-link" title="Посилання (Ctrl+K)">
-                                <i data-feather="link"></i>
-                            </button>
+                            <button type="button" class="toolbar-btn" id="toolbar-code" title="Код"><i data-feather="code" style="width:14px"></i></button>
+                            <button type="button" class="toolbar-btn" id="toolbar-link" title="Посилання"><i data-feather="link" style="width:14px"></i></button>
                         </div>
-                        <textarea id="post_text" name="post_text" rows="15" required></textarea>
+                        
+                        <textarea id="post_text" name="post_text" rows="12" required placeholder="Почніть писати тут..."></textarea>
+                        <small style="color: #64748b; font-size: 0.8em; margin-top: 5px; display: block;">* Підтримує форматування Telegram</small>
                     </div>
+                    
+                    <div class="form-group">
+                        <label><i data-feather="image" style="width:14px; vertical-align:middle"></i> Медіа</label>
+                        <input type="file" id="post_photo" name="post_photo" accept="image/*,video/*">
+                    </div>
+
                     <div class="form-group scheduling-group">
-                        <label for="post_at">Запланувати на:</label>
+                        <label for="post_at"><i data-feather="calendar" style="width:14px; vertical-align:middle"></i> Час публікації</label>
                         <input type="datetime-local" id="post_at" name="post_at">
                     </div>
+
                     <div class="form-actions">
-                        <button type="submit" id="scheduleBtn" class="btn btn-primary">Запланувати пост</button>
-                        <button type="button" id="postNowBtn" class="btn btn-success">Опублікувати зараз</button>
+                        <button type="submit" id="scheduleBtn" class="btn-primary">
+                            <i data-feather="clock" style="vertical-align:middle; width:16px;"></i> Запланувати
+                        </button>
+                        <button type="button" id="postNowBtn" class="btn-success">
+                            <i data-feather="send" style="vertical-align:middle; width:16px;"></i> Опублікувати
+                        </button>
                     </div>
                 </form>
-                <a href="schedule-list.html" class="quick-link">Переглянути список постів →</a>
-                <div id="statusMessage"></div>
+                
+                <div style="text-align:center;">
+                    <div id="statusMessage"></div>
+                    <a href="schedule-list.html" class="quick-link">Історія запланованих постів →</a>
+                </div>
             </div>
-            <div class="card preview-card">
-                <div class="tg-window">
-                    <div class="tg-header">
-                        <div class="tg-avatar">
-                            <span>N</span> 
-                        </div>
-                        <div class="tg-header-info">
-                            <span class="tg-name">Новини Капіталу 🇺🇦</span>
-                             <span class="tg-subs">5 432 підписників</span>
-                        </div>
-                    </div>
 
-                    <div class="tg-chat-area">
-                        <div class="tg-date-badge">Сьогодні</div>
-
-                        <div class="tg-message">
-                            <div id="preview-media" class="tg-media-wrapper"></div>
-                            
-                            <div class="tg-text-content">
-                                <span id="preview-content"></span>
-                                <span class="tg-meta">
-                                    <span class="tg-views-icon"></span>
-                                    <span class="tg-views-count">1.2K</span>
-                                    <span class="tg-time" id="preview-time">14:05</span>
-                                </span>
+            <!-- PREVIEW COLUMN -->
+            <div class="preview-card">
+                <div style="text-align: center; color: #94a3b8; font-weight: 600; margin-bottom: 10px; font-size: 0.9em; text-transform: uppercase; letter-spacing: 1px;">Live Preview</div>
+                <div class="iphone-mockup">
+                    <div class="tg-window">
+                        <!-- Telegram Header -->
+                        <div class="tg-header">
+                            <div class="tg-avatar">
+                                <span>N</span> 
+                            </div>
+                            <div class="tg-header-info">
+                                <span class="tg-name">Новини Капіталу 🇺🇦</span>
+                                <span class="tg-subs">5 432 підписників</span>
                             </div>
                         </div>
-                    </div>
 
-                    <div class="tg-footer-bar">
-                        <i data-feather="paperclip" class="tg-icon"></i>
-                        <div class="tg-input-fake">Транслювати...</div>
-                        <i data-feather="mic" class="tg-icon"></i>
+                        <!-- Chat Area -->
+                        <div class="tg-chat-area">
+                            <div class="tg-date-badge">Сьогодні</div>
+
+                            <div class="tg-message">
+                                <div id="preview-media" class="tg-media-wrapper"></div>
+                                
+                                <div class="tg-text-content">
+                                    <span id="preview-content"></span>
+                                    <span class="tg-meta">
+                                        <span class="tg-views-icon"></span>
+                                        <span class="tg-views-count">1.2K</span>
+                                        <span class="tg-time" id="preview-time">14:05</span>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Footer -->
+                        <div class="tg-footer-bar">
+                            <i data-feather="paperclip" class="tg-icon"></i>
+                            <div class="tg-input-fake">Транслювати...</div>
+                            <i data-feather="mic" class="tg-icon"></i>
+                        </div>
                     </div>
                 </div>
             </div>
+            
         </div>
     </div>
     
     <script type="module" src="schedule.js"></script>
 
+    <!-- FAB Menu -->
     <div class="fab-container">
         <div class="fab-options">
             <a href="#" onclick="logout(); return false;" class="fab-option" style="color: var(--color-danger);">
@@ -141,14 +285,13 @@
             </a>
             <a href="index.html" class="fab-option"><i data-feather="plus-circle"></i><span>Створити Завдання</span></a>
             <a href="task-list.html" class="fab-option"><i data-feather="list"></i><span>Список Завдань</span></a>
-            <a href="schedule.html" class="fab-option"><i data-feather="calendar"></i><span>Запланувати Пост</span></a>
+            <a href="schedule.html" class="fab-option active"><i data-feather="calendar"></i><span>Запланувати Пост</span></a>
             <a href="schedule-list.html" class="fab-option"><i data-feather="clock"></i><span>Список Постів</span></a>
-            
             <a href="ads.html" class="fab-option"><i data-feather="megaphone"></i><span>Реклама</span></a>
             <a href="history.html" class="fab-option"><i data-feather="archive"></i><span>Історія</span></a>
             <a href="chat.html" class="fab-option"><i data-feather="message-circle"></i><span>AI Чат</span></a>
             <a href="settings.html" class="fab-option"><i data-feather="settings"></i><span>Налаштування</span></a>
-            <a href="admin.html" class="fab-option"><i data-feather="settings"></i><span>ADMIN</span></a>
+            <a href="admin.html" class="fab-option"><i data-feather="shield"></i><span>ADMIN</span></a>
         </div>
         <button class="fab-main" id="fab-toggle">
             <i class="fab-main-icon fab-icon-menu" data-feather="menu"></i>
@@ -156,104 +299,28 @@
         </button>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
     <script>
         feather.replace(); 
-
         const fabContainer = document.querySelector('.fab-container');
-        
-        // --- Виправлення "стрибка" кнопки при завантаженні ---
-        window.addEventListener('pageshow', (event) => {
-            if (fabContainer) fabContainer.classList.remove('active');
-        });
-
-        // --- Логіка "Ховання" в бік ---
+        window.addEventListener('pageshow', () => { if (fabContainer) fabContainer.classList.remove('active'); });
         let idleTimer;
-        
-        // Функція: ховаємо кнопку (додаємо клас .is-idle)
-        const setIdle = () => {
-            // Ховаємо, тільки якщо меню НЕ відкрите
-            if (fabContainer && !fabContainer.classList.contains('active')) {
-                fabContainer.classList.add('is-idle');
-            }
-        };
-
-        // Функція: показуємо кнопку (скидаємо таймер)
-        const resetIdleTimer = () => {
-            clearTimeout(idleTimer);
-            if (fabContainer) fabContainer.classList.remove('is-idle');
-            // Через 4 секунди бездіяльності - ховаємо
-            idleTimer = setTimeout(setIdle, 4000);
-        };
-
-        // Запускаємо таймер одразу
+        const setIdle = () => { if (fabContainer && !fabContainer.classList.contains('active')) fabContainer.classList.add('is-idle'); };
+        const resetIdleTimer = () => { clearTimeout(idleTimer); if (fabContainer) fabContainer.classList.remove('is-idle'); idleTimer = setTimeout(setIdle, 4000); };
         resetIdleTimer();
-
-        // --- ВАЖЛИВО: Прибираємо 'mousemove' з глобальних подій ---
-        // Тепер кнопка не вилазить, якщо ви просто водите мишкою по центру екрану.
-        // Вона вилізе тільки якщо ви наведете на неї (CSS :hover) або почнете скролити/писати.
-        ['scroll', 'touchstart', 'click', 'keypress'].forEach(event => 
-            document.addEventListener(event, resetIdleTimer)
-        );
-
-        // Якщо навели мишку саме на кнопку - вона прокидається і не ховається
-        if (fabContainer) {
-            fabContainer.addEventListener('mouseenter', () => {
-                clearTimeout(idleTimer);
-                fabContainer.classList.remove('is-idle');
-            });
-            
-            // Коли мишка йде з кнопки - запускаємо таймер знову
-            fabContainer.addEventListener('mouseleave', resetIdleTimer);
-        }
-
-        // --- Логіка кліку (відкриття меню) ---
-        document.getElementById('fab-toggle').addEventListener('click', (e) => {
-            e.stopPropagation(); // Щоб не спрацював клік на document
-            fabContainer.classList.toggle('active');
-            
-            // Якщо відкрили - прибираємо idle
-            if (fabContainer.classList.contains('active')) {
-                fabContainer.classList.remove('is-idle');
-                clearTimeout(idleTimer);
-            } else {
-                resetIdleTimer();
-            }
-        });
-
-        // Закриття при кліку поза кнопкою
-        document.addEventListener('click', (e) => {
-            if (fabContainer && fabContainer.classList.contains('active') && !fabContainer.contains(e.target)) {
-                fabContainer.classList.remove('active');
-                resetIdleTimer();
-            }
-        });
+        ['scroll', 'touchstart', 'click', 'keypress'].forEach(event => document.addEventListener(event, resetIdleTimer));
         
-        // ... (код активного посилання та теми залишається без змін) ...
-        try {
-            const currentPage = window.location.pathname.split('/').pop() || 'index.html';
-            document.querySelectorAll('.fab-option[href]').forEach(link => {
-                // Спрощена перевірка
-                if (link.getAttribute('href') === currentPage) {
-                    link.classList.add('active');
-                }
-            });
-        } catch (e) { console.error(e); }
+        document.getElementById('fab-toggle').addEventListener('click', (e) => {
+            e.stopPropagation(); fabContainer.classList.toggle('active');
+            if (fabContainer.classList.contains('active')) { fabContainer.classList.remove('is-idle'); clearTimeout(idleTimer); } else { resetIdleTimer(); }
+        });
+        document.addEventListener('click', (e) => {
+            if (fabContainer && fabContainer.classList.contains('active') && !fabContainer.contains(e.target)) { fabContainer.classList.remove('active'); resetIdleTimer(); }
+        });
 
-        (function() {
-            // Тільки застосовуємо тему, без обробки кліків (кнопки тут немає)
-            const htmlEl = document.documentElement;
-            const savedTheme = localStorage.getItem('theme');
-            const isXmas = localStorage.getItem('theme-xmas') === 'true';
-
-            if (isXmas) {
-                htmlEl.classList.add('theme-xmas');
-                htmlEl.classList.add('dark');
-            } else {
-                if (savedTheme === 'light') htmlEl.classList.remove('dark'); 
-                else htmlEl.classList.add('dark');
-            }
-        })();
+        // Initialize Theme if needed
+        if(localStorage.getItem('theme-xmas') === 'true') {
+            document.documentElement.classList.add('theme-xmas');
+        }
     </script>
 </body>
 </html>
