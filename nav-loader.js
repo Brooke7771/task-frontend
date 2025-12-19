@@ -113,29 +113,49 @@ document.addEventListener("DOMContentLoaded", () => {
             position: relative;
         }
 
+        /* ІКОНКИ: Приглушені за замовчуванням */
         .nav-link i { 
             width: 20px; height: 20px; flex-shrink: 0; 
             transition: 0.3s; position: relative; z-index: 2; 
+            opacity: 0.5; /* 🔥 Приглушено */
+            filter: grayscale(0.6);
         }
         
+        /* При наведенні на САЙДБАР: Всі іконки стають яскравішими */
+        .nebula-sidebar:hover .nav-link i {
+            opacity: 0.8;
+            filter: grayscale(0.2);
+        }
+
+        /* При наведенні на ПУНКТ: Максимальна яскравість */
+        .nav-link:hover i {
+            opacity: 1;
+            filter: grayscale(0);
+            color: white;
+            transform: scale(1.1);
+        }
+
         .nav-text { 
             font-weight: 500; font-size: 0.95rem; opacity: 0; 
             transform: translateX(-10px); transition: 0.3s; 
         }
         .nebula-sidebar:hover .nav-text { opacity: 1; transform: translateX(0); }
 
-        /* Hover Effect */
+        /* Hover Effect Background */
         .nav-link:hover { 
             background: rgba(255,255,255,0.08); color: white; 
         }
-        .nav-link:hover i { transform: scale(1.1); color: #fff; }
 
-        /* Active State */
+        /* Active State (Overrides everything) */
         .nav-link.active {
             background: rgba(99, 102, 241, 0.15); 
             color: white;
         }
-        .nav-link.active i { color: var(--primary); filter: drop-shadow(0 0 8px var(--primary)); }
+        .nav-link.active i { 
+            color: var(--primary); 
+            filter: drop-shadow(0 0 8px var(--primary)); 
+            opacity: 1; /* Завжди видно */
+        }
         .nav-link.active .nav-text { font-weight: 700; }
         
         /* Active Indicator Line */
@@ -229,19 +249,18 @@ document.addEventListener("DOMContentLoaded", () => {
     document.head.insertAdjacentHTML("beforeend", navStyles);
 
     // 4. Конфігурація посилань
-    // Типи: 'main' (основне), 'system' (низ), 'mobile-main' (в барі), 'menu' (в сітці)
     const links = [
         // --- ОСНОВНІ ---
         { href: 'index.html', icon: 'plus-square', text: 'Створити Завдання', type: ['main', 'menu'] },
-        { href: 'schedule.html', icon: 'edit-3', text: 'Створити Пост', type: ['main', 'menu'] }, // Додано
+        { href: 'schedule.html', icon: 'edit-3', text: 'Створити Пост', type: ['main', 'menu'] },
         { href: 'task-list.html', icon: 'trello', text: 'Завдання', type: ['main', 'mobile-main'] },
-        { href: 'schedule-list.html', icon: 'clock', text: 'Черга', type: ['main', 'mobile-main'] },
-        { href: 'chat.html', icon: 'message-circle', text: 'AI Асистент', type: ['main', 'mobile-main'] },
-        { href: 'ads.html', icon: 'megaphone', text: 'Реклама', type: ['main', 'menu'] },
+        { href: 'schedule-list.html', icon: 'clock', text: 'Черга', type: ['main', 'mobile-main'] }, // Для мобільного бару
+        { href: 'chat.html', icon: 'message-circle', text: 'AI Асистент', type: ['main', 'mobile-main'] }, // Для мобільного бару
+        { href: 'ads.html', icon: 'megaphone', text: 'Реклама', type: ['main', 'menu'] }, // 🔥 Є в меню
         { href: 'history.html', icon: 'archive', text: 'Історія', type: ['main', 'menu'] },
         
         // --- СИСТЕМНІ ---
-        { href: 'settings.html', icon: 'settings', text: 'Налаштування', type: ['system', 'mobile-main'] },
+        { href: 'settings.html', icon: 'settings', text: 'Налаштування', type: ['system', 'menu'] },
         { href: 'admin.html', icon: 'shield', text: 'Адмін-панель', type: ['system', 'menu'], adminOnly: true },
         { href: '#', icon: 'log-out', text: 'Вийти', type: ['system', 'menu'], action: 'logout', danger: true }
     ];
@@ -250,7 +269,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const sidebar = document.createElement('nav');
     sidebar.className = 'nebula-sidebar';
     
-    // Логотип (веде на landing.html)
     let sidebarHTML = `
         <a href="landing.html" class="nav-logo" title="Про Бот">
             <div class="logo-icon"><i data-feather="zap"></i></div>
@@ -271,7 +289,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Системні лінки
     links.forEach(l => {
         if (l.type.includes('system')) {
-            if (l.adminOnly && !isAdmin) return; // Пропускаємо адмінку
+            if (l.adminOnly && !isAdmin) return;
             sidebarHTML += renderLink(l);
         }
     });
@@ -280,7 +298,7 @@ document.addEventListener("DOMContentLoaded", () => {
     sidebar.innerHTML = sidebarHTML;
     document.body.appendChild(sidebar);
 
-    // Додаємо слухач для Spotlight ефекту
+    // Слухач для Spotlight ефекту
     sidebar.addEventListener('mousemove', (e) => {
         const rect = sidebar.getBoundingClientRect();
         const x = e.clientX - rect.left;
@@ -304,12 +322,15 @@ document.addEventListener("DOMContentLoaded", () => {
     const mobileBar = document.createElement('nav');
     mobileBar.className = 'orbital-bar';
     
-    // Фільтруємо 4 основні лінки для бару
-    const mobLinks = links.filter(l => l.type.includes('mobile-main')).slice(0, 4);
-    // Розбиваємо на 2 зліва і 2 справа
-    const leftLinks = mobLinks.slice(0, 2);
-    const rightLinks = mobLinks.slice(2, 4);
-
+    // Фільтруємо лінки для мобільного бару (4 шт макс)
+    const mobLinks = links.filter(l => l.type.includes('mobile-main'));
+    
+    // Отримуємо конкретні посилання для слотів
+    const slot1 = mobLinks[0]; // Завдання
+    const slot2 = mobLinks[1]; // Черга
+    const slot3 = mobLinks[2]; // AI (або інше)
+    
+    // Допоміжна функція рендеру
     const renderMobLink = l => `
         <a href="${l.href}" class="mob-link">
             <i data-feather="${l.icon}"></i>
@@ -317,27 +338,31 @@ document.addEventListener("DOMContentLoaded", () => {
         </a>
     `;
 
+    // 🔥 Схема: [Home] [Slot1] [ORB] [Slot2] [Slot3]
     mobileBar.innerHTML = `
         <a href="index.html" class="mob-link"><i data-feather="home"></i><span>Головна</span></a>
-        ${leftLinks[1] ? renderMobLink(leftLinks[1]) : ''}
+        ${slot1 ? renderMobLink(slot1) : ''}
         
         <div class="orb-wrapper">
             <div class="orb-btn" id="orbBtn"><i data-feather="grid"></i></div>
         </div>
 
-        ${rightLinks[0] ? renderMobLink(rightLinks[0]) : ''}
-        ${rightLinks[1] ? renderMobLink(rightLinks[1]) : ''}
+        ${slot2 ? renderMobLink(slot2) : ''}
+        ${slot3 ? renderMobLink(slot3) : ''}
     `;
     document.body.appendChild(mobileBar);
 
-    // 7. Мобільне меню (Grid)
+    // 7. Мобільне меню (Grid - Решта посилань)
     const menuOverlay = document.createElement('div');
     menuOverlay.className = 'orbital-menu';
     menuOverlay.id = 'orbitalMenu';
     
     let gridHTML = `<div class="menu-grid">`;
     links.forEach(l => {
-        if (!l.type.includes('mobile-main') && (!l.adminOnly || isAdmin)) {
+        // Показуємо в меню все, що не в головному барі, плюс рекламу
+        const isInBar = l.type.includes('mobile-main') || l.href === 'index.html';
+        
+        if ((!isInBar || l.href === 'ads.html') && (!l.adminOnly || isAdmin)) {
              const action = l.action === 'logout' ? 'onclick="logout(); return false;"' : '';
              const style = l.danger ? 'border-color: rgba(248, 113, 113, 0.3); color: #fca5a5;' : '';
              gridHTML += `
@@ -356,7 +381,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const currentPath = window.location.pathname.split('/').pop() || 'index.html';
     document.querySelectorAll('.nav-link, .mob-link').forEach(el => {
         const href = el.getAttribute('href');
-        // Перевірка на точний збіг або якщо href міститься в шляху (для підменю, якщо будуть)
         if (href === currentPath || (href !== '#' && currentPath.includes(href))) {
             el.classList.add('active');
         }
