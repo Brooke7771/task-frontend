@@ -4,35 +4,233 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Активні Завдання</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
     <script src="auth-guard.js"></script>
+    <style>
+        /* --- Cosmic Task List Styles --- */
+        body {
+            background-color: #020617;
+            min-height: 100vh;
+            color: white;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+            padding-bottom: 100px;
+        }
+
+        /* Background Effects */
+        .noise-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E");
+            pointer-events: none; z-index: -1;
+        }
+        .bg-orb {
+            position: fixed; border-radius: 50%; filter: blur(100px); opacity: 0.3; z-index: -2;
+            animation: floatOrb 20s ease-in-out infinite alternate;
+        }
+        .orb-1 { width: 600px; height: 600px; background: #10b981; top: -200px; left: -100px; opacity: 0.2; } /* Emerald */
+        .orb-2 { width: 500px; height: 500px; background: #3b82f6; bottom: -150px; right: -150px; animation-delay: -5s; } /* Blue */
+        
+        @keyframes floatOrb { 0% { transform: translate(0, 0); } 100% { transform: translate(30px, 30px); } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .container-main { max-width: 1000px; margin: 0 auto; padding: 20px; }
+
+        /* Header */
+        .header-bar {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 30px; flex-wrap: wrap; gap: 20px;
+        }
+        h1 {
+            font-weight: 800; font-size: 2rem; margin: 0;
+            background: linear-gradient(135deg, #fff, #34d399);
+            -webkit-background-clip: text; background-clip: text; color: transparent;
+            display: flex; align-items: center; gap: 10px;
+        }
+
+        .icon-btn {
+            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+            color: #cbd5e1; width: 40px; height: 40px; border-radius: 12px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; transition: 0.2s;
+        }
+        .icon-btn:hover { background: rgba(255,255,255,0.1); color: white; border-color: rgba(255,255,255,0.2); }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px; margin-bottom: 30px;
+        }
+        .stat-card {
+            background: rgba(30, 41, 59, 0.4); border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 16px; padding: 20px; display: flex; align-items: center; gap: 15px;
+            backdrop-filter: blur(10px); transition: 0.3s;
+        }
+        .stat-card:hover { transform: translateY(-3px); border-color: rgba(255,255,255,0.1); }
+        .stat-icon {
+            width: 45px; height: 45px; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center; font-size: 1.2rem;
+        }
+        .icon-total { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
+        .icon-open { background: rgba(34, 197, 94, 0.2); color: #4ade80; }
+        .icon-busy { background: rgba(239, 68, 68, 0.2); color: #fca5a5; }
+        
+        .stat-info div:first-child { color: #94a3b8; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; }
+        .stat-info div:last-child { color: white; font-size: 1.5rem; font-weight: 800; line-height: 1; margin-top: 5px; }
+
+        /* Filters */
+        .filters-bar {
+            background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.1); border-radius: 16px;
+            padding: 15px; display: flex; gap: 15px; margin-bottom: 30px;
+        }
+        .filter-input, .filter-select {
+            background: rgba(0,0,0,0.3) !important; border: 1px solid rgba(255,255,255,0.1) !important;
+            color: white !important; padding: 10px 15px !important; border-radius: 10px !important;
+            font-size: 0.95rem !important; transition: 0.2s !important;
+        }
+        .filter-input:focus, .filter-select:focus {
+            border-color: var(--color-primary) !important;
+            box-shadow: 0 0 0 3px rgba(var(--color-primary-rgb), 0.2) !important;
+        }
+        .filter-input { flex: 1; }
+
+        /* Tasks Grid */
+        #taskListContainer { display: grid; gap: 20px; }
+        
+        .task-card {
+            background: rgba(30, 41, 59, 0.4); backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.05); border-radius: 20px;
+            padding: 25px; transition: 0.3s; position: relative; overflow: hidden;
+            animation: fadeIn 0.4s ease; display: flex; flex-direction: column; gap: 15px;
+        }
+        .task-card:hover { transform: translateY(-5px); border-color: rgba(255,255,255,0.15); background: rgba(30, 41, 59, 0.6); }
+
+        .task-header { display: flex; justify-content: space-between; align-items: flex-start; }
+        .task-id { 
+            font-family: monospace; font-size: 0.9rem; color: #94a3b8; 
+            background: rgba(255,255,255,0.05); padding: 4px 8px; border-radius: 6px;
+        }
+        
+        .status-badge {
+            padding: 6px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 700;
+            text-transform: uppercase; display: flex; align-items: center; gap: 6px;
+        }
+        .status-open { background: rgba(34, 197, 94, 0.15); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.3); }
+        .status-busy { background: rgba(239, 68, 68, 0.15); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.3); }
+
+        .task-text {
+            color: #e2e8f0; font-size: 1rem; line-height: 1.6; white-space: pre-wrap;
+        }
+
+        .task-footer {
+            display: flex; justify-content: space-between; align-items: center;
+            border-top: 1px solid rgba(255,255,255,0.05); padding-top: 15px; margin-top: 5px;
+        }
+
+        .people-count {
+            display: flex; align-items: center; gap: 8px; color: #cbd5e1; font-weight: 600; font-size: 0.9rem;
+        }
+        
+        /* Users List inside Card */
+        .users-section {
+            background: rgba(0,0,0,0.2); border-radius: 12px; padding: 12px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        .section-title { font-size: 0.8rem; color: #94a3b8; text-transform: uppercase; font-weight: 700; margin-bottom: 8px; }
+        
+        .user-chip {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: rgba(255,255,255,0.08); padding: 4px 10px; border-radius: 20px;
+            font-size: 0.85rem; margin-right: 5px; margin-bottom: 5px;
+        }
+        .user-chip.pending { border: 1px solid #facc15; color: #facc15; background: rgba(250, 204, 21, 0.1); }
+        .user-chip-actions { display: flex; gap: 5px; margin-left: 8px; }
+        
+        .mini-btn {
+            border: none; width: 24px; height: 24px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s;
+        }
+        .btn-approve { background: #22c55e; color: #020617; }
+        .btn-approve:hover { background: #16a34a; }
+        .btn-reject { background: #ef4444; color: white; }
+        .btn-reject:hover { background: #dc2626; }
+
+    </style>
 </head>
 <body>
 
+    <div class="noise-overlay"></div>
+    <div class="bg-orb orb-1"></div>
+    <div class="bg-orb orb-2"></div>
+
     <div class="container-main">
-        <div class="card"> 
-            <h1>Список активних завдань</h1>
-            <div id="taskListContainer">
-                <p>Завантаження завдань...</p>
+        
+        <div class="header-bar">
+            <h1><i data-feather="list"></i> Активні Завдання</h1>
+            <button class="icon-btn" onclick="loadTasks()" title="Оновити">
+                <i data-feather="refresh-cw"></i>
+            </button>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon icon-total"><i data-feather="layers"></i></div>
+                <div class="stat-info">
+                    <div>Всього</div>
+                    <div id="stat-total">0</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon icon-open"><i data-feather="check-circle"></i></div>
+                <div class="stat-info">
+                    <div>Вільні</div>
+                    <div id="stat-open">0</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon icon-busy"><i data-feather="clock"></i></div>
+                <div class="stat-info">
+                    <div>В роботі</div>
+                    <div id="stat-busy">0</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="filters-bar">
+            <div style="flex: 2; position: relative;">
+                <i data-feather="search" style="position: absolute; left: 12px; top: 12px; color: #94a3b8; width: 18px;"></i>
+                <input type="text" id="searchInput" class="filter-input" placeholder="Пошук завдань..." style="padding-left: 40px !important;">
+            </div>
+            <select id="statusFilter" class="filter-select">
+                <option value="all">Всі статуси</option>
+                <option value="Open">🟢 Вільні</option>
+                <option value="InProgress">🔴 В роботі</option>
+            </select>
+        </div>
+
+        <!-- Task List -->
+        <div id="taskListContainer">
+            <div style="text-align: center; padding: 50px; color: #64748b;">
+                <span class="loader"></span> Завантаження...
             </div>
         </div>
     </div>
     
     <script type="module" src="task-list.js"></script>
 
+    <!-- FAB Menu -->
     <div class="fab-container">
         <div class="fab-options">
             <a href="#" onclick="logout(); return false;" class="fab-option" style="color: var(--color-danger);">
                 <i data-feather="log-out"></i><span>Вийти</span>
             </a>
             <a href="index.html" class="fab-option"><i data-feather="plus-circle"></i><span>Створити Завдання</span></a>
-            <a href="task-list.html" class="fab-option"><i data-feather="list"></i><span>Список Завдань</span></a>
+            <a href="task-list.html" class="fab-option active"><i data-feather="list"></i><span>Список Завдань</span></a>
             <a href="schedule.html" class="fab-option"><i data-feather="calendar"></i><span>Запланувати Пост</span></a>
             <a href="schedule-list.html" class="fab-option"><i data-feather="clock"></i><span>Список Постів</span></a>
-            
             <a href="ads.html" class="fab-option"><i data-feather="megaphone"></i><span>Реклама</span></a>
             <a href="history.html" class="fab-option"><i data-feather="archive"></i><span>Історія</span></a>
             <a href="chat.html" class="fab-option"><i data-feather="message-circle"></i><span>AI Чат</span></a>
@@ -45,104 +243,23 @@
         </button>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
     <script>
         feather.replace(); 
-
         const fabContainer = document.querySelector('.fab-container');
-        
-        // --- Виправлення "стрибка" кнопки при завантаженні ---
-        window.addEventListener('pageshow', (event) => {
-            if (fabContainer) fabContainer.classList.remove('active');
-        });
-
-        // --- Логіка "Ховання" в бік ---
+        window.addEventListener('pageshow', () => { if (fabContainer) fabContainer.classList.remove('active'); });
         let idleTimer;
-        
-        // Функція: ховаємо кнопку (додаємо клас .is-idle)
-        const setIdle = () => {
-            // Ховаємо, тільки якщо меню НЕ відкрите
-            if (fabContainer && !fabContainer.classList.contains('active')) {
-                fabContainer.classList.add('is-idle');
-            }
-        };
-
-        // Функція: показуємо кнопку (скидаємо таймер)
-        const resetIdleTimer = () => {
-            clearTimeout(idleTimer);
-            if (fabContainer) fabContainer.classList.remove('is-idle');
-            // Через 4 секунди бездіяльності - ховаємо
-            idleTimer = setTimeout(setIdle, 4000);
-        };
-
-        // Запускаємо таймер одразу
+        const setIdle = () => { if (fabContainer && !fabContainer.classList.contains('active')) fabContainer.classList.add('is-idle'); };
+        const resetIdleTimer = () => { clearTimeout(idleTimer); if (fabContainer) fabContainer.classList.remove('is-idle'); idleTimer = setTimeout(setIdle, 4000); };
         resetIdleTimer();
-
-        // --- ВАЖЛИВО: Прибираємо 'mousemove' з глобальних подій ---
-        // Тепер кнопка не вилазить, якщо ви просто водите мишкою по центру екрану.
-        // Вона вилізе тільки якщо ви наведете на неї (CSS :hover) або почнете скролити/писати.
-        ['scroll', 'touchstart', 'click', 'keypress'].forEach(event => 
-            document.addEventListener(event, resetIdleTimer)
-        );
-
-        // Якщо навели мишку саме на кнопку - вона прокидається і не ховається
-        if (fabContainer) {
-            fabContainer.addEventListener('mouseenter', () => {
-                clearTimeout(idleTimer);
-                fabContainer.classList.remove('is-idle');
-            });
-            
-            // Коли мишка йде з кнопки - запускаємо таймер знову
-            fabContainer.addEventListener('mouseleave', resetIdleTimer);
-        }
-
-        // --- Логіка кліку (відкриття меню) ---
-        document.getElementById('fab-toggle').addEventListener('click', (e) => {
-            e.stopPropagation(); // Щоб не спрацював клік на document
-            fabContainer.classList.toggle('active');
-            
-            // Якщо відкрили - прибираємо idle
-            if (fabContainer.classList.contains('active')) {
-                fabContainer.classList.remove('is-idle');
-                clearTimeout(idleTimer);
-            } else {
-                resetIdleTimer();
-            }
-        });
-
-        // Закриття при кліку поза кнопкою
-        document.addEventListener('click', (e) => {
-            if (fabContainer && fabContainer.classList.contains('active') && !fabContainer.contains(e.target)) {
-                fabContainer.classList.remove('active');
-                resetIdleTimer();
-            }
-        });
+        ['scroll', 'touchstart', 'click', 'keypress'].forEach(event => document.addEventListener(event, resetIdleTimer));
         
-        // ... (код активного посилання та теми залишається без змін) ...
-        try {
-            const currentPage = window.location.pathname.split('/').pop() || 'index.html';
-            document.querySelectorAll('.fab-option[href]').forEach(link => {
-                // Спрощена перевірка
-                if (link.getAttribute('href') === currentPage) {
-                    link.classList.add('active');
-                }
-            });
-        } catch (e) { console.error(e); }
-
-        (function() {
-            // Тільки застосовуємо тему, без обробки кліків (кнопки тут немає)
-            const htmlEl = document.documentElement;
-            const savedTheme = localStorage.getItem('theme');
-            const isXmas = localStorage.getItem('theme-xmas') === 'true';
-
-            if (isXmas) {
-                htmlEl.classList.add('theme-xmas');
-                htmlEl.classList.add('dark');
-            } else {
-                if (savedTheme === 'light') htmlEl.classList.remove('dark'); 
-                else htmlEl.classList.add('dark');
-            }
-        })();
+        document.getElementById('fab-toggle').addEventListener('click', (e) => {
+            e.stopPropagation(); fabContainer.classList.toggle('active');
+            if (fabContainer.classList.contains('active')) { fabContainer.classList.remove('is-idle'); clearTimeout(idleTimer); } else { resetIdleTimer(); }
+        });
+        document.addEventListener('click', (e) => {
+            if (fabContainer && fabContainer.classList.contains('active') && !fabContainer.contains(e.target)) { fabContainer.classList.remove('active'); resetIdleTimer(); }
+        });
     </script>
 </body>
 </html>
