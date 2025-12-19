@@ -117,7 +117,7 @@ document.addEventListener("DOMContentLoaded", () => {
         .nav-link i { 
             width: 20px; height: 20px; flex-shrink: 0; 
             transition: 0.3s; position: relative; z-index: 2; 
-            opacity: 0.5; /* 🔥 Приглушено */
+            opacity: 0.5; /* 🔥 Приглушено, коли меню згорнуте і не активне */
             filter: grayscale(0.6);
         }
         
@@ -135,6 +135,18 @@ document.addEventListener("DOMContentLoaded", () => {
             transform: scale(1.1);
         }
 
+        /* АКТИВНИЙ СТАН (Перекриває все) */
+        .nav-link.active {
+            background: rgba(99, 102, 241, 0.15); 
+            color: white;
+        }
+        .nav-link.active i { 
+            color: var(--primary); 
+            filter: drop-shadow(0 0 8px var(--primary)) grayscale(0); 
+            opacity: 1 !important; /* 🔥 Завжди видно на 100% */
+        }
+        .nav-link.active .nav-text { font-weight: 700; }
+        
         .nav-text { 
             font-weight: 500; font-size: 0.95rem; opacity: 0; 
             transform: translateX(-10px); transition: 0.3s; 
@@ -145,18 +157,6 @@ document.addEventListener("DOMContentLoaded", () => {
         .nav-link:hover { 
             background: rgba(255,255,255,0.08); color: white; 
         }
-
-        /* Active State (Overrides everything) */
-        .nav-link.active {
-            background: rgba(99, 102, 241, 0.15); 
-            color: white;
-        }
-        .nav-link.active i { 
-            color: var(--primary); 
-            filter: drop-shadow(0 0 8px var(--primary)); 
-            opacity: 1; /* Завжди видно */
-        }
-        .nav-link.active .nav-text { font-weight: 700; }
         
         /* Active Indicator Line */
         .nav-link.active::before {
@@ -254,9 +254,9 @@ document.addEventListener("DOMContentLoaded", () => {
         { href: 'index.html', icon: 'plus-square', text: 'Створити Завдання', type: ['main', 'menu'] },
         { href: 'schedule.html', icon: 'edit-3', text: 'Створити Пост', type: ['main', 'menu'] },
         { href: 'task-list.html', icon: 'trello', text: 'Завдання', type: ['main', 'mobile-main'] },
-        { href: 'schedule-list.html', icon: 'clock', text: 'Черга', type: ['main', 'mobile-main'] }, // Для мобільного бару
-        { href: 'chat.html', icon: 'message-circle', text: 'AI Асистент', type: ['main', 'mobile-main'] }, // Для мобільного бару
-        { href: 'ads.html', icon: 'megaphone', text: 'Реклама', type: ['main', 'menu'] }, // 🔥 Є в меню
+        { href: 'schedule-list.html', icon: 'clock', text: 'Черга', type: ['main', 'mobile-main'] }, 
+        { href: 'ads.html', icon: 'megaphone', text: 'Реклама', type: ['main', 'menu'] }, // 🔥 Підняв вище
+        { href: 'chat.html', icon: 'message-circle', text: 'AI Асистент', type: ['main', 'mobile-main'] }, 
         { href: 'history.html', icon: 'archive', text: 'Історія', type: ['main', 'menu'] },
         
         // --- СИСТЕМНІ ---
@@ -328,7 +328,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Отримуємо конкретні посилання для слотів
     const slot1 = mobLinks[0]; // Завдання
     const slot2 = mobLinks[1]; // Черга
-    const slot3 = mobLinks[2]; // AI (або інше)
+    const slot3 = mobLinks[2]; // AI
     
     // Допоміжна функція рендеру
     const renderMobLink = l => `
