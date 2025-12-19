@@ -1,397 +1,327 @@
 document.addEventListener("DOMContentLoaded", () => {
-    // 1. Видаляємо старі елементи навігації, якщо вони є в HTML
-    const oldFab = document.querySelector('.fab-container');
-    const oldMobileNav = document.querySelector('.mobile-nav');
-    if (oldFab) oldFab.remove();
-    if (oldMobileNav) oldMobileNav.remove();
+    // 1. Очистка старих елементів (FAB, стара навігація)
+    const oldElements = document.querySelectorAll('.fab-container, .mobile-nav, .cosmic-sidebar, .cosmic-mobile-bar, .mobile-overlay-menu');
+    oldElements.forEach(el => el.remove());
 
-    // 2. CSS стилі (вбудовані для зручності)
+    // 2. Ін'єкція стилів "Nebula Dock"
     const navStyles = `
     <style>
-        /* --- CSS Змінні (базуються на вашому style.css) --- */
         :root {
-            --nav-width-collapsed: 70px;
-            --nav-width-expanded: 240px;
-            --nav-bg: rgba(15, 23, 42, 0.7);
+            --nav-z: 10000;
+            --nav-bg: rgba(10, 15, 30, 0.6);
             --nav-border: 1px solid rgba(255, 255, 255, 0.08);
-            --nav-blur: blur(20px);
-            --nav-z-index: 9999;
+            --nav-glass: blur(25px) saturate(180%);
+            --nav-glow: radial-gradient(circle at var(--x, 50%) var(--y, 50%), rgba(99, 102, 241, 0.15) 0%, transparent 50%);
+            --primary: #6366f1;
+            --primary-glow: 0 0 20px rgba(99, 102, 241, 0.6);
         }
 
-        /* --- DESKTOP SIDEBAR --- */
-        .cosmic-sidebar {
+        /* --- DESKTOP: NEBULA SIDEBAR --- */
+        .nebula-sidebar {
             position: fixed;
-            top: 0; left: 0;
-            height: 100vh;
-            width: var(--nav-width-collapsed);
+            top: 20px; left: 20px; bottom: 20px;
+            width: 80px;
             background: var(--nav-bg);
-            backdrop-filter: var(--nav-blur);
-            -webkit-backdrop-filter: var(--nav-blur);
-            border-right: var(--nav-border);
-            z-index: var(--nav-z-index);
+            backdrop-filter: var(--nav-glass);
+            -webkit-backdrop-filter: var(--nav-glass);
+            border: var(--nav-border);
+            border-radius: 24px;
+            z-index: var(--nav-z);
             display: flex;
             flex-direction: column;
-            transition: width 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+            padding: 20px 10px;
+            transition: width 0.5s cubic-bezier(0.23, 1, 0.32, 1);
             overflow: hidden;
-            padding: 20px 0;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
         }
 
-        .cosmic-sidebar:hover {
-            width: var(--nav-width-expanded);
-            background: rgba(15, 23, 42, 0.9);
-            box-shadow: 10px 0 30px rgba(0,0,0,0.3);
+        /* Ефект прожектора при наведенні */
+        .nebula-sidebar::before {
+            content: ''; position: absolute; inset: 0;
+            background: var(--nav-glow);
+            pointer-events: none; opacity: 0; transition: opacity 0.3s;
+            z-index: 0;
         }
+        .nebula-sidebar:hover::before { opacity: 1; }
+
+        .nebula-sidebar:hover { width: 260px; }
 
         /* Логотип */
         .nav-logo {
-            display: flex;
-            align-items: center;
-            justify-content: center; /* Центруємо іконку */
-            height: 50px;
-            margin-bottom: 30px;
-            color: white;
-            font-weight: 800;
-            font-size: 1.2rem;
-            text-decoration: none;
-            white-space: nowrap;
-            overflow: hidden;
+            display: flex; align-items: center; gap: 15px;
+            padding: 10px 14px; margin-bottom: 20px;
+            color: white; text-decoration: none; position: relative; z-index: 1;
+            white-space: nowrap; overflow: hidden;
         }
-        .nav-logo i { flex-shrink: 0; width: 24px; height: 24px; color: var(--color-primary); }
-        .nav-logo span { opacity: 0; margin-left: 15px; transition: opacity 0.2s; }
-        .cosmic-sidebar:hover .nav-logo span { opacity: 1; }
-        .cosmic-sidebar:hover .nav-logo { justify-content: flex-start; padding-left: 22px; }
+        .logo-icon-box {
+            width: 32px; height: 32px; flex-shrink: 0;
+            background: linear-gradient(135deg, var(--primary), #a855f7);
+            border-radius: 10px; display: flex; align-items: center; justify-content: center;
+            box-shadow: var(--primary-glow);
+        }
+        .nav-logo span { font-weight: 800; font-size: 1.1rem; opacity: 0; transition: 0.3s; transform: translateX(-10px); }
+        .nebula-sidebar:hover .nav-logo span { opacity: 1; transform: translateX(0); }
 
-        /* Посилання */
-        .nav-links {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-            padding: 0 10px;
-            overflow-y: auto;
-            scrollbar-width: none; /* Firefox */
+        /* Меню */
+        .nav-list {
+            flex: 1; display: flex; flex-direction: column; gap: 8px;
+            overflow-y: auto; scrollbar-width: none; position: relative; z-index: 1;
         }
-        .nav-links::-webkit-scrollbar { display: none; }
+        .nav-list::-webkit-scrollbar { display: none; }
 
-        .nav-item {
-            display: flex;
-            align-items: center;
-            height: 48px;
-            padding: 0 12px;
-            color: #94a3b8;
-            text-decoration: none;
-            border-radius: 12px;
-            transition: all 0.2s;
-            white-space: nowrap;
-            cursor: pointer;
-            position: relative;
-        }
-
-        .nav-item:hover {
-            background: rgba(255, 255, 255, 0.05);
-            color: white;
-        }
-
-        .nav-item.active {
-            background: rgba(var(--color-primary-rgb), 0.15);
-            color: white;
-        }
-        .nav-item.active::before {
-            content: ''; position: absolute; left: 0; top: 10%; height: 80%; width: 3px;
-            background: var(--color-primary); border-radius: 0 4px 4px 0;
-            box-shadow: 0 0 10px var(--color-primary);
-        }
-
-        .nav-item i {
-            width: 24px; height: 24px; flex-shrink: 0;
-            transition: transform 0.2s;
-        }
-        .nav-item:hover i { transform: scale(1.1); }
-
-        .nav-text {
-            margin-left: 15px;
-            opacity: 0;
-            transform: translateX(-10px);
-            transition: all 0.3s;
-            font-weight: 500;
-            font-size: 0.95rem;
+        .nav-link {
+            display: flex; align-items: center; gap: 16px;
+            padding: 14px; border-radius: 16px;
+            color: #94a3b8; text-decoration: none;
+            transition: 0.3s; position: relative;
+            white-space: nowrap; overflow: hidden;
         }
         
-        .cosmic-sidebar:hover .nav-text {
-            opacity: 1;
-            transform: translateX(0);
+        .nav-link i { width: 24px; height: 24px; flex-shrink: 0; transition: 0.3s; position: relative; z-index: 2; }
+        .nav-text { font-weight: 600; opacity: 0; transform: translateX(-10px); transition: 0.3s; position: relative; z-index: 2; }
+        .nebula-sidebar:hover .nav-text { opacity: 1; transform: translateX(0); }
+
+        /* Ховер ефект для пунктів */
+        .nav-link:hover { color: white; background: rgba(255,255,255,0.05); }
+        .nav-link:hover i { transform: scale(1.1); color: var(--primary); text-shadow: 0 0 10px var(--primary); }
+
+        /* Активний стан */
+        .nav-link.active { color: white; background: rgba(99, 102, 241, 0.15); border: 1px solid rgba(99, 102, 241, 0.3); }
+        .nav-link.active i { color: var(--primary); }
+        
+        /* Маркер активного елемента (світиться зліва) */
+        .nav-link.active::after {
+            content: ''; position: absolute; left: 0; top: 15%; bottom: 15%; width: 4px;
+            background: var(--primary); border-radius: 0 4px 4px 0;
+            box-shadow: 0 0 15px var(--primary);
         }
 
-        /* Роздільник */
-        .nav-divider {
-            height: 1px;
-            background: rgba(255,255,255,0.1);
-            margin: 10px 15px;
-        }
+        .nav-divider { height: 1px; background: rgba(255,255,255,0.1); margin: 10px 15px; }
 
-        /* Logout */
-        .nav-bottom {
-            margin-top: auto;
-            padding: 0 10px;
-        }
-        .item-logout:hover { color: #f87171; background: rgba(220, 38, 38, 0.1); }
-
-        /* --- MOBILE BOTTOM BAR --- */
-        .cosmic-mobile-bar {
+        /* --- MOBILE: ORBITAL BAR --- */
+        .orbital-bar {
             display: none;
-            position: fixed;
-            bottom: 20px; left: 50%;
-            transform: translateX(-50%);
-            width: 92%; max-width: 450px;
-            height: 70px;
+            position: fixed; bottom: 20px; left: 20px; right: 20px;
+            height: 75px;
             background: rgba(15, 23, 42, 0.85);
-            backdrop-filter: blur(25px);
-            -webkit-backdrop-filter: blur(25px);
-            border: 1px solid rgba(255, 255, 255, 0.15);
+            backdrop-filter: var(--nav-glass);
+            -webkit-backdrop-filter: var(--nav-glass);
+            border: var(--nav-border);
             border-radius: 25px;
-            z-index: 9999;
-            box-shadow: 0 10px 40px -10px rgba(0,0,0,0.5);
-            justify-content: space-between;
-            padding: 0 15px;
-            align-items: center;
+            z-index: var(--nav-z);
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
 
-        .mob-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            color: #94a3b8;
-            text-decoration: none;
-            font-size: 0.7rem;
-            font-weight: 600;
-            width: 60px;
-            height: 100%;
-            gap: 4px;
-            transition: 0.2s;
-            position: relative;
+        .mob-link {
+            flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+            height: 100%; color: #64748b; text-decoration: none; gap: 4px;
+            font-size: 0.7rem; font-weight: 600; transition: 0.3s;
         }
-        .mob-item i { width: 24px; height: 24px; }
-        
-        .mob-item.active { color: white; }
-        .mob-item.active i { color: var(--color-primary); filter: drop-shadow(0 0 8px rgba(var(--color-primary-rgb), 0.6)); transform: translateY(-3px); }
-        .mob-item.active span { opacity: 1; }
+        .mob-link.active { color: white; }
+        .mob-link.active i { color: var(--primary); transform: translateY(-2px); filter: drop-shadow(0 0 8px var(--primary)); }
 
-        /* Mobile Menu Overlay (More) */
-        .mobile-overlay-menu {
+        /* Центральна кнопка (ORB) */
+        .orb-wrapper {
+            position: relative; top: -25px;
+            width: 70px; height: 70px; flex-shrink: 0;
+        }
+        .orb-btn {
+            width: 100%; height: 100%; border-radius: 50%;
+            background: linear-gradient(135deg, #4f46e5, #ec4899);
+            border: 4px solid #020617; /* Колір фону сторінки для "вирізу" */
+            display: flex; align-items: center; justify-content: center;
+            color: white; font-size: 1.5rem; cursor: pointer;
+            box-shadow: 0 10px 25px rgba(236, 72, 153, 0.4);
+            transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative; z-index: 10;
+        }
+        .orb-btn:active { transform: scale(0.9); }
+        .orb-btn.open { transform: rotate(45deg); background: #ef4444; box-shadow: 0 10px 25px rgba(239, 68, 68, 0.4); }
+
+        /* Меню оверлей */
+        .orbital-menu {
             position: fixed; inset: 0;
-            background: rgba(2, 6, 23, 0.95);
-            backdrop-filter: blur(10px);
-            z-index: 9998;
-            display: flex;
-            align-items: flex-end;
-            padding-bottom: 100px; /* Space for bar */
-            justify-content: center;
+            background: rgba(2, 6, 23, 0.96);
+            backdrop-filter: blur(15px);
+            z-index: 9999;
+            display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
+            padding-bottom: 120px; /* Над баром */
             opacity: 0; pointer-events: none;
-            transition: opacity 0.3s;
+            transition: 0.3s ease;
         }
-        .mobile-overlay-menu.open { opacity: 1; pointer-events: auto; }
-        
-        .overlay-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            width: 85%;
-            transform: translateY(20px);
-            transition: transform 0.3s;
-        }
-        .mobile-overlay-menu.open .overlay-grid { transform: translateY(0); }
+        .orbital-menu.active { opacity: 1; pointer-events: auto; }
 
-        .overlay-item {
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
-            padding: 20px;
-            border-radius: 20px;
-            text-align: center;
-            color: white;
-            text-decoration: none;
-            font-size: 0.9rem;
-            display: flex; flex-direction: column; align-items: center; gap: 10px;
+        .menu-grid {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;
+            width: 90%; max-width: 400px;
+            transform: translateY(50px) scale(0.9); transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
-        .overlay-item:hover { background: rgba(255,255,255,0.1); }
+        .orbital-menu.active .menu-grid { transform: translateY(0) scale(1); }
 
-        /* Media Queries */
-        @media (max-width: 850px) {
-            .cosmic-sidebar { display: none; }
-            .cosmic-mobile-bar { display: flex; }
-            
-            /* Add padding to body so content isn't hidden behind bar */
-            body { padding-bottom: 100px !important; }
-            
-            /* Remove container margin that was for sidebar */
+        .menu-item-card {
+            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 20px; aspect-ratio: 1;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            text-decoration: none; color: white; gap: 10px; transition: 0.2s;
+        }
+        .menu-item-card:hover { background: rgba(255,255,255,0.1); transform: translateY(-5px); border-color: var(--primary); }
+        .menu-item-card i { width: 28px; height: 28px; }
+        .menu-item-card span { font-size: 0.8rem; font-weight: 500; }
+
+        @media (max-width: 1000px) {
+            .nebula-sidebar { display: none; }
+            .orbital-bar { display: flex; }
+            /* Відступи для контенту */
+            body { padding-bottom: 110px !important; padding-left: 0 !important; }
             .container-main { margin: 0 auto !important; padding: 15px !important; }
         }
-        @media (min-width: 851px) {
-            /* Shift main content to right to make space for sidebar */
-            body { padding-left: var(--nav-width-collapsed); }
-            .container-main { max-width: 1200px; margin: 0 auto; padding-top: 40px; }
+        @media (min-width: 1001px) {
+            .orbital-bar, .orbital-menu { display: none !important; }
+            /* Відсуваємо контент */
+            body { padding-left: 100px; }
+            .container-main { max-width: 1400px; margin: 0 auto; padding-top: 40px; }
         }
     </style>
     `;
-
     document.head.insertAdjacentHTML("beforeend", navStyles);
 
-    // 3. HTML Структура
-    // Основні посилання для мобільного (5 штук)
-    const mobileLinks = [
-        { href: 'index.html', icon: 'plus-circle', text: 'Створити' },
-        { href: 'schedule-list.html', icon: 'clock', text: 'Черга' },
-        { href: 'task-list.html', icon: 'list', text: 'Завдання' }, // Center
-        { href: 'chat.html', icon: 'message-circle', text: 'AI Чат' },
-        { id: 'mobile-more-btn', icon: 'grid', text: 'Меню' }
+    // 3. Структура посилань
+    const links = [
+        { href: 'index.html', icon: 'plus-square', text: 'Створити', mobile: true },
+        { href: 'schedule-list.html', icon: 'clock', text: 'Черга', mobile: true },
+        { href: 'task-list.html', icon: 'trello', text: 'Завдання', mobile: false }, // Center on Desktop
+        { href: 'chat.html', icon: 'message-circle', text: 'AI Чат', mobile: true },
+        { href: 'settings.html', icon: 'settings', text: 'Меню', mobile: true }, // Opens menu on mobile? No, menu is center
+        // Extra links for menu
+        { href: 'ads.html', icon: 'megaphone', text: 'Реклама', menu: true },
+        { href: 'history.html', icon: 'archive', text: 'Архів', menu: true },
+        { href: 'admin.html', icon: 'shield', text: 'Admin', menu: true, special: true },
+        { href: '#', icon: 'log-out', text: 'Вийти', menu: true, action: 'logout' }
     ];
 
-    // Всі посилання для десктопу та меню "Більше"
-    const allLinks = [
-        { href: 'index.html', icon: 'plus-circle', text: 'Створити пост' },
-        { href: 'schedule.html', icon: 'calendar', text: 'Планер' },
-        { href: 'task-list.html', icon: 'list', text: 'Завдання' },
-        { href: 'schedule-list.html', icon: 'clock', text: 'Черга публікацій' },
-        { href: 'chat.html', icon: 'message-circle', text: 'AI Асистент' },
-        { href: 'ads.html', icon: 'megaphone', text: 'Реклама' },
-        { href: 'history.html', icon: 'archive', text: 'Архів & Логи' },
-        { isDivider: true },
-        { href: 'settings.html', icon: 'settings', text: 'Налаштування' },
-        { href: 'admin.html', icon: 'shield', text: 'Адмін-панель', class: 'highlight' }
-    ];
-
-    // 3.1 Генеруємо Desktop Sidebar
-    const sidebar = document.createElement('nav');
-    sidebar.className = 'cosmic-sidebar';
-    
-    let sidebarHTML = `
+    // 4. Рендер Desktop Sidebar
+    const desktopNav = document.createElement('nav');
+    desktopNav.className = 'nebula-sidebar';
+    desktopNav.innerHTML = `
         <a href="index.html" class="nav-logo">
-            <i data-feather="zap"></i> <span>TaskBot</span>
+            <div class="logo-icon-box"><i data-feather="zap" style="color:white"></i></div>
+            <span>TaskBot</span>
         </a>
-        <div class="nav-links">
-    `;
-
-    allLinks.forEach(link => {
-        if (link.isDivider) {
-            sidebarHTML += `<div class="nav-divider"></div>`;
-        } else {
-            sidebarHTML += `
-            <a href="${link.href}" class="nav-item ${link.class || ''}">
-                <i data-feather="${link.icon}"></i>
-                <span class="nav-text">${link.text}</span>
-            </a>`;
-        }
-    });
-
-    sidebarHTML += `</div>
-        <div class="nav-bottom">
-            <a href="#" onclick="logout(); return false;" class="nav-item item-logout">
-                <i data-feather="log-out"></i>
-                <span class="nav-text">Вийти</span>
-            </a>
+        <div class="nav-list">
+            ${links.map(l => {
+                if (l.action === 'logout') return ''; // Вихід окремо
+                return `<a href="${l.href}" class="nav-link ${l.special ? 'special' : ''}">
+                    <i data-feather="${l.icon}"></i>
+                    <span class="nav-text">${l.text}</span>
+                </a>`;
+            }).join('')}
         </div>
+        <div class="nav-divider"></div>
+        <a href="#" onclick="logout(); return false;" class="nav-link" style="margin-top:auto; color:#f87171;">
+            <i data-feather="log-out"></i> <span class="nav-text">Вийти</span>
+        </a>
     `;
-    sidebar.innerHTML = sidebarHTML;
-    document.body.appendChild(sidebar);
+    document.body.appendChild(desktopNav);
 
-    // 3.2 Генеруємо Mobile Bar
+    // 5. Рендер Mobile Orbital Bar
     const mobileBar = document.createElement('nav');
-    mobileBar.className = 'cosmic-mobile-bar';
+    mobileBar.className = 'orbital-bar';
     
-    let mobileHTML = '';
-    mobileLinks.forEach(link => {
-        if (link.id) {
-            // Кнопка "Меню"
-            mobileHTML += `
-            <div class="mob-item" id="${link.id}">
-                <i data-feather="${link.icon}"></i>
-            </div>`;
-        } else {
-            mobileHTML += `
-            <a href="${link.href}" class="mob-item">
-                <i data-feather="${link.icon}"></i>
-            </a>`;
-        }
-    });
-    mobileBar.innerHTML = mobileHTML;
+    // Ліва частина (2 лінки)
+    const leftLinks = links.filter(l => l.mobile).slice(0, 2);
+    const rightLinks = links.filter(l => l.mobile).slice(2, 4);
+
+    const renderMobLink = l => `
+        <a href="${l.href}" class="mob-link">
+            <i data-feather="${l.icon}"></i>
+            <span>${l.text}</span>
+        </a>`;
+
+    mobileBar.innerHTML = `
+        ${leftLinks.map(renderMobLink).join('')}
+        
+        <div class="orb-wrapper">
+            <div class="orb-btn" id="orbBtn">
+                <i data-feather="grid"></i>
+            </div>
+        </div>
+
+        ${rightLinks.map(renderMobLink).join('')}
+    `;
     document.body.appendChild(mobileBar);
 
-    // 3.3 Mobile Overlay Menu (Все що не влізло)
-    const mobileOverlay = document.createElement('div');
-    mobileOverlay.className = 'mobile-overlay-menu';
-    mobileOverlay.id = 'mobileMenuOverlay';
+    // 6. Рендер Mobile Overlay Menu (Grid)
+    const menuOverlay = document.createElement('div');
+    menuOverlay.className = 'orbital-menu';
+    menuOverlay.id = 'orbitalMenu';
     
-    let overlayHTML = `<div class="overlay-grid">`;
-    // Додаємо посилання, які не є основними
-    const mainMobileHrefs = mobileLinks.map(l => l.href);
-    
-    allLinks.forEach(link => {
-        if (!link.isDivider && !mainMobileHrefs.includes(link.href)) {
-            overlayHTML += `
-                <a href="${link.href}" class="overlay-item">
-                    <i data-feather="${link.icon}" style="width:30px; height:30px;"></i>
-                    <span>${link.text}</span>
-                </a>
-            `;
-        }
-    });
-    
-    // Додаємо Вихід
-    overlayHTML += `
-        <a href="#" onclick="logout(); return false;" class="overlay-item" style="color:#f87171; border-color: rgba(220,38,38,0.3);">
-            <i data-feather="log-out" style="width:30px; height:30px;"></i>
-            <span>Вийти</span>
-        </a>
-    </div>`;
-    
-    mobileOverlay.innerHTML = overlayHTML;
-    document.body.appendChild(mobileOverlay);
+    // Фільтруємо лінки для Grid меню (всі, крім 4 основних мобільних)
+    const mainMobileHrefs = links.filter(l => l.mobile).map(l => l.href);
+    const menuItems = links.filter(l => !mainMobileHrefs.includes(l.href) || l.menu);
 
-    // 4. Ініціалізація іконок
+    menuOverlay.innerHTML = `
+        <div class="menu-grid">
+            ${menuItems.map(l => `
+                <a href="${l.href}" class="menu-item-card" ${l.action === 'logout' ? 'onclick="logout(); return false;"' : ''} 
+                   style="${l.action === 'logout' ? 'color:#f87171; border-color:rgba(220,38,38,0.3)' : ''}">
+                    <i data-feather="${l.icon}"></i>
+                    <span>${l.text}</span>
+                </a>
+            `).join('')}
+        </div>
+    `;
+    document.body.appendChild(menuOverlay);
+
+    // 7. Ініціалізація
     if (typeof feather !== 'undefined') feather.replace();
 
-    // 5. Логіка "Active State" (Підсвітка поточної сторінки)
+    // Логіка активного стану
     const currentPath = window.location.pathname.split('/').pop() || 'index.html';
-    
-    // Desktop active
-    const desktopLinks = document.querySelectorAll('.cosmic-sidebar .nav-item');
-    desktopLinks.forEach(link => {
-        if (link.getAttribute('href') === currentPath) link.classList.add('active');
+    const allNavLinks = document.querySelectorAll('.nav-link, .mob-link');
+    allNavLinks.forEach(l => {
+        if(l.getAttribute('href') === currentPath) l.classList.add('active');
     });
 
-    // Mobile active
-    const mobItems = document.querySelectorAll('.mob-item');
-    mobItems.forEach(link => {
-        if (link.getAttribute('href') === currentPath) link.classList.add('active');
-    });
-
-    // 6. Логіка відкриття мобільного меню
-    const moreBtn = document.getElementById('mobile-more-btn');
-    const overlay = document.getElementById('mobileMenuOverlay');
-
-    if (moreBtn) {
-        moreBtn.addEventListener('click', () => {
-            const isOpen = overlay.classList.contains('open');
-            if (isOpen) {
-                overlay.classList.remove('open');
-                moreBtn.classList.remove('active');
-                moreBtn.innerHTML = `<i data-feather="grid"></i>`; // Повернути іконку
-            } else {
-                overlay.classList.add('open');
-                moreBtn.classList.add('active');
-                moreBtn.innerHTML = `<i data-feather="x"></i>`; // Іконка закриття
-            }
-            feather.replace();
+    // 8. Логіка "Spotlight" (Прожектора) для Desktop
+    const sidebarEl = document.querySelector('.nebula-sidebar');
+    if(sidebarEl) {
+        sidebarEl.addEventListener('mousemove', (e) => {
+            const rect = sidebarEl.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            sidebarEl.style.setProperty('--x', `${x}px`);
+            sidebarEl.style.setProperty('--y', `${y}px`);
         });
     }
 
-    // Закриття меню при кліку на фон
-    overlay.addEventListener('click', (e) => {
-        if (e.target === overlay) {
-            overlay.classList.remove('open');
-            moreBtn.classList.remove('active');
-            moreBtn.innerHTML = `<i data-feather="grid"></i>`;
-            feather.replace();
+    // 9. Логіка Mobile Menu
+    const orbBtn = document.getElementById('orbBtn');
+    const orbitalMenu = document.getElementById('orbitalMenu');
+
+    const toggleMenu = () => {
+        const isOpen = orbitalMenu.classList.contains('active');
+        if (isOpen) {
+            orbitalMenu.classList.remove('active');
+            orbBtn.classList.remove('open');
+            orbBtn.innerHTML = `<i data-feather="grid"></i>`;
+        } else {
+            orbitalMenu.classList.add('active');
+            orbBtn.classList.add('open');
+            orbBtn.innerHTML = `<i data-feather="x"></i>`;
+            // Haptic
+            if(navigator.vibrate) navigator.vibrate(10);
         }
-    });
+        feather.replace();
+    };
+
+    if(orbBtn) orbBtn.addEventListener('click', toggleMenu);
+    
+    // Закриття при кліку на фон
+    if(orbitalMenu) {
+        orbitalMenu.addEventListener('click', (e) => {
+            if(e.target === orbitalMenu) toggleMenu();
+        });
+    }
 });
