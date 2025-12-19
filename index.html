@@ -2,86 +2,324 @@
 <html lang="uk" class="dark">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Створити Нове Завдання</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <title>Історія Публікацій</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
     <script src="auth-guard.js"></script>
+    <style>
+        /* --- Cosmic History Styles --- */
+        body {
+            background-color: #020617;
+            min-height: 100vh;
+            color: white;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+            padding-bottom: 100px;
+        }
+
+        /* Background Effects */
+        .noise-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E");
+            pointer-events: none; z-index: -1;
+        }
+        .bg-orb {
+            position: fixed; border-radius: 50%; filter: blur(100px); opacity: 0.3; z-index: -2;
+            animation: floatOrb 20s ease-in-out infinite alternate;
+        }
+        .orb-1 { width: 600px; height: 600px; background: #3b82f6; top: -200px; right: -200px; }
+        .orb-2 { width: 500px; height: 500px; background: #8b5cf6; bottom: -150px; left: -150px; animation-delay: -5s; }
+        
+        @keyframes floatOrb { 0% { transform: translate(0, 0); } 100% { transform: translate(-40px, 40px); } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Layout */
+        .container-main { max-width: 1200px; margin: 0 auto; padding: 20px; }
+
+        /* Header & Stats */
+        .header-section {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 30px; flex-wrap: wrap; gap: 20px;
+        }
+        h1 {
+            font-weight: 800; font-size: 2rem; margin: 0;
+            background: linear-gradient(135deg, #fff, #94a3b8);
+            -webkit-background-clip: text; background-clip: text; color: transparent;
+            display: flex; align-items: center; gap: 12px;
+        }
+
+        .stats-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px; margin-bottom: 30px;
+        }
+        .stat-card {
+            background: rgba(30, 41, 59, 0.4); border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 16px; padding: 20px; display: flex; align-items: center; gap: 15px;
+            backdrop-filter: blur(10px); transition: 0.3s;
+        }
+        .stat-card:hover { background: rgba(30, 41, 59, 0.6); transform: translateY(-3px); }
+        .stat-icon {
+            width: 45px; height: 45px; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.2rem; flex-shrink: 0;
+        }
+        .icon-blue { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
+        .icon-green { background: rgba(34, 197, 94, 0.2); color: #4ade80; }
+        .icon-purple { background: rgba(168, 85, 247, 0.2); color: #c084fc; }
+        
+        .stat-info div:first-child { color: #94a3b8; font-size: 0.85rem; font-weight: 600; text-transform: uppercase; }
+        .stat-info div:last-child { color: white; font-size: 1.5rem; font-weight: 800; }
+
+        /* Filters Bar */
+        .filters-bar {
+            background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.1); border-radius: 16px;
+            padding: 15px; display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 20px;
+            box-shadow: 0 10px 30px -10px rgba(0,0,0,0.3);
+        }
+
+        .filter-input, .filter-select {
+            background: rgba(0,0,0,0.3) !important; border: 1px solid rgba(255,255,255,0.1) !important;
+            color: white !important; padding: 10px 15px !important; border-radius: 10px !important;
+            font-size: 0.95rem !important; transition: 0.2s !important;
+        }
+        .filter-input:focus, .filter-select:focus {
+            border-color: var(--color-primary) !important;
+            box-shadow: 0 0 0 3px rgba(var(--color-primary-rgb), 0.2) !important;
+        }
+        .filter-input { flex: 2; min-width: 200px; }
+        .filter-select { flex: 1; min-width: 150px; }
+
+        .action-btn {
+            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+            color: white; padding: 10px 20px; border-radius: 10px; cursor: pointer;
+            font-weight: 600; display: flex; align-items: center; gap: 8px; transition: 0.2s;
+        }
+        .action-btn:hover { background: rgba(255,255,255,0.1); }
+        .action-btn.primary { background: var(--color-primary); border-color: transparent; }
+        .action-btn.primary:hover { background: var(--color-primary-dark); }
+
+        /* Data Table */
+        .table-container {
+            background: rgba(30, 41, 59, 0.3); border-radius: 20px;
+            border: 1px solid rgba(255,255,255,0.05); overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+        table { width: 100%; border-collapse: collapse; }
+        
+        thead { background: rgba(0,0,0,0.2); }
+        th {
+            padding: 18px 20px; text-align: left; color: #94a3b8; font-size: 0.85rem;
+            text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700;
+        }
+        
+        tbody tr { border-bottom: 1px solid rgba(255,255,255,0.03); transition: 0.2s; cursor: pointer; }
+        tbody tr:hover { background: rgba(255,255,255,0.03); }
+        tbody tr:last-child { border-bottom: none; }
+        
+        td { padding: 16px 20px; color: #e2e8f0; font-size: 0.95rem; }
+        
+        /* Status Badges */
+        .badge {
+            padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 700;
+            text-transform: uppercase; display: inline-block;
+        }
+        .badge-scheduled { background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3); }
+        .badge-ad { background: rgba(168, 85, 247, 0.15); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.3); }
+        .badge-instant { background: rgba(34, 197, 94, 0.15); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.3); }
+
+        .preview-text {
+            max-width: 350px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            color: #94a3b8; font-family: monospace;
+        }
+
+        .channel-info { display: flex; align-items: center; gap: 8px; font-weight: 500; }
+        .link-icon { color: var(--color-primary); opacity: 0.7; transition: 0.2s; }
+        .link-icon:hover { opacity: 1; transform: scale(1.1); }
+
+        /* Modal */
+        .modal-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); z-index: 9999;
+            justify-content: center; align-items: center; animation: fadeIn 0.2s;
+        }
+        .modal-content {
+            background: #0f172a; border: 1px solid rgba(255,255,255,0.1);
+            width: 90%; max-width: 650px; max-height: 90vh; border-radius: 24px;
+            padding: 30px; position: relative; overflow-y: auto;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+        }
+        .modal-header {
+            display: flex; justify-content: space-between; align-items: flex-start;
+            margin-bottom: 25px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 15px;
+        }
+        .modal-title h2 { margin: 0; font-size: 1.5rem; background: none; -webkit-text-fill-color: white; color: white; }
+        .modal-close {
+            background: transparent; border: none; color: #64748b; cursor: pointer;
+            padding: 5px; transition: 0.2s;
+        }
+        .modal-close:hover { color: white; }
+
+        .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px; }
+        .detail-item label { font-size: 0.8rem; color: #64748b; text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 5px; }
+        .detail-item div { font-size: 1rem; color: white; font-weight: 500; }
+
+        .security-box {
+            background: rgba(220, 38, 38, 0.1); border: 1px solid rgba(220, 38, 38, 0.2);
+            border-radius: 12px; padding: 15px; margin-bottom: 25px;
+        }
+        .security-title { color: #fca5a5; font-weight: 700; font-size: 0.9rem; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+        .ip-badge { font-family: monospace; background: rgba(0,0,0,0.2); padding: 2px 6px; border-radius: 4px; }
+
+        .full-text-box {
+            background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 12px; padding: 15px; font-family: monospace; 
+            font-size: 0.9rem; color: #cbd5e1; white-space: pre-wrap; max-height: 200px; overflow-y: auto;
+        }
+
+        .modal-footer { margin-top: 25px; display: flex; justify-content: flex-end; }
+
+    </style>
 </head>
 <body>
 
+    <div class="noise-overlay"></div>
+    <div class="bg-orb orb-1"></div>
+    <div class="bg-orb orb-2"></div>
+
     <div class="container-main">
-        <div class="main-container">
-            <div class="card">
-                <h1>Створення нового завдання</h1>
-                <div class="form-group">
-                    <label for="template-select">Оберіть шаблон завдання:</label>
-                    <select id="template-select">
-                        <option value="simple">Просте повідомлення</option>
-                        <option value="announcement">Оголошення</option>
-                        <option value="checklist">Завдання зі списком</option>
-                        <option value="report">Звіт про роботу</option>
-                        <option value="urgent">Термінове завдання</option>
-                    </select>
+        
+        <!-- Header -->
+        <div class="header-section">
+            <h1><i data-feather="clock"></i> Audit Log</h1>
+            <button onclick="loadHistory()" class="action-btn primary">
+                <i data-feather="refresh-cw"></i> Оновити
+            </button>
+        </div>
+
+        <!-- Stats Dashboard -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon icon-blue"><i data-feather="activity"></i></div>
+                <div class="stat-info">
+                    <div>Всього записів</div>
+                    <div id="stat-total">0</div>
                 </div>
-                <form id="taskForm">
-                    <div id="dynamic-form-fields"></div>
-                    <div class="form-group">
-                        <label for="task_photo">Фото (необов'язково):</label>
-                        <input type="file" id="task_photo" name="task_photo" accept="image/*">
-                    </div>
-                    <div class="form-group">
-                        <label for="people_needed">Кількість людей:</label>
-                        <input type="number" id="people_needed" name="people_needed" min="1" value="1">
-                    </div>
-                    <button type="submit" class="btn btn-primary">Створити завдання</button>
-                </form>
-                <a href="task-list.html" class="quick-link">Переглянути список завдань →</a>
-                <div id="statusMessage"></div>
             </div>
-            <div class="card preview-card">
-                <div class="tg-window">
-                    <div class="tg-header">
-                        <div class="tg-avatar">
-                            <span>N</span> 
-                        </div>
-                        <div class="tg-header-info">
-                            <span class="tg-name">Новини Капіталу 🇺🇦</span>
-                             <span class="tg-subs">5 432 підписників</span>
-                        </div>
-                    </div>
-
-                    <div class="tg-chat-area">
-                        <div class="tg-date-badge">Сьогодні</div>
-
-                        <div class="tg-message">
-                            <div id="preview-media" class="tg-media-wrapper"></div>
-                            
-                            <div class="tg-text-content">
-                                <span id="preview-content"></span>
-                                <span class="tg-meta">
-                                    <span class="tg-views-icon"></span>
-                                    <span class="tg-views-count">1.2K</span>
-                                    <span class="tg-time" id="preview-time">14:05</span>
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="tg-footer-bar">
-                        <i data-feather="paperclip" class="tg-icon"></i>
-                        <div class="tg-input-fake">Транслювати...</div>
-                        <i data-feather="mic" class="tg-icon"></i>
-                    </div>
+            <div class="stat-card">
+                <div class="stat-icon icon-purple"><i data-feather="zap"></i></div>
+                <div class="stat-info">
+                    <div>Миттєві пости</div>
+                    <div id="stat-instant">0</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon icon-green"><i data-feather="check-circle"></i></div>
+                <div class="stat-info">
+                    <div>Заплановані</div>
+                    <div id="stat-scheduled">0</div>
                 </div>
             </div>
         </div>
-    </div>
-    
-    <script type="module" src="script.js"></script>
 
+        <!-- Filters -->
+        <div class="filters-bar">
+            <div style="flex: 2; position: relative;">
+                <i data-feather="search" style="position: absolute; left: 12px; top: 12px; color: #94a3b8; width: 18px;"></i>
+                <input type="text" id="searchInput" class="filter-input" placeholder="Пошук (автор, текст, ID)..." style="padding-left: 40px !important;">
+            </div>
+            
+            <select id="typeFilter" class="filter-select">
+                <option value="all">Всі типи</option>
+                <option value="scheduled">📅 Заплановані</option>
+                <option value="ad">📢 Реклама</option>
+                <option value="instant">⚡️ Миттєві</option>
+            </select>
+            
+            <select id="channelFilter" class="filter-select">
+                <option value="all">Всі канали</option>
+            </select>
+            
+            <button id="sortBtn" class="action-btn">
+                <i data-feather="arrow-down"></i> Нові
+            </button>
+        </div>
+
+        <!-- Data Table -->
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Дата</th>
+                        <th>Канал</th>
+                        <th>Тип</th>
+                        <th>Користувач</th>
+                        <th>Зміст</th>
+                        <th style="text-align: right;">Дії</th>
+                    </tr>
+                </thead>
+                <tbody id="historyTableBody">
+                    <!-- JS Injects here -->
+                </tbody>
+            </table>
+        </div>
+        
+        <div id="statsFooter" style="margin-top: 15px; color: #64748b; font-size: 0.9rem; text-align: center;"></div>
+    </div>
+
+    <!-- Detail Modal -->
+    <div id="detailModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">
+                    <h2>Деталі запису</h2>
+                    <div style="color: #94a3b8; font-size: 0.9rem; margin-top: 5px;" id="modal-id-sub">ID: #12345</div>
+                </div>
+                <button class="modal-close" onclick="closeDetailModal()"><i data-feather="x"></i></button>
+            </div>
+            
+            <div class="detail-grid">
+                <div class="detail-item">
+                    <label>Канал</label>
+                    <div id="modal-channel">-</div>
+                </div>
+                <div class="detail-item">
+                    <label>Дата та Час</label>
+                    <div id="modal-date">-</div>
+                </div>
+                <div class="detail-item">
+                    <label>Тип дії</label>
+                    <div id="modal-type">-</div>
+                </div>
+                <div class="detail-item">
+                    <label>Ініціатор</label>
+                    <div id="modal-author">-</div>
+                </div>
+            </div>
+
+            <div class="security-box">
+                <div class="security-title"><i data-feather="shield"></i> Security Audit Data</div>
+                <div style="display: flex; gap: 20px; font-size: 0.9rem; color: #cbd5e1;">
+                    <div>IP: <span id="modal-ip" class="ip-badge">-</span></div>
+                    <div style="flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">UA: <span id="modal-ua">-</span></div>
+                </div>
+            </div>
+
+            <div class="detail-item">
+                <label>Повний текст (Прев'ю)</label>
+                <div class="full-text-box" id="modal-text"></div>
+            </div>
+            
+            <div class="modal-footer">
+                <a href="#" id="modal-link-btn" target="_blank" class="action-btn primary" style="text-decoration: none; width: auto;">
+                    Перейти в Telegram <i data-feather="external-link" style="margin-left: 5px;"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- FAB Menu -->
     <div class="fab-container">
         <div class="fab-options">
             <a href="#" onclick="logout(); return false;" class="fab-option" style="color: var(--color-danger);">
@@ -91,12 +329,11 @@
             <a href="task-list.html" class="fab-option"><i data-feather="list"></i><span>Список Завдань</span></a>
             <a href="schedule.html" class="fab-option"><i data-feather="calendar"></i><span>Запланувати Пост</span></a>
             <a href="schedule-list.html" class="fab-option"><i data-feather="clock"></i><span>Список Постів</span></a>
-            
             <a href="ads.html" class="fab-option"><i data-feather="megaphone"></i><span>Реклама</span></a>
-            <a href="history.html" class="fab-option"><i data-feather="archive"></i><span>Історія</span></a>
+            <a href="history.html" class="fab-option active"><i data-feather="archive"></i><span>Історія</span></a>
             <a href="chat.html" class="fab-option"><i data-feather="message-circle"></i><span>AI Чат</span></a>
             <a href="settings.html" class="fab-option"><i data-feather="settings"></i><span>Налаштування</span></a>
-            <a href="admin.html" class="fab-option"><i data-feather="settings"></i><span>ADMIN</span></a>
+            <a href="admin.html" class="fab-option"><i data-feather="shield"></i><span>ADMIN</span></a>
         </div>
         <button class="fab-main" id="fab-toggle">
             <i class="fab-main-icon fab-icon-menu" data-feather="menu"></i>
@@ -104,104 +341,176 @@
         </button>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
-    <script>
-        feather.replace(); 
+    <script type="module">
+        import { backendUrl, getChannels } from './api.js';
+        let allHistoryItems = []; 
+        let sortDesc = true;
 
-        const fabContainer = document.querySelector('.fab-container');
-        
-        // --- Виправлення "стрибка" кнопки при завантаженні ---
-        window.addEventListener('pageshow', (event) => {
-            if (fabContainer) fabContainer.classList.remove('active');
-        });
-
-        // --- Логіка "Ховання" в бік ---
-        let idleTimer;
-        
-        // Функція: ховаємо кнопку (додаємо клас .is-idle)
-        const setIdle = () => {
-            // Ховаємо, тільки якщо меню НЕ відкрите
-            if (fabContainer && !fabContainer.classList.contains('active')) {
-                fabContainer.classList.add('is-idle');
-            }
-        };
-
-        // Функція: показуємо кнопку (скидаємо таймер)
-        const resetIdleTimer = () => {
-            clearTimeout(idleTimer);
-            if (fabContainer) fabContainer.classList.remove('is-idle');
-            // Через 4 секунди бездіяльності - ховаємо
-            idleTimer = setTimeout(setIdle, 4000);
-        };
-
-        // Запускаємо таймер одразу
-        resetIdleTimer();
-
-        // --- ВАЖЛИВО: Прибираємо 'mousemove' з глобальних подій ---
-        // Тепер кнопка не вилазить, якщо ви просто водите мишкою по центру екрану.
-        // Вона вилізе тільки якщо ви наведете на неї (CSS :hover) або почнете скролити/писати.
-        ['scroll', 'touchstart', 'click', 'keypress'].forEach(event => 
-            document.addEventListener(event, resetIdleTimer)
-        );
-
-        // Якщо навели мишку саме на кнопку - вона прокидається і не ховається
-        if (fabContainer) {
-            fabContainer.addEventListener('mouseenter', () => {
-                clearTimeout(idleTimer);
-                fabContainer.classList.remove('is-idle');
-            });
+        async function init() {
+            feather.replace();
+            await Promise.all([loadChannelsFilter(), loadHistory()]);
             
-            // Коли мишка йде з кнопки - запускаємо таймер знову
-            fabContainer.addEventListener('mouseleave', resetIdleTimer);
+            document.getElementById('searchInput').addEventListener('input', renderTable);
+            document.getElementById('typeFilter').addEventListener('change', renderTable);
+            document.getElementById('channelFilter').addEventListener('change', renderTable);
+            document.getElementById('sortBtn').addEventListener('click', toggleSort);
         }
 
-        // --- Логіка кліку (відкриття меню) ---
-        document.getElementById('fab-toggle').addEventListener('click', (e) => {
-            e.stopPropagation(); // Щоб не спрацював клік на document
-            fabContainer.classList.toggle('active');
+        async function loadChannelsFilter() {
+            try {
+                const channels = await getChannels();
+                const select = document.getElementById('channelFilter');
+                channels.forEach(c => {
+                    const opt = document.createElement('option');
+                    opt.value = c.telegram_id; opt.textContent = c.title;
+                    select.appendChild(opt);
+                });
+            } catch (e) {}
+        }
+
+        window.loadHistory = async function() {
+            const tbody = document.getElementById('historyTableBody');
+            // tbody.innerHTML = '<tr><td colspan="6" style="padding:30px; text-align:center; color: #94a3b8;"><span class="loader"></span> Завантаження даних...</td></tr>';
             
-            // Якщо відкрили - прибираємо idle
-            if (fabContainer.classList.contains('active')) {
-                fabContainer.classList.remove('is-idle');
-                clearTimeout(idleTimer);
-            } else {
-                resetIdleTimer();
+            try {
+                const res = await fetch(`${backendUrl}/api/history`);
+                allHistoryItems = await res.json();
+                renderTable();
+                updateStats(); // Оновлюємо лічильники
+            } catch (e) {
+                tbody.innerHTML = '<tr><td colspan="6" style="padding:30px; text-align:center; color: var(--color-danger)">Не вдалося завантажити історію</td></tr>';
             }
-        });
+        };
 
-        // Закриття при кліку поза кнопкою
-        document.addEventListener('click', (e) => {
-            if (fabContainer && fabContainer.classList.contains('active') && !fabContainer.contains(e.target)) {
-                fabContainer.classList.remove('active');
-                resetIdleTimer();
+        function updateStats() {
+            document.getElementById('stat-total').textContent = allHistoryItems.length;
+            document.getElementById('stat-instant').textContent = allHistoryItems.filter(i => i.post_type.includes('instant')).length;
+            document.getElementById('stat-scheduled').textContent = allHistoryItems.filter(i => i.post_type === 'scheduled').length;
+        }
+
+        function toggleSort() {
+            sortDesc = !sortDesc;
+            const btn = document.getElementById('sortBtn');
+            btn.innerHTML = sortDesc ? '<i data-feather="arrow-down"></i> Нові' : '<i data-feather="arrow-up"></i> Старі';
+            feather.replace();
+            renderTable();
+        }
+
+        window.openDetailModal = (item) => {
+            document.getElementById('modal-id-sub').textContent = `Transaction ID: #${item.id}`;
+            document.getElementById('modal-channel').textContent = item.channel_title || item.channel_id;
+            document.getElementById('modal-date').textContent = new Date(item.sent_at).toLocaleString();
+            
+            // Красивий тип
+            let typeMap = { 'scheduled': '📅 Заплановано', 'ad': '📢 Реклама', 'instant': '⚡️ Миттєво' };
+            document.getElementById('modal-type').textContent = typeMap[item.post_type] || item.post_type;
+
+            document.getElementById('modal-author').innerHTML = `<span style="color:var(--color-primary)">${item.created_by || '?'}</span> <span style="opacity:0.5; font-size:0.8em">via ${item.posted_by || 'bot'}</span>`;
+            
+            document.getElementById('modal-ip').textContent = item.client_ip || 'Hidden';
+            document.getElementById('modal-ua').textContent = item.user_agent || 'System';
+
+            document.getElementById('modal-text').innerHTML = item.content_preview.replace(/</g, "&lt;").replace(/>/g, "&gt;"); 
+            
+            const btn = document.getElementById('modal-link-btn');
+            if (item.message_id && String(item.channel_id) !== "0") {
+                let cleanId = String(item.channel_id).replace(/^-?100/, '');
+                btn.href = `https://t.me/c/${cleanId}/${item.message_id}`;
+                btn.style.display = 'inline-flex';
+            } else { 
+                btn.style.display = 'none'; 
             }
-        });
-        
-        // ... (код активного посилання та теми залишається без змін) ...
-        try {
-            const currentPage = window.location.pathname.split('/').pop() || 'index.html';
-            document.querySelectorAll('.fab-option[href]').forEach(link => {
-                // Спрощена перевірка
-                if (link.getAttribute('href') === currentPage) {
-                    link.classList.add('active');
-                }
+
+            document.getElementById('detailModal').style.display = 'flex';
+            feather.replace();
+        };
+
+        window.closeDetailModal = () => document.getElementById('detailModal').style.display = 'none';
+        document.getElementById('detailModal').addEventListener('click', (e) => { if(e.target === document.getElementById('detailModal')) closeDetailModal(); });
+
+        function renderTable() {
+            const tbody = document.getElementById('historyTableBody');
+            const searchVal = document.getElementById('searchInput').value.toLowerCase();
+            const typeVal = document.getElementById('typeFilter').value;
+            const channelVal = document.getElementById('channelFilter').value;
+
+            let filtered = allHistoryItems.filter(item => {
+                const matchSearch = (item.content_preview || '').toLowerCase().includes(searchVal) || 
+                                    (item.created_by || '').toLowerCase().includes(searchVal) ||
+                                    String(item.id).includes(searchVal);
+                                    
+                let matchType = (typeVal === 'all') || (typeVal === 'instant' ? item.post_type.includes('instant') : item.post_type === typeVal);
+                let matchChannel = (channelVal === 'all') || String(item.channel_id) === channelVal;
+                return matchSearch && matchType && matchChannel;
             });
-        } catch (e) { console.error(e); }
 
-        (function() {
-            // Тільки застосовуємо тему, без обробки кліків (кнопки тут немає)
-            const htmlEl = document.documentElement;
-            const savedTheme = localStorage.getItem('theme');
-            const isXmas = localStorage.getItem('theme-xmas') === 'true';
+            filtered.sort((a, b) => sortDesc ? new Date(b.sent_at) - new Date(a.sent_at) : new Date(a.sent_at) - new Date(b.sent_at));
 
-            if (isXmas) {
-                htmlEl.classList.add('theme-xmas');
-                htmlEl.classList.add('dark');
-            } else {
-                if (savedTheme === 'light') htmlEl.classList.remove('dark'); 
-                else htmlEl.classList.add('dark');
+            if (filtered.length === 0) { 
+                tbody.innerHTML = '<tr><td colspan="6" style="padding:30px; text-align:center; color: #64748b;">Записів не знайдено</td></tr>'; 
+                return; 
             }
-        })();
+
+            tbody.innerHTML = filtered.map(item => {
+                const itemJson = encodeURIComponent(JSON.stringify(item));
+                
+                let badgeClass = 'badge-scheduled';
+                let badgeText = 'Scheduled';
+                if (item.post_type === 'ad') { badgeClass = 'badge-ad'; badgeText = 'Реклама'; }
+                else if (item.post_type.includes('instant')) { badgeClass = 'badge-instant'; badgeText = 'Миттєво'; }
+
+                let linkIcon = '';
+                if (item.message_id && String(item.channel_id) !== "0") {
+                    let cleanId = String(item.channel_id).replace(/^-?100/, '');
+                    let url = `https://t.me/c/${cleanId}/${item.message_id}`;
+                    linkIcon = `<a href="${url}" target="_blank" onclick="event.stopPropagation();" class="link-icon"><i data-feather="external-link" style="width:16px"></i></a>`;
+                }
+
+                // Channel Name or ID
+                const chName = item.channel_title || `<span style="font-family:monospace; opacity:0.7">${item.channel_id}</span>`;
+
+                return `
+                <tr onclick='openDetailModal(JSON.parse(decodeURIComponent("${itemJson}")))'>
+                    <td>
+                        <div style="font-weight:600; color:white;">${new Date(item.sent_at).toLocaleDateString()}</div>
+                        <div style="font-size:0.8em; opacity:0.6;">${new Date(item.sent_at).toLocaleTimeString()}</div>
+                    </td>
+                    <td><div class="channel-info">${chName}</div></td>
+                    <td><span class="badge ${badgeClass}">${badgeText}</span></td>
+                    <td>
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <div style="width:24px; height:24px; background: #334155; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:0.7em; font-weight:bold;">${(item.created_by || 'U').charAt(0).toUpperCase()}</div>
+                            <span>${item.created_by || 'System'}</span>
+                        </div>
+                    </td>
+                    <td><div class="preview-text">${item.content_preview}</div></td>
+                    <td style="text-align:right;">${linkIcon}</td>
+                </tr>`;
+            }).join('');
+            
+            feather.replace();
+            document.getElementById('statsFooter').innerText = `Показано: ${filtered.length} із ${allHistoryItems.length} записів`;
+        }
+        
+        init();
+    </script>
+    
+    <script>
+        // FAB Logic (Inline to ensure it works)
+        const fabContainer = document.querySelector('.fab-container');
+        let idleTimer;
+        const setIdle = () => { if (fabContainer && !fabContainer.classList.contains('active')) fabContainer.classList.add('is-idle'); };
+        const resetIdleTimer = () => { clearTimeout(idleTimer); if (fabContainer) fabContainer.classList.remove('is-idle'); idleTimer = setTimeout(setIdle, 4000); };
+        resetIdleTimer();
+        ['scroll', 'touchstart', 'click', 'keypress'].forEach(event => document.addEventListener(event, resetIdleTimer));
+        
+        document.getElementById('fab-toggle').addEventListener('click', (e) => {
+            e.stopPropagation(); fabContainer.classList.toggle('active');
+            if (fabContainer.classList.contains('active')) { fabContainer.classList.remove('is-idle'); clearTimeout(idleTimer); } else { resetIdleTimer(); }
+        });
+        document.addEventListener('click', (e) => {
+            if (fabContainer && fabContainer.classList.contains('active') && !fabContainer.contains(e.target)) { fabContainer.classList.remove('active'); resetIdleTimer(); }
+        });
     </script>
 </body>
 </html>
