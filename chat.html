@@ -5,39 +5,226 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Помічник</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
     <script src="auth-guard.js"></script>
+    <style>
+        /* --- Cosmic Chat Styles --- */
+        body {
+            background-color: #020617;
+            min-height: 100vh;
+            color: white;
+            font-family: 'Inter', sans-serif;
+            overflow: hidden; /* Щоб скролився тільки чат */
+        }
+
+        /* Background Effects */
+        .noise-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E");
+            pointer-events: none; z-index: -1;
+        }
+        .bg-orb {
+            position: fixed; border-radius: 50%; filter: blur(100px); opacity: 0.3; z-index: -2;
+            animation: floatOrb 20s ease-in-out infinite alternate;
+        }
+        .orb-1 { width: 600px; height: 600px; background: #3b82f6; top: -200px; right: -200px; } /* Blue */
+        .orb-2 { width: 500px; height: 500px; background: #8b5cf6; bottom: -150px; left: -150px; animation-delay: -5s; } /* Purple */
+        
+        @keyframes floatOrb { 0% { transform: translate(0, 0); } 100% { transform: translate(-40px, 40px); } }
+
+        /* Layout */
+        .container-main {
+            max-width: 1400px; margin: 0 auto; padding: 20px; height: 100vh;
+            display: flex; flex-direction: column; position: relative; z-index: 1;
+        }
+
+        h1 {
+            font-weight: 800; margin-bottom: 20px; font-size: 1.8rem;
+            background: linear-gradient(135deg, #fff, #94a3b8);
+            -webkit-background-clip: text; background-clip: text; color: transparent;
+            display: flex; align-items: center; gap: 10px;
+        }
+
+        .chat-container {
+            flex: 1; display: flex; overflow: hidden;
+            background: rgba(30, 41, 59, 0.3);
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 24px;
+            box-shadow: 0 20px 50px -10px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Sidebar */
+        .chat-sidebar {
+            width: 300px; background: rgba(0, 0, 0, 0.2);
+            border-right: 1px solid rgba(255,255,255,0.05);
+            display: flex; flex-direction: column;
+        }
+        .chat-sidebar-header { padding: 20px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        
+        .chat-list { flex: 1; overflow-y: auto; list-style: none; padding: 10px; margin: 0; }
+        .chat-list::-webkit-scrollbar { width: 5px; }
+        .chat-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+
+        .chat-item {
+            padding: 12px 15px; cursor: pointer; border-radius: 12px;
+            margin-bottom: 5px; color: #cbd5e1; font-size: 0.9rem;
+            display: flex; justify-content: space-between; align-items: center;
+            transition: 0.2s; border: 1px solid transparent;
+        }
+        .chat-item:hover { background: rgba(255,255,255,0.05); }
+        .chat-item.active {
+            background: rgba(59, 130, 246, 0.15); 
+            border-color: rgba(59, 130, 246, 0.3);
+            color: white; font-weight: 500;
+        }
+
+        .delete-chat-btn {
+            background: transparent; border: none; color: #64748b;
+            cursor: pointer; padding: 5px; opacity: 0; transition: 0.2s;
+        }
+        .chat-item:hover .delete-chat-btn { opacity: 1; }
+        .delete-chat-btn:hover { color: #ef4444; }
+
+        /* Main Chat Area */
+        .chat-main { flex: 1; display: flex; flex-direction: column; position: relative; }
+
+        #chatBox {
+            flex: 1; overflow-y: auto; padding: 30px;
+            display: flex; flex-direction: column; gap: 20px;
+        }
+        #chatBox::-webkit-scrollbar { width: 6px; }
+        #chatBox::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+
+        .message {
+            max-width: 80%; padding: 15px 20px; font-size: 0.95rem; line-height: 1.6;
+            position: relative; animation: popIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            word-wrap: break-word;
+        }
+        @keyframes popIn { from { opacity: 0; transform: translateY(10px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
+
+        .user-message {
+            align-self: flex-end;
+            background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
+            color: white;
+            border-radius: 20px 20px 4px 20px;
+            box-shadow: 0 5px 15px rgba(var(--color-primary-rgb), 0.3);
+        }
+
+        .ai-message {
+            align-self: flex-start;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #e2e8f0;
+            border-radius: 20px 20px 20px 4px;
+        }
+
+        /* Markdown Styles in Chat */
+        .ai-message code {
+            font-family: 'Roboto Mono', monospace; background: rgba(0,0,0,0.3);
+            padding: 2px 5px; border-radius: 4px; color: #a5f3fc; font-size: 0.9em;
+        }
+        .ai-message pre {
+            background: #0f172a; padding: 15px; border-radius: 10px;
+            overflow-x: auto; margin: 10px 0; border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        /* Input Area */
+        #chatInputContainer {
+            padding: 20px 30px;
+            background: rgba(15, 23, 42, 0.6);
+            border-top: 1px solid rgba(255,255,255,0.05);
+        }
+
+        #chatInput {
+            display: flex; align-items: center; gap: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px; padding: 8px 15px;
+            transition: 0.3s;
+        }
+        #chatInput:focus-within {
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 3px rgba(var(--color-primary-rgb), 0.2);
+            background: rgba(0, 0, 0, 0.5);
+        }
+
+        #messageInput {
+            flex: 1; background: transparent; border: none; color: white;
+            padding: 12px 0; font-size: 1rem; outline: none;
+        }
+
+        #sendBtn {
+            background: var(--color-primary); color: white; border: none;
+            width: 45px; height: 45px; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; transition: 0.2s; box-shadow: 0 4px 12px rgba(var(--color-primary-rgb), 0.3);
+        }
+        #sendBtn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(var(--color-primary-rgb), 0.5); }
+        #sendBtn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* New Chat Button */
+        #newChatBtn {
+            width: 100%; padding: 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(255,255,255,0.05); color: white; font-weight: 600;
+            cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        #newChatBtn:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.2); }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container-main { padding: 10px; height: 95vh; }
+            .chat-container { flex-direction: column; }
+            .chat-sidebar { width: 100%; height: 150px; flex-shrink: 0; overflow-y: auto; border-right: none; border-bottom: 1px solid rgba(255,255,255,0.1); }
+            h1 { font-size: 1.5rem; margin-bottom: 15px; }
+            .chat-sidebar-header { padding: 10px; }
+            #chatBox { padding: 15px; }
+        }
+    </style>
 </head>
 <body>
 
-    <div class="container-main" style="max-width: 1200px;"> <h1 style="margin-bottom: 20px;">AI Помічник 🤖</h1>
+    <div class="noise-overlay"></div>
+    <div class="bg-orb orb-1"></div>
+    <div class="bg-orb orb-2"></div>
+
+    <div class="container-main">
+        <h1><i data-feather="cpu"></i> AI Помічник</h1>
         
         <div class="chat-container">
+            <!-- Sidebar -->
             <div class="chat-sidebar">
                 <div class="chat-sidebar-header">
-                    <button id="newChatBtn" class="btn btn-primary" style="width: 100%;">
+                    <button id="newChatBtn">
                         <i data-feather="plus"></i> Новий чат
                     </button>
                 </div>
                 <ul id="sessionsList" class="chat-list">
-                    <li style="padding: 15px; color: var(--color-text-light); text-align: center;">Завантаження...</li>
+                    <li style="padding: 15px; color: #94a3b8; text-align: center; font-size: 0.9em;">
+                        <span class="loader"></span> Завантаження...
+                    </li>
                 </ul>
             </div>
 
+            <!-- Main Area -->
             <div class="chat-main">
                 <div id="chatBox">
-                    <div style="text-align: center; color: var(--color-text-light); margin-top: 50px;">
-                        Оберіть чат або створіть новий 👋
+                    <div style="text-align: center; color: #64748b; margin-top: 20%;">
+                        <div style="background: rgba(255,255,255,0.05); width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px auto;">
+                            <i data-feather="message-square" style="width: 40px; height: 40px; opacity: 0.5;"></i>
+                        </div>
+                        <h3 style="color: white; margin-bottom: 10px;">Ласкаво просимо!</h3>
+                        <p>Оберіть чат зліва або створіть новий, щоб почати спілкування з AI.</p>
                     </div>
                 </div>
                 
                 <div id="chatInputContainer">
                     <div id="chatInput">
-                        <input type="text" id="messageInput" placeholder="Ваше запитання..." disabled>
-                        <button id="sendBtn" class="btn" title="Надіслати" disabled>
-                            <i data-feather="send"></i>
+                        <input type="text" id="messageInput" placeholder="Напишіть своє запитання..." disabled autocomplete="off">
+                        <button id="sendBtn" title="Надіслати" disabled>
+                            <i data-feather="arrow-up"></i>
                         </button>
                     </div>
                 </div>
@@ -46,7 +233,8 @@
     </div>
 
     <script type="module" src="chat.js"></script>
-
+    
+    <!-- FAB Menu -->
     <div class="fab-container">
         <div class="fab-options">
             <a href="#" onclick="logout(); return false;" class="fab-option" style="color: var(--color-danger);">
@@ -56,12 +244,11 @@
             <a href="task-list.html" class="fab-option"><i data-feather="list"></i><span>Список Завдань</span></a>
             <a href="schedule.html" class="fab-option"><i data-feather="calendar"></i><span>Запланувати Пост</span></a>
             <a href="schedule-list.html" class="fab-option"><i data-feather="clock"></i><span>Список Постів</span></a>
-            
             <a href="ads.html" class="fab-option"><i data-feather="megaphone"></i><span>Реклама</span></a>
             <a href="history.html" class="fab-option"><i data-feather="archive"></i><span>Історія</span></a>
             <a href="chat.html" class="fab-option active"><i data-feather="message-circle"></i><span>AI Чат</span></a>
             <a href="settings.html" class="fab-option"><i data-feather="settings"></i><span>Налаштування</span></a>
-            <a href="admin.html" class="fab-option"><i data-feather="settings"></i><span>ADMIN</span></a>
+            <a href="admin.html" class="fab-option"><i data-feather="shield"></i><span>ADMIN</span></a>
         </div>
         <button class="fab-main" id="fab-toggle">
             <i class="fab-main-icon fab-icon-menu" data-feather="menu"></i>
@@ -69,7 +256,6 @@
         </button>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
     <script>
         feather.replace(); 
         const fabContainer = document.querySelector('.fab-container');
@@ -79,10 +265,7 @@
         const resetIdleTimer = () => { clearTimeout(idleTimer); if (fabContainer) fabContainer.classList.remove('is-idle'); idleTimer = setTimeout(setIdle, 4000); };
         resetIdleTimer();
         ['scroll', 'touchstart', 'click', 'keypress'].forEach(event => document.addEventListener(event, resetIdleTimer));
-        if (fabContainer) {
-            fabContainer.addEventListener('mouseenter', () => { clearTimeout(idleTimer); fabContainer.classList.remove('is-idle'); });
-            fabContainer.addEventListener('mouseleave', resetIdleTimer);
-        }
+        
         document.getElementById('fab-toggle').addEventListener('click', (e) => {
             e.stopPropagation(); fabContainer.classList.toggle('active');
             if (fabContainer.classList.contains('active')) { fabContainer.classList.remove('is-idle'); clearTimeout(idleTimer); } else { resetIdleTimer(); }
@@ -90,20 +273,6 @@
         document.addEventListener('click', (e) => {
             if (fabContainer && fabContainer.classList.contains('active') && !fabContainer.contains(e.target)) { fabContainer.classList.remove('active'); resetIdleTimer(); }
         });
-        (function() {
-            // Тільки застосовуємо тему, без обробки кліків (кнопки тут немає)
-            const htmlEl = document.documentElement;
-            const savedTheme = localStorage.getItem('theme');
-            const isXmas = localStorage.getItem('theme-xmas') === 'true';
-
-            if (isXmas) {
-                htmlEl.classList.add('theme-xmas');
-                htmlEl.classList.add('dark');
-            } else {
-                if (savedTheme === 'light') htmlEl.classList.remove('dark'); 
-                else htmlEl.classList.add('dark');
-            }
-        })();
     </script>
 </body>
 </html>
