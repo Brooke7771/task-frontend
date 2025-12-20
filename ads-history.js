@@ -1,7 +1,3 @@
-{
-type: uploaded file
-fileName: TG/frontend/ads-history.js
-fullContent:
 import { backendUrl } from './api.js';
 
 let allHistory = [];
@@ -139,5 +135,4 @@ function renderCalendar() {
         dayCell.innerHTML = `<div class="day-num">${d}</div>${dotsHtml}`;
         grid.appendChild(dayCell);
     }
-}
 }
