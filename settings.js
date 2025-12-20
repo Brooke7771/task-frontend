@@ -169,7 +169,80 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // --- 5. PERSONAL PROMPT ---
+    const initPersonalPrompt = async () => {
+        const form = document.getElementById('personalPromptForm');
+        const toggle = document.getElementById('use_personal_prompt');
+        const textarea = document.getElementById('personal_prompt');
+
+        if (!form) return;
+
+        // 1. Завантаження поточних налаштувань (разом з профілем)
+        try {
+            const user = await getMyProfile();
+            
+            toggle.checked = user.use_personal_prompt || false;
+            textarea.value = user.personal_prompt || '';
+            
+            // Візуальний стан (disable textarea if toggle off)
+            textarea.disabled = !toggle.checked;
+            textarea.style.opacity = toggle.checked ? '1' : '0.5';
+
+        } catch (e) {
+            console.error("Error loading profile settings", e);
+        }
+
+        // Логіка перемикача
+        toggle.addEventListener('change', () => {
+            textarea.disabled = !toggle.checked;
+            textarea.style.opacity = toggle.checked ? '1' : '0.5';
+            if(toggle.checked) textarea.focus();
+        });
+
+        // 2. Збереження
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = form.querySelector('button');
+            const originalText = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loader"></span> ...';
+
+            const payload = {
+                use_personal_prompt: toggle.checked,
+                personal_prompt: textarea.value
+            };
+
+            try {
+                const res = await fetch(`${backendUrl}/api/user/prompt_settings`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Username': localStorage.getItem('username')
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (res.ok) {
+                    // showToast визначена у вашому settings.js
+                    // якщо ні - використовуйте alert
+                    if(typeof showToast === 'function') showToast("Налаштування збережено!");
+                    else alert("Збережено!");
+                } else {
+                    alert("Помилка збереження");
+                }
+            } catch (err) {
+                console.error(err);
+                alert("Помилка мережі");
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+                if(typeof feather !== 'undefined') feather.replace();
+            }
+        });
+    };
+
     // Init
     loadProfile();
     loadAiSettings();
+    initPersonalPrompt();
 });

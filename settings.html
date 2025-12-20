@@ -269,6 +269,31 @@
                         </button>
                     </form>
                 </div>
+                <div>
+                    <div class="card">
+                        <h2><i data-feather="cpu"></i> Персональний AI</h2>
+                        <form id="personalPromptForm">
+                            <div class="form-group" style="display:flex; align-items:center; justify-content:space-between; background:rgba(255,255,255,0.05); padding:10px; border-radius:12px; border:1px solid rgba(255,255,255,0.1);">
+                                <label for="use_personal_prompt" style="margin:0; cursor:pointer;">Власні інструкції</label>
+                                <label class="switch">
+                                    <input type="checkbox" id="use_personal_prompt">
+                                    <span class="slider round"></span>
+                                </label>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label style="margin-top:15px;">Ваш системний промпт</label>
+                                <textarea id="personal_prompt" rows="8" placeholder="Ти - експерт з крипти..."></textarea>
+                                <small style="color:var(--color-text-light); font-size:0.8em;">* Якщо вимкнено, використовується глобальний.</small>
+                            </div>
+
+                            <button type="submit" class="btn-primary">
+                                <i data-feather="save"></i> Зберегти
+                            </button>
+                        </form>
+                    </div>
+
+                </div>
             </div>
 
         </div>
