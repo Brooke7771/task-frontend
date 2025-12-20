@@ -3,7 +3,6 @@ import {
     updateSettings, 
     getMyProfile,
     changePassword
-    backendUrl
 } from './api.js';
 
 document.addEventListener('DOMContentLoaded', () => {
