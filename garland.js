@@ -66,7 +66,8 @@ class XmasGarland {
                     radial-gradient(circle at 30% 30%, rgba(255,255,255,0.9), rgba(255,255,255,0.1) 20%, transparent 60%),
                     linear-gradient(to bottom, rgba(255,255,255,0.1), var(--bulb-color-transparent));
                 border-radius: 50% 50% 45% 45%;
-                transform-origin: center -6px; /* Точка кріплення трохи вище */
+                /* Важливо: точка обертання трохи вище лампочки, в районі цоколя */
+                transform-origin: center -6px; 
                 box-shadow: 0 0 20px var(--bulb-glow), inset 0 -5px 15px rgba(0,0,0,0.2);
                 will-change: transform, box-shadow;
                 transition: transform 0.1s linear;
@@ -125,23 +126,20 @@ class XmasGarland {
             const x = t * this.width;
             
             // Catenary Curve (Ланцюгова лінія) для природного провисання
-            // Math.cosh - це гіперболічний косинус, ідеально описує провисаючий кабель
             const sagFactor = 100; // Глибина провисання
             const catenary = Math.sin(t * Math.PI) * sagFactor; 
             
-            // Додаємо мікро-шум для реалізму (кабель не ідеально рівний)
+            // Додаємо мікро-шум для реалізму
             const noise = (Math.random() - 0.5) * 2;
             const y = startY + catenary + noise; 
             
             // Кріплення (Pinning)
-            // Закріплюємо краї та кілька точок посередині ("цвяхи")
             const pinFrequency = window.innerWidth < 600 ? 6 : 9;
             const pinned = (i === 0 || i === totalSegments || i % pinFrequency === 0);
 
             this.points.push({ x, y, oldx: x, oldy: y, pinned });
 
             // Додаємо лампочки
-            // Не вішаємо на самому кріпленні і поруч (щоб не билися об стіну/стелю)
             if (!pinned && i % 2 === 0 && i > 1 && i < totalSegments - 1) {
                 const distToPin = Math.min(i % pinFrequency, pinFrequency - (i % pinFrequency));
                 if (distToPin > 1) { // Безпечна відстань від "цвяха"
@@ -168,8 +166,6 @@ class XmasGarland {
         el.className = 'physics-bulb';
         
         // CSS змінні для кольору
-        // --bulb-color-transparent: для градієнту скла (напівпрозорий)
-        // --bulb-glow: для світіння (яскравий)
         el.style.setProperty('--bulb-color-transparent', color + '66'); // Hex + opacity
         el.style.setProperty('--bulb-glow', color);
         
@@ -181,8 +177,11 @@ class XmasGarland {
             colorIndex: colorIdx,
             nextColorIndex: (colorIdx + 1) % CONFIG.colors.length,
             transitionProgress: Math.random(), 
-            transitionSpeed: 0.003 + Math.random() * 0.005, // Дуже повільна зміна кольору
-            angleOffset: (Math.random() - 0.5) * 0.5, // Невеликий випадковий нахил
+            transitionSpeed: 0.003 + Math.random() * 0.005, 
+            // === ХАОТИЧНИЙ НАХИЛ (FIX) ===
+            // Генеруємо кут від 0 до 360 градусів (2 * PI радіан)
+            // Це дозволяє лампочкам стирчати в будь-який бік
+            angleOffset: Math.random() * Math.PI * 2, 
             swing: 0
         });
     }
@@ -201,7 +200,7 @@ class XmasGarland {
                 p.oldx = p.x;
                 p.oldy = p.y;
                 
-                // Вітер: сума кількох синусоїд для "турбулентності"
+                // Вітер
                 const wind = (
                     Math.sin(this.time + p.y * 0.02) + 
                     Math.cos(this.time * 0.5 + p.x * 0.01)
@@ -209,23 +208,22 @@ class XmasGarland {
                 
                 p.x += vx + wind;
                 p.y += vy + CONFIG.gravity;
-                p.y -= scrollDiff * 0.5; // Реакція на скрол
+                p.y -= scrollDiff * 0.5;
 
-                // Інтерактивність (Мишка)
+                // Інтерактивність
                 const dx = p.x - mouse.x;
                 const dy = p.y - mouse.y;
                 const dist = Math.hypot(dx, dy);
                 if (dist < 80) {
                     const force = (80 - dist) / 80;
                     const angle = Math.atan2(dy, dx);
-                    p.x += Math.cos(angle) * force * 8; // М'який поштовх
+                    p.x += Math.cos(angle) * force * 8;
                     p.y += Math.sin(angle) * force * 8;
                 }
             }
         }
 
         // --- 2. ЖОРСТКІСТЬ (CONSTRAINTS SOLVING) ---
-        // 5 ітерацій для супер-стабільного дроту
         for (let k = 0; k < 5; k++) { 
             for (const c of this.constraints) {
                 const dx = c.p2.x - c.p1.x;
@@ -242,29 +240,28 @@ class XmasGarland {
         this.ctx.lineCap = 'round';
         this.ctx.lineJoin = 'round';
         
-        // A. Тінь дроту (для об'єму)
+        // A. Тінь дроту
         this.ctx.beginPath();
         this.ctx.strokeStyle = 'rgba(0,0,0,0.15)';
         this.ctx.lineWidth = 6;
-        this.drawCurve(4, 8); // Зсув тіні
+        this.drawCurve(4, 8); 
         this.ctx.stroke();
 
-        // B. Основний кабель (Чорний)
+        // B. Основний кабель
         this.ctx.beginPath();
         this.ctx.strokeStyle = CONFIG.wireColor;
         this.ctx.lineWidth = 4;
         this.drawCurve(0, 0);
         this.ctx.stroke();
         
-        // C. Блік зверху (для ефекту гуми/пластику)
+        // C. Блік зверху
         this.ctx.beginPath();
         this.ctx.strokeStyle = 'rgba(255,255,255,0.15)';
         this.ctx.lineWidth = 1.5;
-        this.drawCurve(0, -1); // Трохи вище центру
+        this.drawCurve(0, -1);
         this.ctx.stroke();
 
         // --- 4. ОНОВЛЕННЯ ЛАМПОЧОК ---
-        // Малюємо світіння на підлозі (Canvas)
         this.ctx.globalCompositeOperation = 'lighter';
         
         for (const b of this.bulbs) {
@@ -285,7 +282,7 @@ class XmasGarland {
                 b.el.style.setProperty('--bulb-glow', newColor);
             }
 
-            // 2. Розрахунок кута (Tangent vector)
+            // 2. Розрахунок кута дроту
             let wireAngle = 0;
             if (prev && next) {
                 wireAngle = Math.atan2(next.y - prev.y, next.x - prev.x);
@@ -295,20 +292,19 @@ class XmasGarland {
             const vx = p.x - p.oldx;
             b.swing = b.swing * 0.93 + vx * 0.04; 
 
-            // 4. Фінальний кут + Позиція
+            // 4. Фінальний кут = Кут дроту + Перпендикуляр (90) + Хаотичний нахил + Хитання
             const finalAngle = wireAngle + (Math.PI / 2) + b.angleOffset + b.swing;
             b.el.style.transform = `translate(${p.x}px, ${p.y}px) rotate(${finalAngle}rad) translate(-50%, 0)`;
 
-            // 5. Glow Reflection on Snow (Світіння внизу екрану)
-            // Тільки якщо лампочка низько
+            // 5. Glow Reflection on Snow
             if (p.y > this.height - 250) {
                 const color = CONFIG.colors[b.colorIndex];
-                const intensity = Math.max(0, (p.y - (this.height - 250)) / 250); // Чим нижче, тим яскравіше на снігу
+                const intensity = Math.max(0, (p.y - (this.height - 250)) / 250);
                 
                 if (intensity > 0) {
-                    const groundY = this.height - 20; // Приблизний рівень землі
+                    const groundY = this.height - 20;
                     const grad = this.ctx.createRadialGradient(p.x, groundY, 0, p.x, groundY, 120);
-                    grad.addColorStop(0, color + Math.floor(intensity * 40).toString(16)); // Hex opacity approx
+                    grad.addColorStop(0, color + Math.floor(intensity * 40).toString(16));
                     grad.addColorStop(1, 'transparent');
                     
                     this.ctx.fillStyle = grad;
@@ -324,14 +320,11 @@ class XmasGarland {
     drawCurve(offsetX, offsetY) {
         if (!this.points.length) return;
         this.ctx.moveTo(this.points[0].x + offsetX, this.points[0].y + offsetY);
-        
-        // Використовуємо Quadratic Curve через серединні точки для максимальної плавності
         for (let i = 1; i < this.points.length - 1; i++) {
             const xc = (this.points[i].x + this.points[i + 1].x) / 2 + offsetX;
             const yc = (this.points[i].y + this.points[i + 1].y) / 2 + offsetY;
             this.ctx.quadraticCurveTo(this.points[i].x + offsetX, this.points[i].y + offsetY, xc, yc);
         }
-        
         this.ctx.lineTo(this.points[this.points.length - 1].x + offsetX, this.points[this.points.length - 1].y + offsetY);
     }
 }
@@ -362,11 +355,11 @@ class WinterSystem {
         return {
             x: Math.random() * this.width,
             y: initial ? Math.random() * this.height : -20,
-            vx: (Math.random() - 0.5) * 1, // Повільніший горизонтальний рух
-            vy: Math.random() * 1.5 + 0.5, // Повільніше падіння
+            vx: (Math.random() - 0.5) * 1,
+            vy: Math.random() * 1.5 + 0.5,
             size: Math.random() * 2.5 + 1,
             opacity: Math.random() * 0.5 + 0.3,
-            blur: Math.random() > 0.5 // Деякі сніжинки розмиті (глибина різкості)
+            blur: Math.random() > 0.5
         };
     }
 
@@ -387,7 +380,6 @@ class WinterSystem {
             
             for (let x = startX; x < endX; x++) {
                 const dist = Math.abs(x - mouse.x);
-                // "Копаємо" тільки якщо мишка реально в снігу
                 const snowTop = this.height - this.groundMap[x];
                 if (mouse.y >= snowTop - 30) {
                     const meltAmount = Math.max(0, (1 - dist / meltRadius) * 4);
@@ -402,7 +394,6 @@ class WinterSystem {
         for (let i = 0; i < this.flakes.length; i++) {
             const f = this.flakes[i];
             
-            // Взаємодія (вітер від мишки)
             const dx = f.x - mouse.x;
             const dy = f.y - mouse.y;
             const dist = Math.hypot(dx, dy);
@@ -415,7 +406,7 @@ class WinterSystem {
 
             f.x += f.vx;
             f.y += f.vy;
-            f.vx *= 0.99; // Air resistance
+            f.vx *= 0.99;
 
             // Ground Collision
             const floorX = Math.floor(f.x);
@@ -426,7 +417,6 @@ class WinterSystem {
                     grounded = true;
                     if (this.groundMap[floorX] < this.maxSnowHeight) {
                         this.groundMap[floorX] += f.size * 0.4;
-                        // Розсипання (Smoothing)
                         if (floorX > 0) this.groundMap[floorX-1] += f.size * 0.1;
                         if (floorX < this.width-1) this.groundMap[floorX+1] += f.size * 0.1;
                     }
@@ -445,17 +435,15 @@ class WinterSystem {
         this.ctx.globalAlpha = 1;
 
         // C. ЗЕМЛЯ (SNOW GROUND)
-        // 1. Smoothing (Згладжування кучугур)
         for (let j = 0; j < 2; j++) { 
             for (let x = 1; x < this.width - 1; x++) {
                 this.groundMap[x] = (this.groundMap[x-1] + this.groundMap[x] + this.groundMap[x+1]) / 3;
             }
         }
 
-        // 2. Draw
         const snowGrad = this.ctx.createLinearGradient(0, this.height - this.maxSnowHeight, 0, this.height);
-        snowGrad.addColorStop(0, '#ffffff'); // Білий верх
-        snowGrad.addColorStop(1, '#cce0ff'); // Блакитний низ (тінь)
+        snowGrad.addColorStop(0, '#ffffff');
+        snowGrad.addColorStop(1, '#cce0ff');
 
         this.ctx.fillStyle = snowGrad;
         this.ctx.shadowBlur = 15;
@@ -463,7 +451,7 @@ class WinterSystem {
         
         this.ctx.beginPath();
         this.ctx.moveTo(0, this.height);
-        for (let x = 0; x < this.width; x+=3) { // Оптимізація кроку малювання
+        for (let x = 0; x < this.width; x+=3) {
             this.ctx.lineTo(x, this.height - this.groundMap[x]);
         }
         this.ctx.lineTo(this.width, this.height);
@@ -515,7 +503,7 @@ export class PhysicsManager {
         Object.assign(btn.style, {
             position: 'fixed', bottom: '20px', left: '20px',
             width: '44px', height: '44px', borderRadius: '50%',
-            background: 'rgba(30, 41, 59, 0.6)', // Темний фон під стиль Nebula
+            background: 'rgba(30, 41, 59, 0.6)', 
             border: '1px solid rgba(255,255,255,0.1)',
             color: 'white', fontSize: '20px', cursor: 'pointer',
             zIndex: '100001', backdropFilter: 'blur(10px)',
@@ -536,7 +524,6 @@ export class PhysicsManager {
             if (bulbs) bulbs.style.opacity = this.isActive ? '1' : '0';
         };
 
-        // Hover ефекти
         btn.onmouseenter = () => { if(this.isActive) btn.style.transform = 'scale(1.1)'; };
         btn.onmouseleave = () => { if(this.isActive) btn.style.transform = 'scale(1)'; };
         
