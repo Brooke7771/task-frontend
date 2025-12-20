@@ -1,3 +1,7 @@
+{
+type: uploaded file
+fileName: TG/frontend/ads.html
+fullContent:
 <!DOCTYPE html>
 <html lang="uk" class="dark theme-xmas">
 <head>
@@ -120,6 +124,16 @@
             display: flex; align-items: center; justify-content: center; transition: 0.2s;
         }
         .delete-btn:hover { background: rgba(239, 68, 68, 0.1); color: #f87171; }
+        
+        /* 🔥 NEW: History Button Style */
+        .history-link {
+            float: right; margin-top: -55px; /* Pull into header line */
+            background: rgba(255,255,255,0.1); color: white;
+            padding: 8px 16px; border-radius: 12px; text-decoration: none;
+            font-size: 0.9rem; font-weight: 600; display: flex; align-items: center; gap: 8px;
+            transition: 0.2s; border: 1px solid rgba(255,255,255,0.1);
+        }
+        .history-link:hover { background: var(--color-primary); border-color: var(--color-primary); }
     </style>
 </head>
 <body>
@@ -131,6 +145,10 @@
     <div class="container-main">
         <div class="card">
             <h1>📢 Менеджер Реклами</h1>
+            <a href="ads-history.html" class="history-link">
+                <i data-feather="pie-chart" style="width:16px"></i> Історія
+            </a>
+            
             <p style="color: var(--color-text-light); margin-bottom: 25px; font-size: 0.95rem;">
                 Створіть кампанію, і бот буде автоматично публікувати її із заданим інтервалом.
             </p>
@@ -339,7 +357,12 @@
         document.addEventListener('click', (e) => {
             if (fabContainer && fabContainer.classList.contains('active') && !fabContainer.contains(e.target)) { fabContainer.classList.remove('active'); resetIdleTimer(); }
         });
+        
+        if(localStorage.getItem('theme-xmas') === 'true') {
+            document.documentElement.classList.add('theme-xmas');
+        }
     </script>
     <script src="nav-loader.js"></script>
 </body>
 </html>
+}
