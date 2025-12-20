@@ -241,8 +241,126 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
+    const initWatermark = async () => {
+        const form = document.getElementById('watermarkForm');
+        if (!form) return;
+
+        // Elements
+        const elText = document.getElementById('wm_text');
+        const elPos = document.getElementById('wm_position');
+        const elColor = document.getElementById('wm_color');
+        const elOpacity = document.getElementById('wm_opacity');
+        const elSize = document.getElementById('wm_size');
+        const elPreview = document.getElementById('wm_preview');
+        
+        // Labels
+        const lOpacity = document.getElementById('wm_opacity_val');
+        const lSize = document.getElementById('wm_size_val');
+
+        // 1. Load Settings
+        try {
+            const res = await fetch(`${backendUrl}/api/user/watermark`, {
+                headers: { 'X-Username': localStorage.getItem('username') }
+            });
+            const data = await res.json();
+            
+            elText.value = data.text;
+            elPos.value = data.position;
+            elColor.value = data.color_hex;
+            elOpacity.value = data.opacity;
+            elSize.value = data.font_size_percent;
+            
+            updatePreview();
+        } catch (e) { console.error("WM Load Error", e); }
+
+        // 2. Live Preview Logic
+        function updatePreview() {
+            const text = elText.value || '@Watermark';
+            const color = elColor.value;
+            const opacity = elOpacity.value / 255;
+            const sizePercent = elSize.value;
+            const pos = elPos.value;
+
+            elPreview.textContent = text;
+            elPreview.style.color = color;
+            elPreview.style.opacity = opacity;
+            
+            // Розмір (емуляція, бо в CSS px, а не % від картинки, але приблизно)
+            elPreview.style.fontSize = (200 * (sizePercent / 100)) + 'px'; 
+
+            // Позиція
+            elPreview.style.top = 'auto'; elPreview.style.bottom = 'auto';
+            elPreview.style.left = 'auto'; elPreview.style.right = 'auto';
+            elPreview.style.transform = 'none';
+
+            const margin = '10px';
+
+            if (pos.includes('top')) elPreview.style.top = margin;
+            if (pos.includes('bottom')) elPreview.style.bottom = margin;
+            
+            if (pos.includes('left')) elPreview.style.left = margin;
+            if (pos.includes('right')) elPreview.style.right = margin;
+            
+            if (pos.includes('center')) {
+                if (pos === 'center') {
+                    elPreview.style.top = '50%'; elPreview.style.left = '50%';
+                    elPreview.style.transform = 'translate(-50%, -50%)';
+                } else if (pos === 'top-center') {
+                    elPreview.style.left = '50%'; elPreview.style.transform = 'translateX(-50%)';
+                } else if (pos === 'bottom-center') {
+                    elPreview.style.left = '50%'; elPreview.style.transform = 'translateX(-50%)';
+                } else if (pos === 'center-left') {
+                    elPreview.style.top = '50%'; elPreview.style.transform = 'translateY(-50%)';
+                } else if (pos === 'center-right') {
+                    elPreview.style.top = '50%'; elPreview.style.transform = 'translateY(-50%)';
+                }
+            }
+
+            // Labels
+            lOpacity.textContent = Math.round(opacity * 100) + '%';
+            lSize.textContent = sizePercent + '%';
+        }
+
+        [elText, elPos, elColor, elOpacity, elSize].forEach(el => {
+            el.addEventListener('input', updatePreview);
+        });
+
+        // 3. Save
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = form.querySelector('button');
+            const orig = btn.innerHTML;
+            btn.innerHTML = '...'; btn.disabled = true;
+
+            const payload = {
+                text: elText.value,
+                position: elPos.value,
+                color_hex: elColor.value,
+                opacity: parseInt(elOpacity.value),
+                font_size_percent: parseFloat(elSize.value),
+                margin_x: 20, // Хардкод або додайте інпут
+                margin_y: 20
+            };
+
+            try {
+                await fetch(`${backendUrl}/api/user/watermark`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Username': localStorage.getItem('username')
+                    },
+                    body: JSON.stringify(payload)
+                });
+                if(window.showToast) window.showToast('Вотермарку оновлено!');
+                else alert('Збережено!');
+            } catch(e) { alert('Помилка'); }
+            finally { btn.innerHTML = orig; btn.disabled = false; }
+        });
+    };
+
     // Init
     loadProfile();
     loadAiSettings();
     initPersonalPrompt();
+    initWatermark();
 });

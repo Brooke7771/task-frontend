@@ -252,6 +252,54 @@
                         </button>
                     </form>
                 </div>
+                <div class="card">
+                    <h2><i data-feather="droplet"></i> Вотермарка</h2>
+                    <form id="watermarkForm">
+                        <div class="form-group">
+                            <label>Текст</label>
+                            <input type="text" id="wm_text" placeholder="@ChannelName">
+                        </div>
+
+                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
+                            <div class="form-group">
+                                <label>Позиція</label>
+                                <select id="wm_position">
+                                    <option value="top-left">↖ Верх-Ліво</option>
+                                    <option value="top-center">⬆ Верх-Центр</option>
+                                    <option value="top-right">↗ Верх-Право</option>
+                                    <option value="center">⏺ Центр</option>
+                                    <option value="bottom-left">↙ Низ-Ліво</option>
+                                    <option value="bottom-center">⬇ Низ-Центр</option>
+                                    <option value="bottom-right">↘ Низ-Право</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Колір</label>
+                                <input type="color" id="wm_color" style="height:45px; padding:0;">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Прозорість: <span id="wm_opacity_val">50%</span></label>
+                            <input type="range" id="wm_opacity" min="0" max="255">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Розмір шрифту: <span id="wm_size_val">5%</span></label>
+                            <input type="range" id="wm_size" min="1" max="20" step="0.5">
+                        </div>
+
+                        <div style="margin-bottom:20px; position:relative; border-radius:12px; overflow:hidden; border:1px solid var(--color-border); height:200px; background: url('https://picsum.photos/400/200') center/cover;">
+                            <div id="wm_preview" style="position:absolute; color:white; font-weight:bold; font-family:sans-serif; pointer-events:none;">
+                                @Preview
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn-primary">
+                            <i data-feather="save"></i> Зберегти
+                        </button>
+                    </form>
+                </div>
 
                 <!-- AI Settings (Admin Only) -->
                 <div class="card" id="aiSettingsCard">
