@@ -363,10 +363,19 @@
         resetIdleTimer();
         ['scroll', 'touchstart', 'click', 'keypress'].forEach(event => document.addEventListener(event, resetIdleTimer));
         
-        document.getElementById('fab-toggle').addEventListener('click', (e) => {
-            e.stopPropagation(); fabContainer.classList.toggle('active');
-            if (fabContainer.classList.contains('active')) { fabContainer.classList.remove('is-idle'); clearTimeout(idleTimer); } else { resetIdleTimer(); }
-        });
+        const fabToggle = document.getElementById('fab-toggle');
+        if (fabToggle) { // 🔥 Перевірка існування
+            fabToggle.addEventListener('click', (e) => {
+                e.stopPropagation(); 
+                fabContainer.classList.toggle('active');
+                if (fabContainer.classList.contains('active')) { 
+                    fabContainer.classList.remove('is-idle'); 
+                    clearTimeout(idleTimer); 
+                } else { 
+                    resetIdleTimer(); 
+                }
+            });
+        }
         document.addEventListener('click', (e) => {
             if (fabContainer && fabContainer.classList.contains('active') && !fabContainer.contains(e.target)) { fabContainer.classList.remove('active'); resetIdleTimer(); }
         });
