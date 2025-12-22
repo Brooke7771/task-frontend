@@ -3,319 +3,319 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="manifest" href="manifest.json">
     <title>Command Center | TaskBot Ultimate</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    <script src="auth-guard.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="auth-guard.js"></script>
     
     <style>
         /* --- ADMIN COMMAND CENTER STYLES --- */
         :root {
-            --sidebar-w: 260px;
+            --sidebar-w: 280px;
             --header-h: 70px;
             --bg-darker: #020617;
-            --glass-bg: rgba(15, 23, 42, 0.75);
+            --glass-bg: rgba(15, 23, 42, 0.7);
             --glass-border: rgba(255, 255, 255, 0.08);
-            --accent: #8b5cf6; /* Violet */
-            --accent-glow: rgba(139, 92, 246, 0.4);
+            --accent: #8b5cf6;
             --success: #10b981;
+            --warning: #f59e0b;
             --danger: #ef4444;
         }
 
         body {
             background-color: var(--bg-darker);
+            overflow: hidden; /* App-like feel */
+            height: 100vh;
+            padding: 0;
+            margin: 0;
             font-family: 'Inter', sans-serif;
             color: #f8fafc;
-            overflow-x: hidden;
-            background-image: 
-                radial-gradient(circle at 10% 20%, rgba(139, 92, 246, 0.15) 0%, transparent 40%),
-                radial-gradient(circle at 90% 80%, rgba(239, 68, 68, 0.1) 0%, transparent 40%);
         }
+
+        /* Background FX */
+        .bg-orb {
+            position: fixed; border-radius: 50%; filter: blur(120px); opacity: 0.3; z-index: -1;
+            pointer-events: none;
+        }
+        .orb-1 { width: 600px; height: 600px; background: var(--accent); top: -200px; left: -100px; }
+        .orb-2 { width: 500px; height: 500px; background: var(--danger); bottom: -150px; right: -150px; }
 
         /* Layout */
-        .admin-wrapper {
-            display: flex;
-            min-height: 100vh;
+        .admin-layout {
+            display: grid;
+            grid-template-columns: var(--sidebar-w) 1fr;
+            grid-template-rows: var(--header-h) 1fr;
+            height: 100vh;
+            grid-template-areas: "sidebar header" "sidebar content";
         }
 
-        /* Sidebar */
+        /* --- SIDEBAR --- */
         .admin-sidebar {
-            width: var(--sidebar-w);
-            background: rgba(15, 23, 42, 0.9);
-            backdrop-filter: blur(20px);
+            grid-area: sidebar;
+            background: rgba(15, 23, 42, 0.95);
             border-right: 1px solid var(--glass-border);
-            position: fixed; height: 100vh; z-index: 50;
-            display: flex; flex-direction: column;
+            padding: 24px;
+            display: flex; flex-direction: column; gap: 8px;
+            backdrop-filter: blur(20px);
+            z-index: 20;
             transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .logo-area {
-            height: var(--header-h);
-            display: flex; align-items: center; gap: 12px; padding: 0 24px;
-            font-size: 1.25rem; font-weight: 800; color: white;
-            border-bottom: 1px solid var(--glass-border);
-            background: linear-gradient(90deg, rgba(139, 92, 246, 0.1), transparent);
+            font-size: 1.5rem; font-weight: 800; color: white;
+            display: flex; align-items: center; gap: 12px;
+            margin-bottom: 40px; padding-left: 10px;
+            letter-spacing: -0.5px;
         }
-        
-        .nav-list { padding: 20px 10px; flex: 1; overflow-y: auto; }
+        .logo-icon {
+            width: 36px; height: 36px; background: var(--accent);
+            border-radius: 10px; display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 0 20px rgba(139, 92, 246, 0.4);
+        }
+
         .nav-category {
-            font-size: 0.7rem; text-transform: uppercase; color: #64748b; 
-            font-weight: 700; margin: 15px 12px 8px; letter-spacing: 1px;
+            font-size: 0.75rem; text-transform: uppercase; color: #64748b; font-weight: 700;
+            margin: 20px 0 10px 10px; letter-spacing: 1px;
         }
-        
+
         .nav-item {
-            padding: 10px 14px; border-radius: 10px; cursor: pointer;
-            color: #94a3b8; display: flex; align-items: center; gap: 12px;
-            font-weight: 500; font-size: 0.9rem; transition: 0.2s;
-            margin-bottom: 2px;
+            padding: 12px 16px; border-radius: 12px;
+            color: #94a3b8; cursor: pointer; transition: 0.2s;
+            display: flex; align-items: center; gap: 12px;
+            font-weight: 500; font-size: 0.95rem;
+            border: 1px solid transparent;
         }
-        .nav-item:hover { background: rgba(255,255,255,0.05); color: white; }
+        .nav-item:hover { background: rgba(255,255,255,0.03); color: white; }
         .nav-item.active {
-            background: rgba(139, 92, 246, 0.15); color: #fff;
-            border: 1px solid rgba(139, 92, 246, 0.2);
-            box-shadow: 0 0 15px rgba(139, 92, 246, 0.1);
+            background: rgba(139, 92, 246, 0.1);
+            border-color: rgba(139, 92, 246, 0.2);
+            color: white; 
         }
-        .nav-item i { width: 18px; height: 18px; }
+        .nav-item.active i { color: var(--accent); }
 
-        /* Main Content */
-        .admin-main {
-            flex: 1; margin-left: var(--sidebar-w);
-            padding: 30px; max-width: 1600px;
+        .nav-badge {
+            margin-left: auto; background: var(--danger); color: white;
+            font-size: 0.7rem; padding: 2px 6px; border-radius: 6px; font-weight: bold;
         }
 
+        /* --- HEADER --- */
         .admin-header {
+            grid-area: header;
             display: flex; justify-content: space-between; align-items: center;
-            margin-bottom: 30px;
+            padding: 0 30px;
+            border-bottom: 1px solid var(--glass-border);
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(10px);
+            z-index: 10;
         }
-        .page-title h1 { font-size: 1.8rem; margin: 0; background: linear-gradient(to right, #fff, #cbd5e1); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .page-title { font-size: 1.2rem; font-weight: 700; display: flex; align-items: center; gap: 10px; }
         
-        /* Stats Cards */
-        .stats-grid {
-            display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); 
-            gap: 20px; margin-bottom: 30px;
+        .sys-status {
+            display: flex; align-items: center; gap: 8px;
+            font-family: 'JetBrains Mono', monospace; font-size: 0.8rem;
+            color: var(--success); background: rgba(16, 185, 129, 0.1);
+            padding: 6px 12px; border-radius: 20px; border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+        .blink { animation: blink 2s infinite; width: 8px; height: 8px; background: currentColor; border-radius: 50%; }
+
+        /* --- CONTENT --- */
+        .admin-content {
+            grid-area: content;
+            padding: 30px; overflow-y: auto; overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Tabs Logic */
+        .tab-pane { display: none; animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+        .tab-pane.active { display: block; }
+
+        /* --- DASHBOARD WIDGETS --- */
+        .grid-stats {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; margin-bottom: 30px;
         }
         .stat-card {
             background: var(--glass-bg); border: 1px solid var(--glass-border);
-            border-radius: 16px; padding: 20px; position: relative; overflow: hidden;
+            border-radius: 16px; padding: 24px; position: relative; overflow: hidden;
             transition: transform 0.2s;
         }
-        .stat-card:hover { transform: translateY(-4px); border-color: rgba(139, 92, 246, 0.3); }
+        .stat-card:hover { transform: translateY(-2px); border-color: rgba(255,255,255,0.15); }
         .stat-icon {
-            position: absolute; top: 20px; right: 20px; 
+            position: absolute; right: 20px; top: 20px; 
             width: 40px; height: 40px; border-radius: 10px;
             display: flex; align-items: center; justify-content: center;
             background: rgba(255,255,255,0.05); color: var(--accent);
         }
-        .stat-value { font-size: 2rem; font-weight: 800; margin: 10px 0 5px; color: white; }
-        .stat-label { font-size: 0.85rem; color: #94a3b8; font-weight: 600; text-transform: uppercase; }
+        .stat-val { font-size: 2.2rem; font-weight: 800; color: white; margin: 10px 0 5px 0; letter-spacing: -1px; }
+        .stat-label { color: #94a3b8; font-size: 0.85rem; font-weight: 600; text-transform: uppercase; }
 
-        /* Modern Table */
-        .table-card {
-            background: var(--glass-bg); border: 1px solid var(--glass-border);
-            border-radius: 20px; overflow: hidden; margin-bottom: 30px;
-            box-shadow: 0 20px 50px -10px rgba(0,0,0,0.3);
+        /* Complex Grid */
+        .grid-complex {
+            display: grid; grid-template-columns: 2fr 1fr; gap: 24px; margin-bottom: 30px;
         }
-        .table-header {
-            padding: 20px; border-bottom: 1px solid var(--glass-border);
-            display: flex; justify-content: space-between; align-items: center;
-            background: rgba(255,255,255,0.02);
+        .panel {
+            background: var(--glass-bg); border: 1px solid var(--glass-border);
+            border-radius: 16px; padding: 24px; display: flex; flex-direction: column;
         }
         
-        table { width: 100%; border-collapse: collapse; }
-        th { 
-            text-align: left; padding: 16px 24px; color: #64748b; 
-            font-size: 0.75rem; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;
+        /* Terminal */
+        .terminal-window {
+            background: #09090b; border: 1px solid #27272a; border-radius: 12px;
+            font-family: 'JetBrains Mono', monospace; font-size: 0.85rem;
+            display: flex; flex-direction: column; height: 100%; min-height: 300px;
+            box-shadow: inset 0 0 40px rgba(0,0,0,0.5);
         }
-        td { padding: 16px 24px; border-bottom: 1px solid var(--glass-border); color: #e2e8f0; font-size: 0.9rem; vertical-align: middle; }
+        .term-bar {
+            background: #18181b; padding: 8px 12px; display: flex; gap: 6px;
+            border-bottom: 1px solid #27272a;
+        }
+        .dot { width: 10px; height: 10px; border-radius: 50%; }
+        .term-content { padding: 12px; overflow-y: auto; flex: 1; color: #a1a1aa; max-height: 300px; }
+        .log-line { margin-bottom: 4px; display: flex; gap: 10px; }
+        .log-time { color: #52525b; min-width: 65px; }
+        .log-info { color: #3b82f6; } .log-warn { color: #f59e0b; } .log-err { color: #ef4444; }
+
+        /* Tables */
+        .table-wrapper {
+            background: var(--glass-bg); border: 1px solid var(--glass-border);
+            border-radius: 16px; overflow: hidden;
+        }
+        table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; padding: 16px 24px; color: #94a3b8; font-size: 0.8rem; text-transform: uppercase; background: rgba(0,0,0,0.2); }
+        td { padding: 16px 24px; border-bottom: 1px solid var(--glass-border); color: #e2e8f0; font-size: 0.9rem; }
         tr:last-child td { border-bottom: none; }
         tr:hover { background: rgba(255,255,255,0.02); }
 
-        /* Badges & Avatars */
-        .user-cell { display: flex; align-items: center; gap: 12px; }
-        .user-avatar { 
-            width: 36px; height: 36px; border-radius: 10px; 
-            background: linear-gradient(135deg, #3b82f6, #8b5cf6); 
-            display: flex; align-items: center; justify-content: center;
-            font-weight: 700; color: white; font-size: 0.9rem;
-            box-shadow: 0 4px 10px rgba(59, 130, 246, 0.3);
-        }
-        
-        .role-badge { padding: 4px 10px; border-radius: 6px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
-        .role-admin { background: rgba(139, 92, 246, 0.15); color: #c4b5fd; border: 1px solid rgba(139, 92, 246, 0.3); }
-        .role-editor { background: rgba(59, 130, 246, 0.15); color: #93c5fd; border: 1px solid rgba(59, 130, 246, 0.3); }
-        
-        .status-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
-        .status-active { background: #10b981; box-shadow: 0 0 8px rgba(16, 185, 129, 0.5); }
-        .status-pending { background: #f59e0b; }
+        .role-badge { padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; }
+        .role-admin { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
+        .role-user { background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3); }
 
-        /* Action Buttons */
-        .action-group { display: flex; gap: 8px; justify-content: flex-end; }
-        .btn-icon {
-            width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--glass-border);
-            background: rgba(255,255,255,0.05); color: #cbd5e1; cursor: pointer;
-            display: flex; align-items: center; justify-content: center; transition: 0.2s;
+        /* Queue Card */
+        .queue-card {
+            background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border);
+            border-radius: 12px; padding: 20px; margin-bottom: 15px;
+            display: flex; gap: 20px; align-items: start; transition: 0.2s;
         }
-        .btn-icon:hover { background: white; color: black; transform: translateY(-2px); }
-        .btn-icon.danger:hover { background: #ef4444; color: white; border-color: #ef4444; }
+        .queue-card:hover { background: rgba(255,255,255,0.05); }
+        .queue-media {
+            width: 100px; height: 100px; background: #000; border-radius: 8px; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center; overflow: hidden;
+            border: 1px solid var(--glass-border);
+        }
+        .queue-media img { width: 100%; height: 100%; object-fit: cover; }
+        .queue-info { flex: 1; }
+        .queue-text { 
+            font-size: 0.95rem; line-height: 1.5; color: #e2e8f0; 
+            display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+        }
+        .queue-meta { margin-top: 10px; display: flex; gap: 15px; font-size: 0.85rem; color: #94a3b8; }
+        .queue-actions { display: flex; flex-direction: column; gap: 8px; justify-content: center; }
 
-        /* Terminal Logs */
-        .terminal-panel {
-            background: #0f172a; border-radius: 16px; border: 1px solid #1e293b;
-            font-family: 'JetBrains Mono', monospace; font-size: 0.85rem;
-            overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        .btn {
+            border: none; padding: 10px 16px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 0.9rem;
+            display: flex; align-items: center; gap: 8px; transition: 0.2s; text-decoration: none;
         }
-        .terminal-header {
-            background: #1e293b; padding: 8px 15px; display: flex; gap: 8px; align-items: center;
+        .btn-sm { padding: 6px 12px; font-size: 0.8rem; }
+        .btn-primary { background: var(--accent); color: white; }
+        .btn-primary:hover { filter: brightness(1.1); }
+        .btn-success { background: rgba(16, 185, 129, 0.1); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
+        .btn-success:hover { background: rgba(16, 185, 129, 0.2); }
+        .btn-danger { background: rgba(239, 68, 68, 0.1); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
+        .btn-danger:hover { background: rgba(239, 68, 68, 0.2); }
+
+        /* Forms */
+        input, select, textarea {
+            width: 100%; background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border);
+            color: white; padding: 12px; border-radius: 8px; font-family: inherit; font-size: 0.95rem;
+            box-sizing: border-box; transition: 0.2s;
         }
-        .term-dot { width: 10px; height: 10px; border-radius: 50%; }
-        .terminal-body { padding: 15px; height: 200px; overflow-y: auto; color: #94a3b8; }
-        .log-entry { margin-bottom: 4px; display: flex; gap: 10px; }
-        .log-time { color: #475569; user-select: none; }
-        .log-info { color: #3b82f6; } .log-warn { color: #f59e0b; } .log-err { color: #ef4444; }
+        input:focus, select:focus, textarea:focus { border-color: var(--accent); outline: none; }
 
         /* Modal */
         .modal-overlay {
-            position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(8px);
-            z-index: 100; display: none; align-items: center; justify-content: center;
-            opacity: 0; transition: opacity 0.3s;
+            display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(5px); z-index: 100; justify-content: center; align-items: center;
         }
-        .modal-overlay.open { display: flex; opacity: 1; }
-        
-        .modal {
-            background: #1e293b; width: 600px; max-width: 90%; border-radius: 20px;
-            border: 1px solid rgba(255,255,255,0.1); padding: 30px;
-            box-shadow: 0 50px 100px -20px rgba(0,0,0,0.7);
-            transform: scale(0.95); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        .modal-box {
+            background: #1e293b; width: 600px; padding: 30px; border-radius: 20px;
+            border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+            animation: zoomIn 0.3s; position: relative;
         }
-        .modal-overlay.open .modal { transform: scale(1); }
 
-        .btn-primary {
-            background: var(--accent); color: white; border: none; padding: 10px 20px;
-            border-radius: 10px; font-weight: 600; cursor: pointer; transition: 0.2s;
-            box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);
+        /* Checkbox list style */
+        .feature-checkbox {
+            display: flex; align-items: center; gap: 10px;
+            padding: 8px; border-radius: 6px; cursor: pointer;
+            transition: 0.2s;
         }
-        .btn-primary:hover { background: #7c3aed; transform: translateY(-2px); }
+        .feature-checkbox:hover { background: rgba(255,255,255,0.05); }
+        .feature-checkbox input { width: 18px; height: 18px; margin: 0; accent-color: var(--accent); }
 
-        /* Responsive */
-        .mobile-menu-btn { display: none; }
+        /* Mobile */
+        .menu-toggle { display: none; background: none; border: none; color: white; cursor: pointer; }
         @media (max-width: 1024px) {
-            .admin-sidebar { transform: translateX(-100%); }
-            .admin-sidebar.active { transform: translateX(0); }
-            .admin-main { margin-left: 0; }
-            .mobile-menu-btn { display: block; position: fixed; bottom: 20px; right: 20px; z-index: 100; background: var(--accent); color: white; border:none; width: 50px; height: 50px; border-radius: 50%; box-shadow: 0 10px 30px rgba(0,0,0,0.5); font-size: 24px; cursor: pointer; }
+            .admin-layout { grid-template-columns: 1fr; grid-template-areas: "header" "content"; }
+            .admin-sidebar { position: fixed; left: -300px; height: 100%; width: 280px; transition: 0.3s; }
+            .admin-sidebar.open { left: 0; box-shadow: 20px 0 50px rgba(0,0,0,0.5); }
+            .menu-toggle { display: block; }
+            .grid-complex { grid-template-columns: 1fr; }
         }
+
+        @keyframes blink { 50% { opacity: 0.5; } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes zoomIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
     </style>
 </head>
 <body>
 
-    <div class="admin-wrapper">
+    <div class="bg-orb orb-1"></div>
+    <div class="bg-orb orb-2"></div>
+
+    <div class="admin-layout">
+        <!-- SIDEBAR -->
         <aside class="admin-sidebar" id="sidebar">
             <div class="logo-area">
-                <i data-feather="hexagon"></i> Admin.Pro
+                <div class="logo-icon"><i data-feather="hexagon" style="color:white;"></i></div>
+                <span>Admin.Pro</span>
             </div>
             
-            <div class="nav-list">
-                <div class="nav-category">Головне</div>
-                <div class="nav-item active" onclick="switchTab('dashboard')"><i data-feather="grid"></i> Огляд</div>
-                <div class="nav-item" onclick="switchTab('users')"><i data-feather="users"></i> Користувачі</div>
-                
-                <div class="nav-category">Система</div>
-                <div class="nav-item" onclick="switchTab('logs')"><i data-feather="terminal"></i> Логи & Події</div>
-                <div class="nav-item" onclick="window.location.href='index.html'"><i data-feather="log-out"></i> Вихід в App</div>
+            <div class="nav-category">Головне</div>
+            <div class="nav-item active" onclick="switchTab('dashboard', this)">
+                <i data-feather="grid"></i> Дашборд
+            </div>
+            <div class="nav-item" onclick="switchTab('content', this)">
+                <i data-feather="layers"></i> Черга Модерації
+                <span class="nav-badge" id="badge-queue" style="display:none">0</span>
+            </div>
+            
+            <div class="nav-category">Користувачі</div>
+            <div class="nav-item" onclick="switchTab('users', this)">
+                <i data-feather="users"></i> Веб-користувачі
+            </div>
+            <div class="nav-item" onclick="switchTab('whitelist', this)">
+                <i data-feather="shield"></i> TG Whitelist
+            </div>
+
+            <div class="nav-category">Налаштування</div>
+            <div class="nav-item" onclick="switchTab('channels', this)">
+                <i data-feather="radio"></i> Канали
+            </div>
+            <div class="nav-item" onclick="switchTab('global-settings', this)">
+                <i data-feather="sliders"></i> Конфігурація
+            </div>
+            <div class="nav-item" onclick="switchTab('maintenance', this)">
+                <i data-feather="tool"></i> Система
+            </div>
+            
+            <div style="margin-top: auto;">
+                <a href="index.html" class="nav-item" style="color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2);">
+                    <i data-feather="log-out"></i> Повернутися в App
+                </a>
             </div>
         </aside>
 
-        <button class="mobile-menu-btn" onclick="document.getElementById('sidebar').classList.toggle('active')">☰</button>
-
-        <main class="admin-main">
-            <div class="admin-header">
-                <div class="page-title">
-                    <h1>Командний Центр</h1>
-                    <div style="color: #64748b; font-size: 0.9rem; margin-top: 5px;">Керування доступом та системою</div>
-                </div>
-                <div style="display:flex; gap:15px; align-items:center;">
-                    <div style="text-align:right;">
-                        <div style="font-weight:700; color:white;">Administrator</div>
-                        <div style="font-size:0.75rem; color:#10b981;">● Online</div>
-                    </div>
-                    <div class="user-avatar" style="width:42px; height:42px; background: #334155;">A</div>
-                </div>
-            </div>
-
-            <div id="view-dashboard" class="view-section">
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-icon"><i data-feather="users"></i></div>
-                        <div class="stat-value" id="stat-users">0</div>
-                        <div class="stat-label">Всього Користувачів</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon" style="color:#10b981"><i data-feather="check-circle"></i></div>
-                        <div class="stat-value" id="stat-approved">0</div>
-                        <div class="stat-label">Активні Акаунти</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon" style="color:#f59e0b"><i data-feather="user-plus"></i></div>
-                        <div class="stat-value" id="stat-pending">0</div>
-                        <div class="stat-label">Очікують підтвердження</div>
-                    </div>
-                </div>
-
-                <div class="table-card">
-                    <div class="table-header">
-                        <h3 style="margin:0; color:white;">База Користувачів</h3>
-                        <div style="position:relative;">
-                            <i data-feather="search" style="position:absolute; left:10px; top:10px; width:16px; color:#64748b;"></i>
-                            <input type="text" id="userSearch" placeholder="Пошук..." style="background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); padding:8px 10px 8px 35px; border-radius:8px; color:white; outline:none;">
-                        </div>
-                    </div>
-                    <div style="overflow-x:auto;">
-                        <table id="usersTable">
-                            <thead>
-                                <tr>
-                                    <th>Користувач</th>
-                                    <th>Роль</th>
-                                    <th>Telegram</th>
-                                    <th>Статус</th>
-                                    <th style="text-align:right">Дії</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                </tbody>
-                        </table>
-                    </div>
-                </div>
-                
-                <div class="terminal-panel">
-                    <div class="terminal-header">
-                        <div class="term-dot" style="background:#ef4444"></div>
-                        <div class="term-dot" style="background:#f59e0b"></div>
-                        <div class="term-dot" style="background:#10b981"></div>
-                        <span style="opacity:0.5; margin-left:10px;">system.log</span>
-                    </div>
-                    <div class="terminal-body" id="terminalOutput">
-                        <div class="log-entry"><span class="log-time">[10:00:01]</span> <span class="log-info">System initialized successfully</span></div>
-                    </div>
-                </div>
-            </div>
-
-        </main>
-    </div>
-
-    <div id="editUserModal" class="modal-overlay">
-        <div class="modal">
-            <div style="display:flex; justify-content:space-between; margin-bottom:20px; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:15px;">
-                <h2 style="margin:0; color:white;">Редагування Прав</h2>
-                <button onclick="closeModal()" style="background:none; border:none; color:#64748b; cursor:pointer;"><i data-feather="x"></i></button>
-            </div>
-
-            <form id="editUserForm">
-                <input type="hidden" id="editUserId">
-                
-                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px; margin-bottom:20px;">
-                    <div>
         <!-- HEADER -->
         <header class="admin-header">
             <div style="display:flex; align-items:center; gap:20px;">
