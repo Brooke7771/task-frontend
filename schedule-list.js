@@ -1,4 +1,4 @@
-import { getScheduledPosts, deleteScheduledPost, postScheduledNow, updateScheduledPost, getMyProfile, approveScheduledPost } from './api.js';
+import { getScheduledPosts, deleteScheduledPost, postScheduledNow, updateScheduledPost, getMyProfile, approveScheduledPost, backendUrl } from './api.js';
 
 let allPosts = [];
 let selectedPosts = new Set();
@@ -6,8 +6,36 @@ let currentCalendarDate = new Date();
 let selectedDate = null;
 let isAdmin = false;
 
+// 🔥 SSE INIT
+function initSSE() {
+    const eventSource = new EventSource(`${backendUrl}/api/events`);
+    
+    eventSource.onmessage = (event) => {
+        try {
+            const data = JSON.parse(event.data);
+            if (data.type === 'UPDATE_SCHEDULE') {
+                console.log('Received update event, reloading...');
+                loadPosts(); // Auto reload
+                
+                const toast = document.createElement('div');
+                toast.style.cssText = "position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:#10b981; color:white; padding:10px 20px; border-radius:20px; z-index:9999; animation:fadeIn 0.5s; box-shadow: 0 5px 15px rgba(0,0,0,0.3); font-weight:bold;";
+                toast.innerText = "🔄 Дані оновлено";
+                document.body.appendChild(toast);
+                setTimeout(() => toast.remove(), 2500);
+            }
+        } catch(e) {}
+    };
+    
+    eventSource.onerror = () => {
+        console.log("SSE Error, reconnecting...");
+        eventSource.close();
+        setTimeout(initSSE, 5000);
+    };
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     loadPosts();
+    initSSE(); // Start listening
 });
 
 // --- LOAD DATA ---
@@ -271,12 +299,7 @@ async function handleDrop(e, targetDate) {
         }
 
         // Використовуємо існуючий метод
-        const backendUrl = 'https://my-telegram-task-bot-5c4258bd3f9b.herokuapp.com';
-        await fetch(`${backendUrl}/api/scheduled_posts/${postId}/update`, {
-            method: 'POST',
-            headers: { 'X-Username': localStorage.getItem('username') || 'Unknown' },
-            body: formData
-        });
+        await updateScheduledPost(postId, formData);
 
         // Оновлюємо UI
         await loadPosts();
@@ -400,12 +423,8 @@ window.quickReschedule = async (postId, newTimeStr) => {
         const formData = new FormData();
         formData.append('post_text', post.text);
         formData.append('post_at', new Date(newTimeStr).toISOString());
-        const backendUrl = 'https://my-telegram-task-bot-5c4258bd3f9b.herokuapp.com';
-        await fetch(`${backendUrl}/api/scheduled_posts/${postId}/update`, {
-            method: 'POST',
-            headers: { 'X-Username': localStorage.getItem('username') || 'Unknown' },
-            body: formData
-        });
+        // Використовуємо існуючий метод
+        await updateScheduledPost(postId, formData);
         await loadPosts(); 
     } catch (e) {
         alert('Помилка при перенесенні');
