@@ -59,6 +59,41 @@ document.addEventListener('DOMContentLoaded', async () => {
         const postPhotoInput = document.getElementById('post_photo');
         const mediaContainer = document.getElementById('preview-media');
 
+        // Buttons (URL-кнопки): логіка додавання/видалення та оновлення прев'ю
+        const buttonsContainer = document.getElementById('buttons-container');
+        const addBtn = document.getElementById('add-button-row');
+
+        if (addBtn && buttonsContainer) {
+            addBtn.addEventListener('click', () => {
+                const row = document.createElement('div');
+                row.className = 'button-row';
+                row.style.cssText = 'display: flex; gap: 10px; margin-bottom: 8px; align-items: center;';
+                
+                row.innerHTML = `
+                    <input type="text" class="btn-label" placeholder="Текст (напр. Купити)" style="flex:1;">
+                    <input type="text" class="btn-url" placeholder="https://..." style="flex:2;">
+                    <button type="button" class="btn-remove" style="background:none; border:none; color:#ef4444; cursor:pointer; padding:5px;">
+                        <i data-feather="x"></i>
+                    </button>
+                `;
+
+                // Видалення рядка
+                row.querySelector('.btn-remove').addEventListener('click', () => {
+                    row.remove();
+                    updatePreviewButtons();
+                });
+
+                // Оновлення прев'ю при введенні
+                row.querySelectorAll('input').forEach(input => {
+                    input.addEventListener('input', updatePreviewButtons);
+                });
+
+                buttonsContainer.appendChild(row);
+                if (window.feather) feather.replace();
+                updatePreviewButtons();
+            });
+        }
+
         // Глобальний доступ для дебагу
         window.postTextInput = postTextInput;
 
@@ -313,6 +348,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                 textContentDiv.style.display = 'block';
                 if(mediaContainer) mediaContainer.style.borderRadius = '12px 12px 0 0';
             }
+
+            // Оновлюємо прев'ю кнопок (якщо є)
+            if (typeof updatePreviewButtons === 'function') updatePreviewButtons();
         }
 
         function formatForPreview(text) {
@@ -325,6 +363,26 @@ document.addEventListener('DOMContentLoaded', async () => {
                 .replace(/`([^`]+)`/g, '<code>$1</code>') // Code
                 .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>') // Link
                 .replace(/\n/g, '<br>');
+        }
+
+        // --- New: preview buttons rendering ---
+        function updatePreviewButtons() {
+            const previewContainer = document.getElementById('preview-buttons');
+            if (!previewContainer) return;
+            
+            previewContainer.innerHTML = '';
+            const rows = document.querySelectorAll('.button-row');
+            
+            rows.forEach(row => {
+                const textEl = row.querySelector('.btn-label');
+                const text = textEl ? textEl.value : '';
+                if (text && text.trim()) {
+                    const btnDiv = document.createElement('div');
+                    btnDiv.style.cssText = 'background: rgba(255,255,255,0.1); padding: 8px 15px; border-radius: 8px; font-size: 0.9em; cursor: default; text-align: center; color: #5eb5f7; font-weight: 600;';
+                    btnDiv.textContent = text;
+                    previewContainer.appendChild(btnDiv);
+                }
+            });
         }
 
         // --- 5. ОБРОБКА ВІДПРАВКИ ---
@@ -380,6 +438,17 @@ document.addEventListener('DOMContentLoaded', async () => {
                 });
             }
 
+            // Збір даних кнопок (URL-кнопки)
+            const buttonsData = [];
+            document.querySelectorAll('.button-row').forEach(row => {
+                const labelEl = row.querySelector('.btn-label');
+                const urlEl = row.querySelector('.btn-url');
+                const label = labelEl ? labelEl.value.trim() : '';
+                const url = urlEl ? urlEl.value.trim() : '';
+                if (label && url) buttonsData.push([label, url]);
+            });
+            formData.append('buttons', JSON.stringify(buttonsData));
+
             try {
                 let response;
                 if (mode === 'now') response = await postNewsNow(formData);
@@ -391,6 +460,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                     if(form) form.reset();
                     if(mediaContainer) mediaContainer.innerHTML = '';
                     if(postTextInput) postTextInput.value = '';
+                    // Очищаємо кнопки після успішної відправки
+                    if (buttonsContainer) buttonsContainer.innerHTML = '';
                     updatePreview();
                     setTimeout(() => { if(statusMessage) statusMessage.style.display='none'; }, 3000);
                 } else {
