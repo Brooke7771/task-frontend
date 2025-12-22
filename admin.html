@@ -437,6 +437,45 @@
     // Init
     feather.replace();
     loadStats();
+
+    // SSE for admin panel (auto-refresh channels + stats)
+    function initSSEAdmin() {
+        const es = new EventSource(`${backendUrl}/api/events`);
+        es.onmessage = async (evt) => {
+            try {
+                const data = JSON.parse(evt.data);
+                if (data.type === 'UPDATE_CHANNELS') {
+                    console.log('SSE: channels updated, reloading table...');
+                    await loadChannelsTable();
+
+                    // If edit modal is open, re-render its channel checkboxes with latest channels
+                    const modal = document.getElementById('editUserModal');
+                    const editIdEl = document.getElementById('editUserId');
+                    if (modal && modal.style.display === 'flex' && editIdEl && editIdEl.value) {
+                        try {
+                            const res = await fetch(`${backendUrl}/api/admin/users`);
+                            const users = await res.json();
+                            const u = users.find(x => String(x.id) === String(editIdEl.value));
+                            if (u) {
+                                openEditUser(encodeURIComponent(JSON.stringify(u)));
+                            }
+                        } catch(e) { console.error('Failed to refresh user in modal', e); }
+                    }
+                }
+                if (data.type === 'UPDATE_SCHEDULE') {
+                    // Update stats panel because scheduled posts count may have changed
+                    loadStats();
+                }
+            } catch(e) { console.error('SSE parse error', e); }
+        };
+        es.onerror = () => {
+            console.log('SSE error (admin), attempting reconnect...');
+            es.close();
+            setTimeout(initSSEAdmin, 5000);
+        };
+    }
+
+    initSSEAdmin();
 </script>
 <script src="garland.js" type="module"></script>
 <script>
