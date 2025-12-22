@@ -156,6 +156,29 @@
         #statusMessage { margin-top: 15px; text-align: center; font-weight: 600; padding: 10px; border-radius: 10px; display: none; }
         #statusMessage.success { display: block; background: rgba(16, 185, 129, 0.1); color: #34d399; }
         #statusMessage.error { display: block; background: rgba(239, 68, 68, 0.1); color: #f87171; }
+
+        /* 🔥 AI PANEL STYLES */
+        .ai-panel {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(168, 85, 247, 0.1));
+            border: 1px solid rgba(139, 92, 246, 0.3); border-radius: 16px; padding: 15px; margin-bottom: 25px;
+        }
+        .ai-panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-weight: 700; color: #a78bfa; }
+        .ai-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        @media(max-width: 600px) { .ai-grid { grid-template-columns: 1fr; } }
+        
+        .ai-input-group { display: flex; gap: 8px; }
+        .btn-ai {
+            background: var(--color-primary); border: none; color: white; border-radius: 10px;
+            padding: 0 15px; cursor: pointer; transition: 0.2s; white-space: nowrap; font-weight: 600;
+        }
+        .btn-ai:hover { filter: brightness(1.2); transform: translateY(-1px); }
+        .btn-ai:disabled { opacity: 0.6; cursor: wait; }
+
+        /* File Input */
+        .file-upload-wrapper { position: relative; border: 1px dashed rgba(255,255,255,0.2); border-radius: 12px; padding: 20px; text-align: center; transition: 0.2s; background: rgba(0,0,0,0.1); }
+        .file-upload-wrapper:hover { border-color: var(--color-primary); background: rgba(var(--color-primary-rgb), 0.05); }
+        input[type="file"] { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+        .upload-placeholder { pointer-events: none; color: #94a3b8; font-size: 0.9em; }
     </style>
 </head>
 <body>
@@ -169,6 +192,30 @@
             <!-- EDITOR COLUMN -->
             <div class="card">
                 <h1><i data-feather="edit-3"></i> Новий Пост</h1>
+                
+                <div class="ai-panel">
+                    <div class="ai-panel-header"><i data-feather="cpu"></i> Smart Assistant</div>
+                    <div class="ai-grid">
+                        <div>
+                            <label style="color:#a78bfa; margin-bottom:5px;">🔗 URL у Пост</label>
+                            <div class="ai-input-group">
+                                <input type="text" id="ai_url_input" placeholder="https://..." style="font-size:0.9em; padding:8px;" title="URL джерела">
+                                <button type="button" id="ai_url_btn" class="btn-ai" title="Отримати текст з URL" aria-label="Отримати текст з URL"><i data-feather="arrow-right"></i></button>
+                            </div>
+                        </div>
+                        <div>
+                            <label style="color:#a78bfa; margin-bottom:5px;">🎭 Тон (Rewriter)</label>
+                            <div class="ai-input-group">
+                                <select id="ai_tone_select" style="font-size:0.9em; padding:8px;" title="Виберіть тон" aria-label="Виберіть тон">
+                                    <option value="interesting">✨ Цікавий</option>
+                                    <option value="sarcastic">😏 Саркастичний</option>
+                                    <option value="official">👔 Офіційний</option>
+                                </select>
+                                <button type="button" id="ai_rewrite_btn" class="btn-ai" title="Переписати тон" aria-label="Переписати тон"><i data-feather="refresh-cw"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 
                 <div class="form-group">
                     <label for="template-select"><i data-feather="layout" style="width:14px; vertical-align:middle"></i> Шаблон</label>
@@ -203,7 +250,10 @@
                     
                     <div class="form-group">
                         <label><i data-feather="image" style="width:14px; vertical-align:middle"></i> Медіа</label>
-                        <input type="file" id="post_photo" name="post_photo" accept="image/*,video/*">
+                        <div class="file-upload-wrapper">
+                            <input type="file" id="post_photo" name="post_photo" accept="image/*,video/*" multiple title="Оберіть файли медіа" aria-label="Оберіть файли медіа">
+                            <div class="upload-placeholder"><i data-feather="upload-cloud"></i><br>Оберіть файли</div>
+                        </div>
                     </div>
 
                     <div class="form-group scheduling-group">

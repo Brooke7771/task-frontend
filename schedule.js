@@ -1,4 +1,4 @@
-import { schedulePost, postNewsNow, getChannels } from './api.js';
+import { schedulePost, postNewsNow, getChannels, backendUrl } from './api.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
     try {
@@ -24,6 +24,83 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Контейнери прев'ю
         const mediaContainer = document.getElementById('preview-media');
         const timeBadge = document.getElementById('preview-time');
+
+        // 🔥 AI Elements
+        const aiUrlInput = document.getElementById('ai_url_input');
+        const aiUrlBtn = document.getElementById('ai_url_btn');
+        const aiToneSelect = document.getElementById('ai_tone_select');
+        const aiRewriteBtn = document.getElementById('ai_rewrite_btn');
+
+        // --- 🔥 AI HANDLERS ---
+        // 1. URL Scraper
+        if (aiUrlBtn) {
+            aiUrlBtn.addEventListener('click', async () => {
+                const url = aiUrlInput.value.trim();
+                if (!url) return alert('Введіть URL');
+                
+                const originalHtml = aiUrlBtn.innerHTML;
+                aiUrlBtn.innerHTML = '<span class="loader" style="width:12px; height:12px; border-width:2px;"></span>';
+                aiUrlBtn.disabled = true;
+
+                try {
+                    const res = await fetch(`${backendUrl}/api/ai/parse_url`, {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({ url })
+                    });
+                    const data = await res.json();
+                    
+                    if (data.result) {
+                        postTextInput.value = data.result;
+                        updatePreview(true); // Update preview manually
+                        aiUrlInput.value = ''; // Clear input
+                    } else {
+                        alert('Не вдалося отримати контент');
+                    }
+                } catch (e) {
+                    console.error(e);
+                    alert('Помилка сервера');
+                } finally {
+                    aiUrlBtn.innerHTML = originalHtml;
+                    aiUrlBtn.disabled = false;
+                }
+            });
+        }
+
+        // 2. Tone Rewriter
+        if (aiRewriteBtn) {
+            aiRewriteBtn.addEventListener('click', async () => {
+                const text = postTextInput.value.trim();
+                if (!text) return alert('Введіть текст для перепису');
+                
+                const tone = aiToneSelect.value;
+                const originalHtml = aiRewriteBtn.innerHTML;
+                aiRewriteBtn.innerHTML = '<span class="loader" style="width:12px; height:12px; border-width:2px;"></span>';
+                aiRewriteBtn.disabled = true;
+
+                try {
+                    const res = await fetch(`${backendUrl}/api/ai/rewrite`, {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({ text, tone })
+                    });
+                    const data = await res.json();
+                    
+                    if (data.result) {
+                        postTextInput.value = data.result;
+                        updatePreview(true);
+                    } else {
+                        alert('Помилка AI');
+                    }
+                } catch (e) {
+                    console.error(e);
+                    alert('Помилка мережі');
+                } finally {
+                    aiRewriteBtn.innerHTML = originalHtml;
+                    aiRewriteBtn.disabled = false;
+                }
+            });
+        }
 
         // --- 🔥 ЛОГІКА ЗАВАНТАЖЕННЯ КАНАЛІВ ---
         const loadChannelsForSelect = async () => {

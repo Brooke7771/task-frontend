@@ -3,7 +3,8 @@ import {
     getChatSessions, 
     deleteChatSession, 
     getChatMessages, 
-    sendChatMessageToSession 
+    sendChatMessageToSession, 
+    backendUrl
 } from './api.js';
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -14,6 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const sessionsList = document.getElementById('sessionsList');
     const sidebar = document.querySelector('.chat-sidebar');
     const backBtn = document.getElementById('backToList');
+    const genPlanBtn = document.getElementById('genPlanBtn');
 
     if(backBtn) {
         backBtn.addEventListener('click', () => {
@@ -145,16 +147,58 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- ПОДІЇ ---
 
-    newChatBtn.addEventListener('click', async () => {
-        try {
-            const session = await createChatSession();
-            await loadChat(session.id);
-            renderSessions();
-        } catch (e) {
-            alert('Не вдалося створити чат');
-        }
-    });
+    if (genPlanBtn) {
+        genPlanBtn.addEventListener('click', async () => {
+            try {
+                // 1. Create new chat automatically
+                const session = await createChatSession();
+                await loadChat(session.id);
+                
+                // 2. Add fake user message
+                renderMessage("Склади контент-план на тиждень", 'user');
+                
+                // 3. Add loading AI message
+                const loadingDiv = document.createElement('div');
+                loadingDiv.className = 'message ai-message';
+                loadingDiv.innerHTML = '<span class="loader"></span> Аналізую тренди...';
+                chatBox.appendChild(loadingDiv);
 
+                try {
+                    // 4. Call special API endpoint
+                    const res = await fetch(`${backendUrl}/api/ai/generate_plan`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+                    const data = await res.json();
+                    
+                    loadingDiv.remove(); // Remove loader
+                    if (data.result) {
+                        // Save to DB so it persists in chat history (we trigger a simple session message)
+                        await sendChatMessageToSession(session.id, "Склади контент-план (System Trigger)");
+                        renderMessage(data.result, 'ai');
+                        renderSessions();
+                    } else {
+                        renderMessage('Не вдалося згенерувати план.', 'ai');
+                    }
+                } catch (e) {
+                    loadingDiv.innerText = "Помилка генерації.";
+                }
+            } catch (e) {
+                console.error(e);
+                alert('Не вдалося створити чат для плану');
+            }
+        });
+    }
+     
+    newChatBtn.addEventListener('click', async () => {
+         try {
+             const session = await createChatSession();
+             await loadChat(session.id);
+             renderSessions();
+         } catch (e) {
+             alert('Не вдалося створити чат');
+         }
+     });
     sendBtn.addEventListener('click', handleSend);
     messageInput.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') handleSend();
