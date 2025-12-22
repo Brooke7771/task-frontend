@@ -4,49 +4,56 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="manifest" href="manifest.json">
-    <title>Аналітика 2.0</title>
+    <title>Аналітика Pro</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="auth-guard.js"></script>
     <style>
-        /* --- Heatmap Styles --- */
-        .heatmap-container {
-            overflow-x: auto; padding-bottom: 10px;
-        }
-        .heatmap-grid {
+        .analytics-grid {
             display: grid;
-            grid-template-rows: repeat(7, 12px); /* 7 днів тижня */
-            grid-auto-flow: column; /* Стовпчики - це тижні */
-            gap: 3px;
-            width: max-content;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
         }
-        .day-cell {
-            width: 12px; height: 12px; border-radius: 2px;
-            background: rgba(255,255,255,0.05);
-            transition: 0.2s;
-        }
-        .day-cell:hover { transform: scale(1.3); z-index: 10; border: 1px solid rgba(255,255,255,0.5); }
         
-        /* Рівні активності */
-        .lvl-0 { background: rgba(255,255,255,0.05); }
-        .lvl-1 { background: rgba(16, 185, 129, 0.2); }
-        .lvl-2 { background: rgba(16, 185, 129, 0.4); }
-        .lvl-3 { background: rgba(16, 185, 129, 0.7); }
-        .lvl-4 { background: #10b981; box-shadow: 0 0 5px #10b981; }
-
-        /* KPI Table */
-        .kpi-table th { color: #94a3b8; font-size: 0.8rem; text-transform: uppercase; padding: 15px; text-align: left; }
-        .kpi-table td { padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.05); }
-        .progress-bar {
-            height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden; margin-top: 5px;
+        .chart-container {
+            position: relative;
+            height: 250px;
+            width: 100%;
         }
-        .progress-fill { height: 100%; background: var(--color-primary); width: 0; transition: width 1s ease; }
 
-        /* Shortener Box */
-        .shortener-box {
-            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(168, 85, 247, 0.1));
-            border: 1px solid rgba(139, 92, 246, 0.3); border-radius: 16px; padding: 20px;
-            display: flex; gap: 10px; flex-wrap: wrap; align-items: center;
+        .kpi-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .kpi-card {
+            background: linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02));
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 16px; padding: 20px;
+            display: flex; flex-direction: column; justify-content: center;
+        }
+        
+        .kpi-title { font-size: 0.8rem; color: #94a3b8; text-transform: uppercase; font-weight: 700; margin-bottom: 5px; }
+        .kpi-value { font-size: 1.8rem; font-weight: 800; color: white; }
+        .kpi-trend { font-size: 0.8rem; margin-top: 5px; }
+        .trend-up { color: #4ade80; }
+        .trend-neutral { color: #94a3b8; }
+
+        @media (max-width: 768px) {
+            .kpi-row { grid-template-columns: 1fr 1fr; }
+        }
+        
+        /* Таблиця */
+        table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; color: #94a3b8; padding: 10px; font-size: 0.85rem; }
+        td { padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 0.95rem; }
+        .avatar-circle {
+            width: 30px; height: 30px; border-radius: 50%; background: var(--color-primary);
+            color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.8em;
         }
     </style>
 </head>
@@ -55,59 +62,82 @@
     <div class="bg-orb orb-1"></div>
     <div class="bg-orb orb-2"></div>
 
-    <div class="container-main" style="max-width: 1200px;">
-        <h1><i data-feather="bar-chart-2"></i> Аналітика 2.0</h1>
+    <div class="container-main" style="max-width: 1400px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+            <h1><i data-feather="bar-chart-2"></i> Аналітика Pro</h1>
+            <button onclick="loadAnalytics()" class="btn" style="width: auto; padding: 8px 15px;">
+                <i data-feather="refresh-cw" style="width:16px;"></i>
+            </button>
+        </div>
 
-        <div class="card">
-            <h2><i data-feather="grid"></i> Активність Публікацій (Рік)</h2>
-            <div class="heatmap-container">
-                <div id="heatmap" class="heatmap-grid"></div>
+        <div class="kpi-row">
+            <div class="kpi-card">
+                <div class="kpi-title">Всього постів (7 днів)</div>
+                <div class="kpi-value" id="kpi-weekly">0</div>
+                <div class="kpi-trend trend-neutral">Динаміка публікацій</div>
             </div>
-            <div style="display:flex; justify-content: flex-end; gap: 5px; margin-top: 10px; font-size: 0.8em; color: #64748b; align-items: center;">
-                Менше
-                <div class="day-cell lvl-0"></div>
-                <div class="day-cell lvl-2"></div>
-                <div class="day-cell lvl-4"></div>
-                Більше
+            <div class="kpi-card">
+                <div class="kpi-title">Всього Кліків</div>
+                <div class="kpi-value" id="kpi-clicks">0</div>
+                <div class="kpi-trend trend-up">За весь час</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-title">Активних редакторів</div>
+                <div class="kpi-value" id="kpi-editors">0</div>
+                <div class="kpi-trend trend-neutral">За місяць</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-title">Топ канал</div>
+                <div class="kpi-value" id="kpi-top-channel" style="font-size: 1.2rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">-</div>
+                <div class="kpi-trend">Найбільше публікацій</div>
             </div>
         </div>
 
-        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 20px;">
-            
-            <div class="card">
-                <h2><i data-feather="users"></i> Ефективність Редакторів (30 днів)</h2>
-                <table class="kpi-table" style="width:100%">
-                    <thead>
-                        <tr>
-                            <th>Редактор</th>
-                            <th>Постів</th>
-                            <th>Вклад</th>
-                        </tr>
-                    </thead>
-                    <tbody id="editorTable">
-                        <tr><td colspan="3" style="text-align:center"><span class="loader"></span></td></tr>
-                    </tbody>
-                </table>
+        <div class="analytics-grid">
+            <div class="card" style="grid-column: span 2;">
+                <h2>📈 Тренд Публікацій</h2>
+                <div class="chart-container">
+                    <canvas id="trendChart"></canvas>
+                </div>
             </div>
 
-            <div style="display: flex; flex-direction: column; gap: 20px;">
-                <div class="card" style="text-align: center; padding: 40px;">
-                    <div style="font-size: 3rem; font-weight: 800; color: #fbbf24; text-shadow: 0 0 20px rgba(251, 191, 36, 0.3);" id="totalClicks">0</div>
-                    <div style="text-transform: uppercase; color: #94a3b8; font-weight: 700; margin-top: 10px;">Всього кліків</div>
+            <div class="card">
+                <h2>🍕 Типи Контенту</h2>
+                <div class="chart-container" style="height: 200px;">
+                    <canvas id="typeChart"></canvas>
                 </div>
+            </div>
+        </div>
 
-                <div class="card">
-                    <h2><i data-feather="link"></i> Скорочувач</h2>
-                    <div class="shortener-box">
-                        <input type="text" id="urlInput" placeholder="https://..." style="flex:1;">
-                        <button onclick="shortenLink()" class="btn btn-primary" style="width: auto;">✂️</button>
-                    </div>
-                    <div id="shortResult" style="margin-top: 15px; display: none;">
-                        <div style="background: rgba(0,0,0,0.3); padding: 10px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
-                            <span id="shortUrlText" style="color: #a5f3fc; font-family: monospace;"></span>
-                            <button onclick="copyLink()" class="btn" style="width:auto; padding: 5px 10px; font-size: 0.8em;">Copy</button>
-                        </div>
-                    </div>
+        <div class="analytics-grid">
+            <div class="card">
+                <h2>⏰ Активність по Годинах</h2>
+                <div class="chart-container">
+                    <canvas id="hourlyChart"></canvas>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>📢 Топ Каналів</h2>
+                <div class="chart-container">
+                    <canvas id="channelsChart"></canvas>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h2>🏆 Рейтинг Редакторів</h2>
+                <div style="overflow-x: auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th width="50"></th>
+                                <th>Ім'я</th>
+                                <th>Постів</th>
+                                <th>Ефективність</th>
+                            </tr>
+                        </thead>
+                        <tbody id="editorsTable"></tbody>
+                    </table>
                 </div>
             </div>
         </div>
@@ -116,145 +146,201 @@
 
     <script type="module">
         import { backendUrl } from './api.js';
-
         feather.replace();
+
+        // Chart.js Global Config for Dark Theme
+        Chart.defaults.color = '#94a3b8';
+        Chart.defaults.borderColor = 'rgba(255, 255, 255, 0.05)';
+        Chart.defaults.font.family = "'Inter', sans-serif";
+
+        let trendChart, typeChart, hourlyChart, channelsChart;
 
         async function loadAnalytics() {
             try {
                 const res = await fetch(`${backendUrl}/api/analytics/dashboard`);
                 const data = await res.json();
                 
-                renderHeatmap(data.heatmap_data);
-                renderEditors(data.editor_stats);
-                animateNumber('totalClicks', data.total_clicks);
+                updateKPI(data);
+                renderTrendChart(data.weekly_trend);
+                renderTypeChart(data.content_types);
+                renderHourlyChart(data.hourly_activity);
+                renderChannelsChart(data.top_channels);
+                renderEditorsTable(data.editor_stats);
 
             } catch (e) {
-                console.error(e);
+                console.error("Analytics Error", e);
             }
         }
 
-        // --- RENDER HEATMAP ---
-        function renderHeatmap(data) {
-            const container = document.getElementById('heatmap');
-            container.innerHTML = '';
+        function updateKPI(data) {
+            const weeklyTotal = data.weekly_trend.reduce((sum, item) => sum + item.count, 0);
+            document.getElementById('kpi-weekly').textContent = weeklyTotal;
+            document.getElementById('kpi-clicks').textContent = data.total_clicks;
+            document.getElementById('kpi-editors').textContent = data.editor_stats.length;
             
-            // Map data to dictionary: "2025-01-01" -> 5
-            const counts = {};
-            let maxCount = 0;
-            data.forEach(d => {
-                counts[d.post_date] = d.count;
-                if(d.count > maxCount) maxCount = d.count;
+            if(data.top_channels.length > 0) {
+                document.getElementById('kpi-top-channel').textContent = data.top_channels[0].title;
+            }
+        }
+
+        function renderTrendChart(data) {
+            const ctx = document.getElementById('trendChart').getContext('2d');
+            const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+            gradient.addColorStop(0, 'rgba(139, 92, 246, 0.5)'); // Primary color
+            gradient.addColorStop(1, 'rgba(139, 92, 246, 0.0)');
+
+            if(trendChart) trendChart.destroy();
+
+            trendChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: data.map(d => d.date),
+                    datasets: [{
+                        label: 'Публікації',
+                        data: data.map(d => d.count),
+                        borderColor: '#8b5cf6',
+                        backgroundColor: gradient,
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: '#fff',
+                        pointBorderColor: '#8b5cf6',
+                        pointRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+        }
+
+        function renderTypeChart(data) {
+            const ctx = document.getElementById('typeChart').getContext('2d');
+            if(typeChart) typeChart.destroy();
+
+            // Mapping types to readable names
+            const labels = data.map(d => {
+                if(d.post_type === 'ad') return 'Реклама';
+                if(d.post_type === 'scheduled') return 'План';
+                if(d.post_type === 'instant') return 'Миттєво';
+                return d.post_type;
             });
 
-            // Generate last 365 days
-            const today = new Date();
-            const oneYearAgo = new Date();
-            oneYearAgo.setFullYear(today.getFullYear() - 1);
-
-            // GitHub logic: columns are weeks, rows are days (Sun-Sat)
-            // But simple CSS grid: just fill cells. 
-            // Better: 52 columns, 7 rows.
-            
-            for (let i = 0; i < 365; i++) {
-                // Calculate date for this cell (going backwards or forwards? usually left-to-right is past-to-future)
-                // Let's simplified: 365 div elements.
-                // NOTE: Real calendar alignment is hard in vanilla JS without libraries.
-                // We will just render last 52 weeks * 7 days = 364 cells.
-                
-                const d = new Date(oneYearAgo);
-                d.setDate(d.getDate() + i);
-                const dateStr = d.toISOString().split('T')[0];
-                const count = counts[dateStr] || 0;
-                
-                // Determine level
-                let level = 0;
-                if (count > 0) {
-                    const pct = count / (maxCount || 1);
-                    if (pct < 0.25) level = 1;
-                    else if (pct < 0.5) level = 2;
-                    else if (pct < 0.75) level = 3;
-                    else level = 4;
+            typeChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data.map(d => d.count),
+                        backgroundColor: ['#ec4899', '#8b5cf6', '#10b981', '#f59e0b'],
+                        borderWidth: 0,
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { 
+                        legend: { position: 'right', labels: { boxWidth: 12, usePointStyle: true } } 
+                    },
+                    cutout: '70%'
                 }
-
-                const cell = document.createElement('div');
-                cell.className = `day-cell lvl-${level}`;
-                cell.title = `${dateStr}: ${count} постів`;
-                container.appendChild(cell);
-            }
+            });
         }
 
-        // --- RENDER EDITORS ---
-        function renderEditors(editors) {
-            const tbody = document.getElementById('editorTable');
+        function renderHourlyChart(data) {
+            const ctx = document.getElementById('hourlyChart').getContext('2d');
+            if(hourlyChart) hourlyChart.destroy();
+
+            // Fill empty hours
+            const fullData = new Array(24).fill(0);
+            data.forEach(d => fullData[d.hour] = d.count);
+            const labels = fullData.map((_, i) => `${i}:00`);
+
+            hourlyChart = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Активність',
+                        data: fullData,
+                        borderColor: '#38bdf8',
+                        backgroundColor: 'rgba(56, 189, 248, 0.2)',
+                        pointRadius: 0,
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            angleLines: { color: 'rgba(255,255,255,0.1)' },
+                            grid: { color: 'rgba(255,255,255,0.1)' },
+                            ticks: { display: false, backdropColor: 'transparent' }
+                        }
+                    },
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
+
+        function renderChannelsChart(data) {
+            const ctx = document.getElementById('channelsChart').getContext('2d');
+            if(channelsChart) channelsChart.destroy();
+
+            channelsChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: data.map(d => d.title.substring(0, 15) + '...'),
+                    datasets: [{
+                        label: 'Постів',
+                        data: data.map(d => d.count),
+                        backgroundColor: '#f59e0b',
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' } },
+                        y: { grid: { display: false } }
+                    }
+                }
+            });
+        }
+
+        function renderEditorsTable(data) {
+            const tbody = document.getElementById('editorsTable');
             tbody.innerHTML = '';
             
-            if(editors.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="3" style="text-align:center">Дані відсутні</td></tr>';
-                return;
-            }
+            const maxPosts = Math.max(...data.map(e => e.total_posts)) || 1;
 
-            // Find max for progress bar
-            const maxPosts = Math.max(...editors.map(e => e.total_posts));
-
-            editors.forEach(e => {
-                const percent = (e.total_posts / maxPosts) * 100;
-                const lastSeen = e.last_active ? new Date(e.last_active).toLocaleDateString() : '-';
+            data.forEach(e => {
+                const percent = Math.round((e.total_posts / maxPosts) * 100);
+                const initial = e.username.charAt(0).toUpperCase();
                 
                 tbody.innerHTML += `
                     <tr>
+                        <td><div class="avatar-circle">${initial}</div></td>
+                        <td>${e.username}</td>
+                        <td style="font-weight:bold; color:white;">${e.total_posts}</td>
                         <td>
-                            <div style="font-weight:bold; color:white;">${e.username}</div>
-                            <div style="font-size:0.8em; opacity:0.6;">Останній: ${lastSeen}</div>
-                        </td>
-                        <td style="font-weight:800; font-size:1.1em;">${e.total_posts}</td>
-                        <td>
-                            <div class="progress-bar">
-                                <div class="progress-fill" style="width:${percent}%"></div>
+                            <div style="width:100%; height:6px; background:rgba(255,255,255,0.1); border-radius:3px; overflow:hidden;">
+                                <div style="width:${percent}%; height:100%; background:var(--color-primary);"></div>
                             </div>
                         </td>
                     </tr>
                 `;
             });
-        }
-
-        // --- UTILS ---
-        function animateNumber(id, target) {
-            const el = document.getElementById(id);
-            let current = 0;
-            const step = Math.ceil(target / 50);
-            const timer = setInterval(() => {
-                current += step;
-                if(current >= target) {
-                    current = target;
-                    clearInterval(timer);
-                }
-                el.innerText = current;
-            }, 20);
-        }
-
-        // --- LINK SHORTENER ---
-        window.shortenLink = async () => {
-            const url = document.getElementById('urlInput').value;
-            if(!url) return;
-            
-            try {
-                const res = await fetch(`${backendUrl}/api/links/shorten`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ url })
-                });
-                const data = await res.json();
-                if(data.short_url) {
-                    document.getElementById('shortResult').style.display = 'block';
-                    document.getElementById('shortUrlText').innerText = data.short_url;
-                }
-            } catch(e) { alert('Error'); }
-        };
-
-        window.copyLink = () => {
-            const text = document.getElementById('shortUrlText').innerText;
-            navigator.clipboard.writeText(text);
-            alert('Скопійовано!');
         }
 
         loadAnalytics();
