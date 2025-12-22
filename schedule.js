@@ -94,6 +94,22 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
         }
 
+        // Збір даних кнопок (URL-кнопки)
+        const buttonsData = [];
+        document.querySelectorAll('.button-row').forEach(row => {
+            const labelEl = row.querySelector('.btn-label');
+            const urlEl = row.querySelector('.btn-url');
+            const label = labelEl ? labelEl.value.trim() : '';
+            const url = urlEl ? urlEl.value.trim() : '';
+            
+            // Проста валідація
+            if (label && url) {
+                buttonsData.push([label, url]);
+            }
+        });
+        // Додаємо масив як JSON-рядок
+        formData.append('buttons', JSON.stringify(buttonsData));
+
         // Глобальний доступ для дебагу
         window.postTextInput = postTextInput;
 
