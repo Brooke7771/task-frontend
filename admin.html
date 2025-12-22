@@ -533,8 +533,21 @@
         import { 
             backendUrl, getChannels, getWhitelist, addWhitelistUser, deleteWhitelistUser, 
             addChannel, deleteChannel, getScheduledPosts, getSettings, updateSettings,
-            getTasks, getAds, approveScheduledPost, deleteScheduledPost
+            getTasks, approveScheduledPost, deleteScheduledPost
         } from './api.js';
+
+        // 🔥 МАНУАЛЬНЕ ВИЗНАЧЕННЯ getAds (оскільки воно відсутнє в api.js)
+        const getAds = async () => {
+            try {
+                const res = await fetch(`${backendUrl}/api/ads`, {
+                    headers: { 'X-Username': localStorage.getItem('username') || 'Unknown' }
+                });
+                return await res.json();
+            } catch (e) {
+                console.error("Failed to load ads:", e);
+                return [];
+            }
+        };
 
         // --- GLOBAL & INIT ---
         let sysChart;
@@ -590,7 +603,7 @@
                     fetch(`${backendUrl}/api/admin/stats`).then(r => r.json()),
                     getScheduledPosts(),
                     getTasks(),
-                    getAds()
+                    getAds() // Використовуємо локальну функцію
                 ]);
 
                 // Update Widgets
