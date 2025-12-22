@@ -530,24 +530,46 @@
     </div>
 
     <script type="module">
-        import { 
-            backendUrl, getChannels, getWhitelist, addWhitelistUser, deleteWhitelistUser, 
-            addChannel, deleteChannel, getScheduledPosts, getSettings, updateSettings,
-            getTasks, approveScheduledPost, deleteScheduledPost
-        } from './api.js';
+        // --- 🚀 SELF-CONTAINED API LOGIC (No Imports) ---
+        const backendUrl = 'https://my-telegram-task-bot-5c4258bd3f9b.herokuapp.com';
 
-        // 🔥 МАНУАЛЬНЕ ВИЗНАЧЕННЯ getAds (оскільки воно відсутнє в api.js)
-        const getAds = async () => {
+        async function apiFetch(endpoint, options = {}) {
             try {
-                const res = await fetch(`${backendUrl}/api/ads`, {
-                    headers: { 'X-Username': localStorage.getItem('username') || 'Unknown' }
-                });
-                return await res.json();
-            } catch (e) {
-                console.error("Failed to load ads:", e);
-                return [];
+                const username = localStorage.getItem('username') || 'Unknown';
+                if (!options.headers) options.headers = {};
+                options.headers['X-Username'] = username;
+
+                const response = await fetch(`${backendUrl}${endpoint}`, options);
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`Server Error: ${response.status} - ${errorText}`);
+                }
+                const contentType = response.headers.get("content-type");
+                if (contentType && contentType.indexOf("application/json") !== -1) {
+                    return response.json();
+                }
+                return true;
+            } catch (error) {
+                console.error(`API Error ${endpoint}:`, error);
+                logToTerminal(`[ERR] API: ${error.message}`, 'err');
+                throw error;
             }
-        };
+        }
+
+        // --- WRAPPER FUNCTIONS ---
+        const getScheduledPosts = () => apiFetch('/api/scheduled_posts');
+        const getTasks = () => apiFetch('/api/tasks');
+        const getSettings = () => apiFetch('/api/settings');
+        const updateSettings = (data) => apiFetch('/api/settings', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+        const getChannels = () => apiFetch('/api/channels');
+        const getWhitelist = () => apiFetch('/api/whitelist');
+        const addWhitelistUser = (id, note) => apiFetch('/api/whitelist', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ telegram_id: parseInt(id), note: note }) });
+        const deleteWhitelistUser = (id) => apiFetch(`/api/whitelist/${id}/delete`, { method: 'POST' });
+        const addChannel = (id, title) => apiFetch('/api/channels', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ telegram_id: String(id), title: title }) });
+        const deleteChannel = (id) => apiFetch(`/api/channels/${id}/delete`, { method: 'POST' });
+        const approveScheduledPost = (id) => apiFetch(`/api/scheduled_posts/${id}/approve`, { method: 'POST' });
+        const deleteScheduledPost = (id) => apiFetch(`/api/scheduled_posts/${id}/delete`, { method: 'POST' });
+        const getAds = () => apiFetch('/api/ads');
 
         // --- GLOBAL & INIT ---
         let sysChart;
@@ -562,17 +584,24 @@
             
             // Auto-refresh stats every 30s
             setInterval(loadStats, 30000);
+            
+            // SSE
+            try {
+                const eventSource = new EventSource(`${backendUrl}/api/events`);
+                eventSource.onmessage = (e) => {
+                    logToTerminal(`[SSE] New Event: ${e.data}`);
+                    if(e.data.includes('UPDATE')) loadStats();
+                };
+            } catch(e) { console.log("SSE not supported locally"); }
         });
 
         window.switchTab = (tabId, element) => {
-            // UI Switch
             document.querySelectorAll('.tab-pane').forEach(el => el.classList.remove('active'));
             document.getElementById(`tab-${tabId}`).classList.add('active');
             
             document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
             if(element) element.classList.add('active');
 
-            // Header Title Update
             const titles = {
                 'dashboard': 'Огляд Системи',
                 'content': 'Черга Модерації',
@@ -584,46 +613,42 @@
             };
             document.getElementById('pageTitle').innerText = titles[tabId] || 'Admin';
 
-            // Lazy Load Data
             if(tabId === 'content') loadContentQueue();
             if(tabId === 'users') loadWebUsers();
             if(tabId === 'whitelist') loadWhitelist();
             if(tabId === 'channels') loadChannelsTable();
             if(tabId === 'global-settings') loadAiSettings();
             
-            // Close mobile menu if open
             document.getElementById('sidebar').classList.remove('open');
         };
 
         // --- DASHBOARD STATS ---
         async function loadStats() {
             try {
-                // Parallel fetch for speed
-                const [statsRes, posts, tasks, ads] = await Promise.all([
-                    fetch(`${backendUrl}/api/admin/stats`).then(r => r.json()),
-                    getScheduledPosts(),
-                    getTasks(),
-                    getAds() // Використовуємо локальну функцію
-                ]);
+                // Fetch individually to avoid Promise.all fail if one endpoint is down
+                let statsRes = { total_users: 0, scheduled_posts: 0, active_tasks: 0, active_ads: 0 };
+                try { statsRes = await apiFetch('/api/admin/stats'); } catch(e){}
 
-                // Update Widgets
                 animateValue("stat-users", 0, statsRes.total_users, 1000);
                 
-                const pendingPosts = posts.filter(p => p.status === 'PendingReview').length;
-                animateValue("stat-posts", 0, pendingPosts, 1000);
-                if(pendingPosts > 0) {
-                    const badge = document.getElementById('badge-queue');
-                    badge.style.display = 'inline-block';
-                    badge.innerText = pendingPosts;
-                }
+                // Content Queue Badge
+                try {
+                    const posts = await getScheduledPosts();
+                    const pendingPosts = posts.filter(p => p.status === 'PendingReview').length;
+                    animateValue("stat-posts", 0, pendingPosts, 1000);
+                    if(pendingPosts > 0) {
+                        const badge = document.getElementById('badge-queue');
+                        badge.style.display = 'inline-block';
+                        badge.innerText = pendingPosts;
+                    }
+                } catch(e){}
 
-                animateValue("stat-tasks", 0, tasks.filter(t => t.status === 'Open').length, 1000);
-                animateValue("stat-ads", 0, ads.filter(a => a.active).length, 1000);
+                animateValue("stat-tasks", 0, statsRes.active_tasks, 1000);
+                animateValue("stat-ads", 0, statsRes.active_ads, 1000);
                 
-                logToTerminal(`[SYS] Dashboard updated. Posts pending: ${pendingPosts}`);
+                logToTerminal(`[SYS] Dashboard updated.`);
             } catch(e) {
                 console.error(e);
-                logToTerminal(`[ERR] Failed to update stats: ${e.message}`, 'err');
             }
         }
 
@@ -647,11 +672,8 @@
                 }
 
                 container.innerHTML = pending.map(post => {
-                    const hasMedia = post.photoIds.length > 0 || post.videoIds.length > 0;
                     let mediaHtml = '';
                     if (post.photoIds.length > 0) {
-                        // Mock preview since we store IDs not URLs usually, unless we have a proxy
-                        // For demo, placeholder
                         mediaHtml = `<div class="queue-media"><i data-feather="image" style="color:#94a3b8"></i></div>`;
                     } else if (post.videoIds.length > 0) {
                         mediaHtml = `<div class="queue-media"><i data-feather="video" style="color:#94a3b8"></i></div>`;
@@ -714,12 +736,12 @@
             const tbody = document.querySelector('#usersTable tbody');
             tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px;">Завантаження...</td></tr>';
             try {
-                const res = await fetch(`${backendUrl}/api/admin/users`);
-                const users = await res.json();
-                allUsers = users; // Cache for search
-
+                const users = await apiFetch('/api/admin/users');
+                allUsers = users; 
                 renderUsersTable(users);
-            } catch(e) { console.error(e); }
+            } catch(e) { 
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:20px; color:#ef4444">${e.message}</td></tr>`;
+            }
         }
 
         function renderUsersTable(users) {
@@ -782,7 +804,7 @@
                 allowed_channels: []
             };
             
-            await fetch(`${backendUrl}/api/admin/users/${id}/update_full`, {
+            await apiFetch(`/api/admin/users/${id}/update_full`, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify(payload)
@@ -794,7 +816,7 @@
 
         window.deleteWebUser = async (id) => {
             if(confirm("Видалити користувача безповоротно?")) {
-                await fetch(`${backendUrl}/api/admin/users/${id}/delete`, { method: 'POST' });
+                await apiFetch(`/api/admin/users/${id}/delete`, { method: 'POST' });
                 loadWebUsers();
                 logToTerminal(`[USR] User #${id} deleted`, 'warn');
             }
