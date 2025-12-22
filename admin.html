@@ -239,10 +239,19 @@
             backdrop-filter: blur(5px); z-index: 100; justify-content: center; align-items: center;
         }
         .modal-box {
-            background: #1e293b; width: 500px; padding: 30px; border-radius: 20px;
+            background: #1e293b; width: 600px; padding: 30px; border-radius: 20px;
             border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 20px 50px rgba(0,0,0,0.6);
-            animation: zoomIn 0.3s;
+            animation: zoomIn 0.3s; position: relative;
         }
+
+        /* Checkbox list style */
+        .feature-checkbox {
+            display: flex; align-items: center; gap: 10px;
+            padding: 8px; border-radius: 6px; cursor: pointer;
+            transition: 0.2s;
+        }
+        .feature-checkbox:hover { background: rgba(255,255,255,0.05); }
+        .feature-checkbox input { width: 18px; height: 18px; margin: 0; accent-color: var(--accent); }
 
         /* Mobile */
         .menu-toggle { display: none; background: none; border: none; color: white; cursor: pointer; }
@@ -503,25 +512,51 @@
 
     <!-- Edit User Modal -->
     <div id="editUserModal" class="modal-overlay">
-        <div class="modal-box">
-            <h2 style="margin-top:0;">Редагування доступу</h2>
+        <div class="modal-box" style="max-width: 600px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px;">
+                <h2 style="margin:0;">Редагування доступу</h2>
+                <button onclick="closeModal()" style="background:none; border:none; color:#64748b; cursor:pointer;"><i data-feather="x"></i></button>
+            </div>
+            
             <form id="editUserForm">
                 <input type="hidden" id="editUserId">
-                <div style="margin-bottom:20px;">
-                    <label style="display:block; margin-bottom:8px;">Роль у системі</label>
-                    <select id="editIsAdmin">
-                        <option value="false">Редактор (Editor)</option>
-                        <option value="true">Адміністратор (Admin)</option>
-                    </select>
+                
+                <div class="modal-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <!-- Left Col: Role & Status -->
+                    <div>
+                        <h4 style="color:#94a3b8; margin-bottom:10px; text-transform:uppercase; font-size:0.75rem;">Основне</h4>
+                        <div style="margin-bottom:15px;">
+                            <label style="display:block; margin-bottom:5px; font-size:0.9rem;">Роль</label>
+                            <select id="editIsAdmin">
+                                <option value="false">Редактор</option>
+                                <option value="true">Адміністратор</option>
+                            </select>
+                        </div>
+                        <div style="margin-bottom:15px;">
+                            <label class="feature-checkbox" style="color: white; cursor: pointer; display: flex; align-items: center; gap: 10px;">
+                                <input type="checkbox" id="editIsApproved" style="width: 18px; height: 18px;">
+                                <span>Акаунт Підтверджено</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Right Col: Permissions -->
+                    <div>
+                        <h4 style="color:#94a3b8; margin-bottom:10px; text-transform:uppercase; font-size:0.75rem;">Доступ до сторінок</h4>
+                        <div id="pagesList" style="max-height: 200px; overflow-y: auto; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 8px;">
+                            <!-- JS injected checkboxes -->
+                        </div>
+                    </div>
                 </div>
-                <div style="margin-bottom:30px;">
-                    <label style="display:flex; align-items:center; gap:10px; cursor:pointer;">
-                        <input type="checkbox" id="editIsApproved" style="width:20px; height:20px;">
-                        <span style="font-weight:600;">Акаунт Підтверджено</span>
-                    </label>
+
+                <div style="margin-top: 20px;">
+                    <h4 style="color:#94a3b8; margin-bottom:10px; text-transform:uppercase; font-size:0.75rem;">Доступ до каналів</h4>
+                    <div id="channelsList" style="max-height: 150px; overflow-y: auto; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 8px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                         <!-- JS injected checkboxes -->
+                    </div>
                 </div>
                 
-                <div style="display:flex; justify-content:flex-end; gap:10px;">
+                <div style="display:flex; justify-content:flex-end; gap:10px; margin-top: 25px;">
                     <button type="button" class="btn" style="background:transparent; border:1px solid #475569;" onclick="closeModal()">Скасувати</button>
                     <button type="submit" class="btn btn-primary">Зберегти зміни</button>
                 </div>
@@ -766,7 +801,7 @@
                     <td><a href="https://t.me/${u.telegram_username}" target="_blank" style="color:#94a3b8; text-decoration:none;">@${u.telegram_username || '---'}</a></td>
                     <td>${u.is_approved ? '<span style="color:#10b981; font-weight:600;">● Active</span>' : '<span style="color:#f59e0b; font-weight:600;">● Pending</span>'}</td>
                     <td style="text-align:right">
-                        <button class="btn btn-sm" onclick='openEditUser(${JSON.stringify(u)})' style="padding:6px 10px; background:rgba(255,255,255,0.1); display:inline-flex;">
+                        <button class="btn btn-sm" onclick='openEditUser(${JSON.stringify(u).replace(/'/g, "&apos;")})' style="padding:6px 10px; background:rgba(255,255,255,0.1); display:inline-flex;">
                             <i data-feather="settings" style="width:14px;"></i>
                         </button>
                         <button class="btn btn-sm btn-danger" onclick="deleteWebUser(${u.id})" style="padding:6px 10px; display:inline-flex;">
@@ -786,22 +821,93 @@
         });
 
         // Edit User Modal Logic
-        window.openEditUser = (u) => {
+        window.openEditUser = async (u) => {
+            // 1. Basic fields
             document.getElementById('editUserId').value = u.id;
             document.getElementById('editIsAdmin').value = u.is_admin.toString();
             document.getElementById('editIsApproved').checked = u.is_approved;
+
+            // 2. Pages
+            const allPages = [
+                { id: 'index.html', name: 'Створити (Home)' },
+                { id: 'schedule.html', name: 'Планування' },
+                { id: 'task-list.html', name: 'Завдання' },
+                { id: 'schedule-list.html', name: 'Черга постів' },
+                { id: 'ads.html', name: 'Реклама' },
+                { id: 'chat.html', name: 'AI Чат' },
+                { id: 'history.html', name: 'Архів' },
+                { id: 'settings.html', name: 'Налаштування' },
+                { id: 'admin.html', name: 'Admin Panel' }
+            ];
+            
+            // Parse user permissions (JSON string or array)
+            let userPages = [];
+            try {
+                userPages = typeof u.allowed_pages === 'string' ? JSON.parse(u.allowed_pages) : (u.allowed_pages || []);
+            } catch(e) { userPages = []; }
+
+            const pagesContainer = document.getElementById('pagesList');
+            pagesContainer.innerHTML = allPages.map(p => {
+                const checked = userPages.includes(p.id) ? 'checked' : '';
+                return `
+                    <label class="feature-checkbox" style="font-size:0.85rem; padding: 5px;">
+                        <input type="checkbox" value="${p.id}" ${checked} class="page-checkbox">
+                        <span>${p.name}</span>
+                    </label>
+                `;
+            }).join('');
+
+            // 3. Channels
+            const channelsContainer = document.getElementById('channelsList');
+            channelsContainer.innerHTML = '<div style="color:#94a3b8">Завантаження...</div>';
+            
+            try {
+                const channels = await getChannels();
+                let userChannels = [];
+                try {
+                    // Try to parse just in case, but usually it's array in JSON response
+                    userChannels = typeof u.allowed_channels === 'string' ? JSON.parse(u.allowed_channels) : (u.allowed_channels || []);
+                } catch(e) { userChannels = []; }
+
+                if (channels.length === 0) {
+                     channelsContainer.innerHTML = '<div style="color:#94a3b8">Немає каналів</div>';
+                } else {
+                    channelsContainer.innerHTML = channels.map(c => {
+                        const checked = userChannels.includes(c.id.toString()) ? 'checked' : '';
+                        return `
+                            <label class="feature-checkbox" style="font-size:0.85rem; padding: 5px;">
+                                <input type="checkbox" value="${c.id}" ${checked} class="channel-checkbox">
+                                <span>${c.title}</span>
+                            </label>
+                        `;
+                    }).join('');
+                }
+            } catch(e) {
+                channelsContainer.innerHTML = '<div style="color:#ef4444">Помилка</div>';
+            }
+
             document.getElementById('editUserModal').style.display = 'flex';
         };
+
         window.closeModal = () => document.getElementById('editUserModal').style.display = 'none';
         
         document.getElementById('editUserForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const id = document.getElementById('editUserId').value;
+            
+            // Collect Pages
+            const pageCheckboxes = document.querySelectorAll('.page-checkbox:checked');
+            const allowedPages = Array.from(pageCheckboxes).map(cb => cb.value);
+
+            // Collect Channels
+            const channelCheckboxes = document.querySelectorAll('.channel-checkbox:checked');
+            const allowedChannels = Array.from(channelCheckboxes).map(cb => cb.value);
+
             const payload = {
                 is_admin: document.getElementById('editIsAdmin').value === 'true',
                 is_approved: document.getElementById('editIsApproved').checked,
-                allowed_pages: ['index.html'], // Keep generic
-                allowed_channels: []
+                allowed_pages: allowedPages,
+                allowed_channels: allowedChannels
             };
             
             await apiFetch(`/api/admin/users/${id}/update_full`, {
