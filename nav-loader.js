@@ -289,6 +289,7 @@ document.addEventListener("DOMContentLoaded", () => {
         { href: 'task-list.html', icon: 'trello', text: 'Завдання', type: ['main', 'mobile-main'] },
         { href: 'schedule-list.html', icon: 'clock', text: 'Розклад', type: ['main', 'mobile-main'] }, 
         { href: 'ads.html', icon: 'megaphone', text: 'Реклама', type: ['main', 'menu'] },
+        { href: 'analytics.html', icon: 'bar-chart-2', text: 'Аналітика', type: ['main', 'menu'], adminOnly: true },
         { href: 'chat.html', icon: 'cpu', text: 'AI Brain', type: ['main', 'mobile-main'] }, // Змінив іконку на більш "розумну"
         { href: 'history.html', icon: 'archive', text: 'Архів', type: ['main', 'menu'] },
         
