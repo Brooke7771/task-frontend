@@ -131,3 +131,12 @@ export const changePassword = (newPassword) => apiFetch('/api/user/change_passwo
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ new_password: newPassword })
 });
+
+// --- Channel groups API ---
+export const getChannelGroups = () => apiFetch('/api/channel_groups');
+export const createChannelGroup = (name, channel_ids) => apiFetch('/api/channel_groups', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name, channel_ids })
+});
+export const deleteChannelGroup = (id) => apiFetch(`/api/channel_groups/${id}/delete`, { method: 'POST' });

@@ -102,255 +102,126 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
         }
 
-        // --- 🔥 ЛОГІКА ЗАВАНТАЖЕННЯ КАНАЛІВ ---
-        const loadChannelsForSelect = async () => {
-            if (!channelSelect) return;
+        // --- 🔥 ЛОГІКА ЗАВАНТАЖЕННЯ КАНАЛІВ (МУЛЬТИ) ---
+        const channelsDropdown = document.getElementById('channels-dropdown');
+        const selectedCountSpan = document.getElementById('selected-count');
+        const toggleBtn = document.getElementById('btn-toggle-channels');
+        
+        if(toggleBtn) {
+            toggleBtn.addEventListener('click', () => {
+                channelsDropdown.classList.toggle('hidden');
+            });
+        }
+
+        const loadChannelsMulti = async () => {
             try {
                 const channels = await getChannels();
+                channelsDropdown.innerHTML = '';
                 
-                // Очищаємо. Більше НЕМАЄ опції "За замовчуванням"
-                channelSelect.innerHTML = '<option value="" disabled selected>Оберіть канал...</option>';
-                
-                if (channels && channels.length > 0) {
-                    channels.forEach(channel => {
-                        const option = document.createElement('option');
-                        option.value = channel.telegram_id; 
-                        option.textContent = channel.title;
-                        channelSelect.appendChild(option);
-                    });
-                } else {
-                    channelSelect.innerHTML = '<option value="" disabled>Немає доступних каналів</option>';
-                }
-            } catch (e) {
-                console.error("Не вдалося завантажити канали:", e);
-            }
-        };
-
-        // Оновлення часу
-        const updateTime = () => {
-            if (timeBadge) {
-                const now = new Date();
-                timeBadge.textContent = now.toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' });
-            }
-        };
-        updateTime();
-        setInterval(updateTime, 60000);
-
-        // Кнопки тулбару
-        const toolbarBold = document.getElementById('toolbar-bold');
-        const toolbarItalic = document.getElementById('toolbar-italic');
-        const toolbarStrike = document.getElementById('toolbar-strike');
-        const toolbarCode = document.getElementById('toolbar-code');
-        const toolbarLink = document.getElementById('toolbar-link');
-
-        // (Раніше тут був глобальний formData, убран — використовуємо локальні FormData при відправці)
-
-        // --- Шаблони ---
-        const templates = {
-            news_simple: {
-                name: 'Проста новина',
-                fields: [{ id: 'text', label: 'Текст', type: 'textarea', placeholder: 'Що нового?' }],
-                formatter: (data) => escapeMarkdown(data.text || '')
-            },
-            news_breaking: {
-                name: 'Термінова новина',
-                fields: [
-                    { id: 'headline', label: 'Заголовок', type: 'input', placeholder: 'Головна подія' },
-                    { id: 'details', label: 'Деталі', type: 'textarea', placeholder: 'Що сталося...' }
-                ],
-                formatter: (data) => `*⚡️ ТЕРМІНОВО: ${escapeMarkdown(data.headline || '')}*\n\n${escapeMarkdown(data.details || '')}`
-            },
-            news_event: {
-                name: 'Анонс події',
-                fields: [
-                    { id: 'event_name', label: 'Назва події', type: 'input' },
-                    { id: 'event_date', label: 'Дата і час', type: 'input', placeholder: 'Наприклад, 25 жовтня о 19:00' },
-                    { id: 'event_place', label: 'Місце проведення', type: 'input' },
-                    { id: 'event_desc', label: 'Опис', type: 'textarea' }
-                ],
-                formatter: (data) => `*Анонс: ${escapeMarkdown(data.event_name || '')}*\n\n🗓 *Коли:* ${escapeMarkdown(data.event_date || '')}\n📍 *Де:* ${escapeMarkdown(data.event_place || '')}\n\n${escapeMarkdown(data.event_desc || '')}`
-            },
-            market_update: {
-                name: 'Аналітика ринку',
-                fields: [
-                    { id: 'market_title', label: 'Тема аналітики', type: 'input', placeholder: 'Наприклад, Ринок акцій сьогодні' },
-                    { id: 'analysis', label: 'Ключові тези', type: 'textarea', placeholder: 'Теза 1\nТеза 2\nТеза 3' }
-                ],
-                formatter: (data) => {
-                    const items = (data.analysis || '').split('\n').filter(i => i.trim()).map(i => `\\- ${escapeMarkdown(i.trim())}`).join('\n');
-                    return `*📈 Аналітика: ${escapeMarkdown(data.market_title || 'Огляд ринку')}*\n\n${items}`;
-                }
-            },
-            quote_of_day: {
-                name: 'Цитата дня',
-                fields: [
-                    { id: 'quote', label: 'Текст цитати', type: 'textarea' },
-                    { id: 'author', label: 'Автор', type: 'input' }
-                ],
-                formatter: (data) => `_"${escapeMarkdown(data.quote || '')}"_\n\n*${escapeMarkdown(data.author || 'Невідомий автор')}*`
-            },
-            link_digest: {
-                name: 'Дайджест посилань',
-                fields: [
-                    { id: 'digest_title', label: 'Тема дайджесту', type: 'input', placeholder: 'Корисні матеріали за тиждень' },
-                    { id: 'links', label: 'Посилання (формат: Опис - https://... )', type: 'textarea', placeholder: 'Назва статті 1 - https://link1.com\nНазва статті 2 - https://link2.com' }
-                ],
-                formatter: (data) => {
-                    const links = (data.links || '').split('\n').filter(l => l.includes('-')).map(l => {
-                        const parts = l.split('-');
-                        const desc = (parts[0] || '').trim();
-                        const url = (parts.slice(1).join('-') || '').trim();
-                        return `\\[${escapeMarkdown(desc)}]\\(${escapeMarkdown(url)})`;
-                    }).join('\n');
-                    return `*🔗 ${escapeMarkdown(data.digest_title || 'Дайджест')}*\n\n${links}`;
-                }
-            }
-        };
-
-        // --- Логіка тулбару (Markdown) ---
-        function wrapText(startTag, endTag, defaultText = '') {
-            if (!postTextInput) return;
-            const start = postTextInput.selectionStart;
-            const end = postTextInput.selectionEnd;
-            const selectedText = postTextInput.value.substring(start, end);
-            const textToWrap = selectedText || defaultText;
-
-            const newText = 
-                postTextInput.value.substring(0, start) +
-                startTag + textToWrap + endTag +
-                postTextInput.value.substring(end);
-
-            postTextInput.value = newText;
-            postTextInput.focus();
-
-            if (selectedText) {
-                postTextInput.setSelectionRange(start + startTag.length, start + startTag.length + textToWrap.length);
-            } else {
-                postTextInput.setSelectionRange(start + startTag.length, start + startTag.length + defaultText.length);
-            }
-            updatePreview(true); // true = ручне редагування
-        }
-
-        if (toolbarBold) toolbarBold.addEventListener('click', () => wrapText('*', '*', 'жирний текст'));
-        if (toolbarItalic) toolbarItalic.addEventListener('click', () => wrapText('_', '_', 'курсив'));
-        if (toolbarStrike) toolbarStrike.addEventListener('click', () => wrapText('~', '~', 'закреслений'));
-        if (toolbarCode) toolbarCode.addEventListener('click', () => wrapText('`', '`', 'код'));
-
-        if (toolbarLink && postTextInput) {
-            toolbarLink.addEventListener('click', () => {
-                const start = postTextInput.selectionStart;
-                const end = postTextInput.selectionEnd;
-                const selectedText = postTextInput.value.substring(start, end);
-                const linkText = selectedText || 'текст посилання';
-                const url = prompt('Введіть URL (посилання):', 'https://');
-
-                if (url) {
-                    const textToInsert = `[${linkText}](${url})`;
-                    postTextInput.value = 
-                        postTextInput.value.substring(0, start) +
-                        textToInsert +
-                        postTextInput.value.substring(end);
+                channels.forEach(ch => {
+                    const label = document.createElement('label');
+                    label.className = 'channel-checkbox';
+                    label.innerHTML = `
+                        <input type="checkbox" name="target_channel_id" value="${ch.telegram_id}">
+                        <span>${ch.title}</span>
+                    `;
                     
-                    postTextInput.focus();
-                    if (selectedText) {
-                        postTextInput.setSelectionRange(start, start + textToInsert.length);
-                    } else {
-                        postTextInput.setSelectionRange(start + 1, start + 1 + linkText.length);
-                    }
-                    updatePreview(true);
-                }
+                    // Стилізація при кліку
+                    const checkbox = label.querySelector('input');
+                    checkbox.addEventListener('change', () => {
+                        if(checkbox.checked) label.classList.add('checked');
+                        else label.classList.remove('checked');
+                        updateCount();
+                    });
+                    
+                    channelsDropdown.appendChild(label);
+                });
+            } catch (e) { console.error(e); }
+        };
+
+        function updateCount() {
+            const count = document.querySelectorAll('input[name="target_channel_id"]:checked').length;
+            if(selectedCountSpan) selectedCountSpan.textContent = count;
+        }
+
+        // Завантажуємо канали по-новому
+        loadChannelsMulti();
+
+        // 🔥 НОВЕ: Логіка Груп
+        const groupsModal = document.getElementById('groupsModal');
+        const manageGroupsBtn = document.getElementById('btn-manage-groups');
+        const createGroupBtn = document.getElementById('btn-create-group');
+        const groupsList = document.getElementById('groups-list');
+
+        if(manageGroupsBtn) {
+            manageGroupsBtn.addEventListener('click', () => {
+                groupsModal.style.display = 'flex';
+                loadGroups();
             });
         }
 
-        if (postTextInput) {
-            postTextInput.addEventListener('keydown', (e) => {
-                if (e.ctrlKey) {
-                    switch (e.key) {
-                        case 'b': e.preventDefault(); wrapText('*', '*', 'жирний текст'); break;
-                        case 'i': e.preventDefault(); wrapText('_', '_', 'курсив'); break;
-                        case 'k': e.preventDefault(); toolbarLink.click(); break;
-                    }
-                }
-            });
-            // Оновлюємо прев'ю при ручному вводі в головне поле
-            postTextInput.addEventListener('input', () => updatePreview(true));
+        async function loadGroups() {
+            // Треба додати getGroups в api.js
+            const res = await fetch(`${backendUrl}/api/channel_groups`);
+            const groups = await res.json();
+            
+            groupsList.innerHTML = groups.map(g => `
+                <div style="display:flex; justify-content:space-between; align-items:center; padding:8px; background:rgba(255,255,255,0.05); border-radius:8px; margin-bottom:5px;">
+                    <span style="font-weight:bold; color:white; cursor:pointer;" onclick="applyGroup('${g.id}')">${g.name} <small style="opacity:0.6">(${g.channel_ids.length} кан.)</small></span>
+                    <button class="btn-danger" style="width:24px; height:24px; padding:0; font-size:12px;" onclick="deleteGroup(${g.id})">x</button>
+                </div>
+            `).join('');
+            
+            // Зберігаємо групи в пам'яті для застосування
+            window.currentGroups = groups;
         }
 
-        // --- Прев'ю файлів ---
-        if (postPhotoInput) {
-            postPhotoInput.addEventListener('change', function() {
-                if (!mediaContainer) return;
-                mediaContainer.innerHTML = '';
-                mediaContainer.style.display = 'none';
+        window.applyGroup = (groupId) => {
+            const group = window.currentGroups.find(g => g.id == groupId);
+            if(!group) return;
+            
+            // Скидаємо вибір
+            document.querySelectorAll('input[name="target_channel_id"]').forEach(cb => {
+                cb.checked = false;
+                cb.parentElement.classList.remove('checked');
+            });
 
-                const files = this.files;
-                if (files && files.length > 0) {
-                    const file = files[0];
-                    const reader = new FileReader();
-
-                    reader.onload = function(e) {
-                        if (mediaContainer) {
-                            mediaContainer.style.display = 'block';
-                            if (file.type.startsWith('video/')) {
-                                const video = document.createElement('video');
-                                video.src = e.target.result;
-                                video.controls = false;
-                                video.autoplay = true;
-                                video.muted = true;
-                                video.loop = true;
-                                mediaContainer.appendChild(video);
-                            } else {
-                                const img = document.createElement('img');
-                                img.src = e.target.result;
-                                mediaContainer.appendChild(img);
-                            }
-                            // Оновлюємо, щоб застосувати правильні скруглення
-                            updatePreview(true);
-                        }
-                    }
-                    reader.readAsDataURL(file);
-                } else {
-                    updatePreview(true);
+            // Ставимо галочки
+            group.channel_ids.forEach(id => {
+                const cb = document.querySelector(`input[value="${id}"]`);
+                if(cb) {
+                    cb.checked = true;
+                    cb.parentElement.classList.add('checked');
                 }
             });
-        }
+            updateCount();
+            groupsModal.style.display = 'none';
+        };
 
-        // --- Логіка шаблонів ---
-        Object.keys(templates).forEach(key => {
-            const option = document.createElement('option');
-            option.value = key;
-            option.textContent = templates[key].name;
-            templateSelect.appendChild(option);
-        });
+        window.deleteGroup = async (id) => {
+            if(!confirm('Видалити групу?')) return;
+            await fetch(`${backendUrl}/api/channel_groups/${id}/delete`, { method: 'POST' });
+            loadGroups();
+        };
 
-        function renderFormFields(templateId) {
-            dynamicFieldsContainer.innerHTML = '';
-            const template = templates[templateId];
-            if (!template) return;
-            template.fields.forEach(field => {
-                const group = document.createElement('div');
-                group.className = 'form-group';
-                const label = document.createElement('label');
-                label.htmlFor = field.id;
-                label.textContent = field.label + ':';
-                let inputElement;
-                if (field.type === 'textarea') {
-                    inputElement = document.createElement('textarea');
-                    inputElement.rows = 3;
-                } else {
-                    inputElement = document.createElement('input');
-                    inputElement.type = 'text';
-                }
-                inputElement.id = field.id;
-                inputElement.name = field.id;
-                inputElement.placeholder = field.placeholder || '';
+        if(createGroupBtn) {
+            createGroupBtn.addEventListener('click', async () => {
+                const name = document.getElementById('new_group_name').value;
+                if(!name) return alert('Введіть назву');
                 
-                // 🔥 Коли користувач пише в полях шаблону, викликаємо updatePreview(false)
-                inputElement.addEventListener('input', () => updatePreview(false));
+                // Збираємо обрані канали
+                const selected = Array.from(document.querySelectorAll('input[name="target_channel_id"]:checked')).map(cb => cb.value);
                 
-                group.appendChild(label);
-                group.appendChild(inputElement);
-                dynamicFieldsContainer.appendChild(group);
+                if(selected.length === 0) return alert('Оберіть канали для групи');
+
+                await fetch(`${backendUrl}/api/channel_groups`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json', 'X-Username': localStorage.getItem('username')},
+                    body: JSON.stringify({ name, channel_ids: selected })
+                });
+                
+                document.getElementById('new_group_name').value = '';
+                loadGroups();
             });
         }
 
@@ -457,8 +328,19 @@ document.addEventListener('DOMContentLoaded', async () => {
             const submissionData = new FormData();
             submissionData.append('post_text', finalPostText);
 
-            if (channelSelect && channelSelect.value) {
-                submissionData.append('target_channel_id', channelSelect.value);
+            // Збираємо мітки для мультиканальності
+            const checkboxes = document.querySelectorAll('input[name="target_channel_id"]:checked');
+            if (checkboxes.length === 0) {
+                // Для планування і публікації вимагаємо хоча б один канал
+                if (mode === 'now' || mode === 'schedule' || mode === 'draft') {
+                    alert('Оберіть хоча б один канал!');
+                    if(scheduleBtn) scheduleBtn.disabled = false;
+                    if(draftBtn) draftBtn.disabled = false;
+                    if(postNowBtn) postNowBtn.disabled = false;
+                    return;
+                }
+            } else {
+                checkboxes.forEach(cb => submissionData.append('target_channel_id', cb.value));
             }
 
             // 🔥 Передаємо прапорець is_draft
@@ -506,7 +388,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     dynamicFieldsContainer.innerHTML = '';
 
                     // Повторне завантаження каналів (якщо потрібно)
-                    loadChannelsForSelect();
+                    loadChannelsMulti();
                 } else {
                     throw new Error(response.message || 'Невідома помилка');
                 }

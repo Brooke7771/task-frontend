@@ -179,6 +179,70 @@
         .file-upload-wrapper:hover { border-color: var(--color-primary); background: rgba(var(--color-primary-rgb), 0.05); }
         input[type="file"] { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
         .upload-placeholder { pointer-events: none; color: #94a3b8; font-size: 0.9em; }
+        
+        .channels-dropdown {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 10px;
+            max-height: 200px;
+            overflow-y: auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 8px;
+            margin-bottom: 15px;
+            transition: 0.3s;
+        }
+        .channels-dropdown.hidden { display: none; }
+        
+        .channel-checkbox {
+            display: flex; align-items: center; gap: 8px;
+            padding: 8px 12px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 8px;
+            cursor: pointer;
+            user-select: none;
+            transition: 0.2s;
+        }
+        .channel-checkbox:hover { background: rgba(255,255,255,0.1); }
+        .channel-checkbox input { width: 16px; height: 16px; margin: 0; }
+        .channel-checkbox.checked { background: rgba(99, 102, 241, 0.2); border: 1px solid rgba(99, 102, 241, 0.4); }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(5px);
+            display: flex; justify-content: center; align-items: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background: #1e293b;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            position: relative;
+            width: 90%; max-width: 500px;
+        }
+        .modal-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 15px;
+        }
+        .modal-header h3 {
+            font-size: 1.2rem; font-weight: 700; color: #a78bfa;
+            margin: 0;
+        }
+        .modal-close {
+            position: absolute; top: 10px; right: 10px;
+            background: transparent; border: none; color: white;
+            cursor: pointer; transition: 0.2s;
+        }
+        .modal-close:hover { color: #f87171; }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .tg-window { height: auto; }
+            .iphone-mockup { max-width: 100%; }
+        }
     </style>
 </head>
 <body>
@@ -227,10 +291,34 @@
                     <div id="dynamic-form-fields"></div>
                     
                     <div class="form-group" style="margin-top: 20px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 20px;">
-                        <label for="channel_select"><i data-feather="radio" style="width:14px; vertical-align:middle"></i> Канал публікації</label>
-                        <select id="channel_select" name="target_channel_id">
-                            <option value="" disabled selected>Завантаження каналів...</option>
-                        </select>
+                        <label><i data-feather="radio" style="width:14px; vertical-align:middle"></i> Канали публікації</label>
+                        
+                        <div style="display:flex; gap:10px; margin-bottom:10px;">
+                            <button type="button" id="btn-toggle-channels" class="btn" style="padding:8px; font-size:0.9em; background:rgba(255,255,255,0.1);">
+                                🔽 Обрати канали (<span id="selected-count">0</span>)
+                            </button>
+                            <button type="button" id="btn-manage-groups" class="btn" style="padding:8px; width:auto; background:rgba(99, 102, 241, 0.2); color:#a78bfa; border:1px solid rgba(99, 102, 241, 0.4);">
+                                <i data-feather="layers" style="width:14px;"></i> Групи
+                            </button>
+                        </div>
+
+                        <div id="channels-dropdown" class="channels-dropdown hidden">
+                        </div>
+                    </div>
+
+                    <div id="groupsModal" class="modal-overlay">
+                        <div class="modal-content" style="max-width:400px;">
+                            <div class="modal-header">
+                                <h3>📂 Групи Каналів</h3>
+                                <button class="modal-close" onclick="document.getElementById('groupsModal').style.display='none'"><i data-feather="x"></i></button>
+                            </div>
+                            <div style="margin-bottom:15px; display:flex; gap:5px;">
+                                <input type="text" id="new_group_name" placeholder="Назва (напр. Крипто)" style="flex:1;">
+                                <button id="btn-create-group" class="btn-primary" style="width:auto; margin:0;">+</button>
+                            </div>
+                            <div id="groups-list" class="user-list"></div>
+                            <small style="color:#64748b; display:block; margin-top:10px;">* Оберіть канали у головному списку, введіть назву та натисніть "+", щоб створити групу.</small>
+                        </div>
                     </div>
 
                     <div class="form-group">
