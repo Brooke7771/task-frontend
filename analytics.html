@@ -242,8 +242,18 @@
 
         // --- ANALYTICS LOGIC ---
         window.loadAnalytics = async () => {
+            // Очищуємо попередні значення (візуально)
+            document.getElementById('kpi-weekly').textContent = '...';
+            
             try {
                 const res = await fetch(`${backendUrl}/api/analytics/dashboard`);
+                
+                // 🔥 ВИПРАВЛЕННЯ: Перевіряємо статус відповіді
+                if (!res.ok) {
+                    const errorText = await res.text();
+                    throw new Error(`Server Error: ${errorText}`);
+                }
+
                 const data = await res.json();
                 
                 updateKPI(data);
@@ -258,7 +268,13 @@
                 renderDayOfWeekChart(data.day_of_week_stats);
 
             } catch (e) {
-                console.error("Analytics Error", e);
+                console.error("Analytics Error Details:", e);
+                // Показуємо помилку прямо на сторінці, щоб ви бачили причину
+                document.querySelector('.container-main').insertAdjacentHTML('afterbegin', 
+                    `<div style="background: #ef4444; color: white; padding: 15px; border-radius: 10px; margin-bottom: 20px;">
+                        <strong>⚠️ Помилка завантаження:</strong> ${e.message}
+                     </div>`
+                );
             }
         };
 
