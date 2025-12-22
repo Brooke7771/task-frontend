@@ -12,6 +12,20 @@ document.addEventListener('DOMContentLoaded', () => {
     // Видаляємо/ховаємо старий блок "Поточне медіа" — прев'ю показуємо в inline preview
     if (currentMediaContainer) currentMediaContainer.style.display = 'none';
     
+    // Додамо кнопку "Зберегти як чернетку" динамічно, якщо її немає
+    let draftBtn = document.getElementById('draftBtn');
+    if (!draftBtn) {
+        draftBtn = document.createElement('button');
+        draftBtn.type = 'button';
+        draftBtn.id = 'draftBtn';
+        draftBtn.className = 'btn';
+        draftBtn.style.cssText = 'background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); margin-right: 10px;';
+        draftBtn.innerHTML = '<i data-feather="file-text"></i> В чернетку';
+        // Вставляємо перед кнопкою Save
+        saveBtn.parentNode.insertBefore(draftBtn, saveBtn);
+        if (typeof feather !== 'undefined') feather.replace();
+    }
+
     // --- 🔥 ДОДАНО ---
     const previewContent = document.getElementById('preview-content');
     const postPhotoInput = document.getElementById('post_photo');
@@ -241,34 +255,53 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // Обробник збереження форми
-    form.addEventListener('submit', async (event) => {
-        // ... (логіка submit без змін) ...
-        event.preventDefault();
-        statusMessage.textContent = 'Збереження змін...';
+    // 🔥 УНІВЕРСАЛЬНА ФУНКЦІЯ ЗБЕРЕЖЕННЯ
+    const handleUpdate = async (isDraft) => {
+        statusMessage.textContent = 'Збереження...';
         statusMessage.className = '';
         saveBtn.disabled = true;
+        draftBtn.disabled = true;
 
         const formData = new FormData(form);
         
-        const localDate = new Date(formData.get('post_at'));
-        formData.set('post_at', localDate.toISOString());
+        // Форматуємо дату
+        const dateVal = formData.get('post_at');
+        if (dateVal) {
+            const localDate = new Date(dateVal);
+            formData.set('post_at', localDate.toISOString());
+        }
+
+        // 🔥 Передаємо статус
+        formData.append('is_draft', isDraft ? 'true' : 'false');
 
         try {
             await updateScheduledPost(postId, formData);
-            statusMessage.textContent = 'Пост успішно оновлено!';
+            statusMessage.textContent = isDraft ? 'Збережено як чернетка' : 'Успішно заплановано!';
             statusMessage.className = 'success';
             
             setTimeout(() => {
                 window.location.href = 'schedule-list.html';
-            }, 2000);
+            }, 1500);
 
         } catch (error) {
-            statusMessage.textContent = 'Помилка! Не вдалося оновити пост.';
+            statusMessage.textContent = 'Помилка оновлення.';
             statusMessage.className = 'error';
             console.error(error);
             saveBtn.disabled = false;
+            draftBtn.disabled = false;
         }
+    };
+
+    // 1. Кнопка "Зберегти зміни" (Запланувати) -> is_draft = false
+    form.addEventListener('submit', (event) => {
+        event.preventDefault();
+        handleUpdate(false); 
+    });
+
+    // 2. Кнопка "В чернетку" -> is_draft = true
+    draftBtn.addEventListener('click', (event) => {
+        event.preventDefault();
+        handleUpdate(true);
     });
 
     // --- 🔥 ДОДАНО: Слухач для оновлення прев'ю під час друку ---

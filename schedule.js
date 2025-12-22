@@ -10,6 +10,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const form = document.getElementById('postForm');
         const statusMessage = document.getElementById('statusMessage');
         const scheduleBtn = document.getElementById('scheduleBtn');
+        const draftBtn = document.getElementById('draftBtn'); // 🔥 Новая кнопка чернетки (может быть вставлена динамически)
         const postNowBtn = document.getElementById('postNowBtn');
         const postAtInput = document.getElementById('post_at');
         
@@ -65,10 +66,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         const toolbarCode = document.getElementById('toolbar-code');
         const toolbarLink = document.getElementById('toolbar-link');
 
-        // Додаємо в FormData
-        const formData = new FormData(form);
-        formData.append('is_draft', 'true');
-        
+        // (Раніше тут був глобальний formData, убран — використовуємо локальні FormData при відправці)
+
         // --- Шаблони ---
         const templates = {
             news_simple: {
@@ -345,101 +344,144 @@ document.addEventListener('DOMContentLoaded', async () => {
             return text.split('').map(char => charsToEscape.includes(char) ? '\\' + char : char).join('');
         }
 
-        // --- Відправка форми ---
-        async function handleFormSubmit(isScheduling) {
-            statusMessage.textContent = isScheduling ? 'Плануємо пост...' : 'Публікуємо пост...';
-            statusMessage.className = '';
-            scheduleBtn.disabled = true;
-            postNowBtn.disabled = true;
+        // --- 🔥 УНИВЕРСАЛЬНА ФУНКЦІЯ ПРИЙОМУ ФОРМИ ---
+        async function handleFormSubmit(mode) {
+            // mode: 'schedule', 'draft', 'now'
+            let loadingText = 'Обробка...';
+            if (mode === 'schedule') loadingText = 'Плануємо...';
+            if (mode === 'draft') loadingText = 'Зберігаємо чернетку...';
+            if (mode === 'now') loadingText = 'Публікуємо...';
 
-            if (isScheduling && !postAtInput.value) {
-                alert('Вкажіть дату та час.');
+            statusMessage.textContent = loadingText;
+            statusMessage.className = '';
+            if (scheduleBtn) scheduleBtn.disabled = true;
+            if (draftBtn) draftBtn.disabled = true;
+            if (postNowBtn) postNowBtn.disabled = true;
+
+            // Валідація дати тільки для планування (не для чернеток)
+            if (mode === 'schedule' && !postAtInput.value) {
+                alert('Вкажіть дату та час для планування.');
                 statusMessage.textContent = '';
-                scheduleBtn.disabled = false;
-                postNowBtn.disabled = false;
+                if(scheduleBtn) scheduleBtn.disabled = false;
+                if(draftBtn) draftBtn.disabled = false;
+                if(postNowBtn) postNowBtn.disabled = false;
                 return;
             }
 
             const finalPostText = postTextInput ? postTextInput.value : '';
-            if (!finalPostText) {
+            if (!finalPostText && mode !== 'draft') { // Чернетка може бути без тексту (тільки фото)
                  alert('Текст поста порожній!');
-                 scheduleBtn.disabled = false;
-                 postNowBtn.disabled = false;
+                 if(scheduleBtn) scheduleBtn.disabled = false;
+                 if(draftBtn) draftBtn.disabled = false;
+                 if(postNowBtn) postNowBtn.disabled = false;
                  return;
             }
 
             const submissionData = new FormData();
             submissionData.append('post_text', finalPostText);
 
-            // 🔥 Додаємо ID каналу, якщо він обраний
             if (channelSelect && channelSelect.value) {
                 submissionData.append('target_channel_id', channelSelect.value);
             }
 
-            if (isScheduling) {
+            // 🔥 Передаємо прапорець is_draft
+            if (mode === 'draft') {
+                submissionData.append('is_draft', 'true');
+                // Для чернетки дата необов'язкова, але якщо є - збережемо
+                if (postAtInput.value) {
+                    submissionData.append('post_at', new Date(postAtInput.value).toISOString());
+                } else {
+                    // Ставимо дату в далеке майбутнє або поточну, щоб сервер не лаявся
+                    submissionData.append('post_at', new Date().toISOString()); 
+                }
+            } else if (mode === 'schedule') {
+                submissionData.append('is_draft', 'false');
                 submissionData.append('post_at', new Date(postAtInput.value).toISOString());
             }
 
-            const formData = new FormData(form);
-            const postPhotos = formData.getAll('post_photo');
+            // Додаємо файли
+            const formDataLocal = new FormData(form);
+            const postPhotos = formDataLocal.getAll('post_photo');
             if (postPhotos.length > 0) {
                 for (const photo of postPhotos) {
                     if (photo.size > 0) submissionData.append('post_photo', photo, photo.name);
                 }
             }
-            
+
+            // Відправка даних на сервер
             try {
-                if (isScheduling) {
-                    await schedulePost(submissionData);
+                let response;
+                if (mode === 'now') {
+                    response = await postNewsNow(submissionData);
                 } else {
-                    await postNewsNow(submissionData);
+                    response = await schedulePost(submissionData);
                 }
-                statusMessage.textContent = isScheduling ? 'Успішно заплановано!' : 'Успішно опубліковано!';
-                statusMessage.className = 'success';
-                form.reset();
-                mediaContainer.innerHTML = '';
-                mediaContainer.style.display = 'none';
-                renderFormFields(templateSelect.value);
-                postTextInput.value = '';
-                
-                // Перезавантажуємо канали (щоб скинути вибір)
-                loadChannelsForSelect();
-                
-                updatePreview(false);
-            } catch (error) {
-                statusMessage.textContent = 'Помилка!';
+
+                if (response && response.success) {
+                    statusMessage.textContent = 'Успішно надіслано!';
+                    statusMessage.className = 'success';
+
+                    // Очищення форми після успішної відправки
+                    form.reset();
+                    mediaContainer.innerHTML = '';
+                    mediaContainer.style.display = 'none';
+                    templateSelect.selectedIndex = 0;
+                    dynamicFieldsContainer.innerHTML = '';
+
+                    // Повторне завантаження каналів (якщо потрібно)
+                    loadChannelsForSelect();
+                } else {
+                    throw new Error(response.message || 'Невідома помилка');
+                }
+            } catch (e) {
+                console.error("Помилка при відправці:", e);
+                statusMessage.textContent = 'Помилка при відправці даних.';
                 statusMessage.className = 'error';
-                console.error(error);
             } finally {
-                scheduleBtn.disabled = false;
-                postNowBtn.disabled = false;
+                if (scheduleBtn) scheduleBtn.disabled = false;
+                if (draftBtn) draftBtn.disabled = false;
+                if (postNowBtn) postNowBtn.disabled = false;
             }
         }
 
-        if (form) {
-            form.addEventListener('submit', (event) => {
-                event.preventDefault();
-                handleFormSubmit(true);
-            });
-        }
-
-        if (postNowBtn) postNowBtn.addEventListener('click', () => {
-            handleFormSubmit(false);
+        // --- Обробка подій ---
+        templateSelect.addEventListener('change', (e) => {
+            const templateId = e.target.value;
+            renderFormFields(templateId);
+            updatePreview(); // Оновлюємо прев'ю при зміні шаблону
         });
 
-        if (templateSelect) templateSelect.addEventListener('change', () => {
-            renderFormFields(templateSelect.value);
-            updatePreview(false);
-        });
-
-        // --- 🔥 Ініціалізація ---
+        // Ініціалізація
+        loadChannelsForSelect();
         renderFormFields(templateSelect.value);
-        updatePreview(false);
-        
-        // Викликаємо завантаження каналів
-        await loadChannelsForSelect();
-
+        updatePreview();
     } catch (e) {
-        console.error('Error initializing schedule page:', e);
+        console.error("Помилка ініціалізації:", e);
     }
 });
+
+// --- ГЛОБАЛЬНІ ФУНКЦІЇ ДЛЯ ТЕСТУВАННЯ ---
+function testEscapeMarkdown() {
+    const testCases = [
+        "Привіт, *світ*!",
+        "Це _курсив_ текст.",
+        "Тут ~~закреслений~~ текст.",
+        "`Код` в рядку.",
+        "[Посилання](https://example.com) тут.",
+        "Текст з `кодом` і *форматуванням*.",
+        "Спойлер: ||Це прихований текст||.",
+        "Текст з зображенням: ![alt текст](https://example.com/image.jpg)",
+        "Текст з відео: [![alt текст](https://img.youtube.com/vi/VIDEO_ID/0.jpg)](https://www.youtube.com/watch?v=VIDEO_ID)"
+    ];
+
+    testCases.forEach(testCase => {
+        console.log(`Тестуємо: ${testCase}`);
+        const escaped = escapeMarkdown(testCase);
+        console.log(`Результат: ${escaped}`);
+        console.log(`Зворотнє перетворення: ${escapeMarkdown(escaped)}`);
+        console.log('---');
+    });
+}
+
+// Для тестування можна викликати цю функцію в консолі браузера
+testEscapeMarkdown();
