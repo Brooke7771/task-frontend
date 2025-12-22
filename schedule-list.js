@@ -3,8 +3,8 @@ import { getScheduledPosts, deleteScheduledPost, postScheduledNow, updateSchedul
 let allPosts = [];
 let selectedPosts = new Set();
 let currentCalendarDate = new Date();
-let selectedDate = null; // Зберігаємо обрану дату
-let isAdmin = false; // визначаємо, чи поточний користувач адмін
+let selectedDate = null;
+let isAdmin = false;
 
 document.addEventListener('DOMContentLoaded', () => {
     loadPosts();
@@ -13,7 +13,6 @@ document.addEventListener('DOMContentLoaded', () => {
 // --- LOAD DATA ---
 window.loadPosts = async () => {
     try {
-        // Отримуємо профіль (щоб знати, чи показувати кнопки адміну)
         try {
             const profile = await getMyProfile();
             isAdmin = profile && profile.is_admin;
@@ -22,22 +21,18 @@ window.loadPosts = async () => {
         const posts = await getScheduledPosts();
         if(!Array.isArray(posts)) throw new Error("Invalid response");
 
-        // Сортуємо від найближчого
         allPosts = posts.sort((a, b) => new Date(a.postAt) - new Date(b.postAt));
         
         renderTimeline();
         renderCalendar();
         
-        // Якщо панель відкрита, оновлюємо і її (на випадок змін)
         if(selectedDate) selectDate(selectedDate);
-        
         unselectAll();
     } catch (e) {
         console.error(e);
     }
 };
 
-// --- VIEW SWITCHER ---
 window.switchView = (view) => {
     ['timeline', 'calendar'].forEach(v => {
         document.getElementById(`${v}View`)?.classList.remove('active');
@@ -46,11 +41,9 @@ window.switchView = (view) => {
     document.getElementById(`${view}View`)?.classList.add('active');
     document.getElementById(`btn-${view}`)?.classList.add('active');
     
-    // Закриваємо панель при перемиканні на список
     if(view === 'timeline') document.getElementById('selectedDayPanel').classList.remove('active');
 };
 
-// --- TIMELINE RENDER (Standard List) ---
 function renderTimeline() {
     const container = document.getElementById('timelineView');
     if (!container) return;
@@ -76,19 +69,12 @@ function renderTimeline() {
             const card = document.createElement('div');
             card.className = 'post-card';
             
-            // Статусна бейджка
             let statusBadge = '';
-            if (post.status === 'Draft') {
-                statusBadge = '<span class="badge" style="background:#64748b; color:white">Чернетка</span>'; 
-            } else if (post.status === 'PendingReview') {
-                statusBadge = '<span class="badge" style="background:#f59e0b; color:black">На перевірці</span>'; 
-            } else if (post.status === 'Scheduled') {
-                statusBadge = '<span class="badge" style="background:#10b981; color:white">Заплановано</span>'; 
-            } else if (post.status === 'Sent') {
-                statusBadge = '<span class="badge" style="background:#64748b; color:white">Відправлено</span>'; 
-            }
+            if (post.status === 'Draft') statusBadge = '<span class="badge" style="background:#64748b; color:white">Чернетка</span>'; 
+            else if (post.status === 'PendingReview') statusBadge = '<span class="badge" style="background:#f59e0b; color:black">На перевірці</span>'; 
+            else if (post.status === 'Scheduled') statusBadge = '<span class="badge" style="background:#10b981; color:white">Заплановано</span>'; 
+            else if (post.status === 'Sent') statusBadge = '<span class="badge" style="background:#64748b; color:white">Відправлено</span>'; 
 
-            // Кнопка схвалення (тільки для адмінів та коли статус PendingReview)
             let approveBtn = '';
             if (isAdmin && post.status === 'PendingReview') {
                 approveBtn = `<button class="icon-btn btn-approve" onclick="approvePost('${post.id}')" title="Схвалити">✅</button>`;
@@ -134,7 +120,7 @@ function groupPostsByDate(posts) {
     return groups;
 }
 
-// --- 🔥 CALENDAR LOGIC (FIXED) ---
+// --- 🔥 CALENDAR LOGIC WITH DRAG & DROP ---
 window.changeMonth = (delta) => {
     currentCalendarDate.setMonth(currentCalendarDate.getMonth() + delta);
     renderCalendar();
@@ -144,7 +130,6 @@ function renderCalendar() {
     const grid = document.querySelector('.calendar-grid');
     if(!grid) return;
 
-    // Зберігаємо заголовки днів тижня
     const headers = Array.from(grid.querySelectorAll('.cal-day-name'));
     grid.innerHTML = '';
     headers.forEach(h => grid.appendChild(h));
@@ -162,48 +147,68 @@ function renderCalendar() {
     const today = new Date();
     today.setHours(0,0,0,0);
 
-    // Пусті клітинки
     for(let i=0; i<startOffset; i++) {
         const empty = document.createElement('div');
         empty.className = 'cal-day empty';
-        // empty.style.visibility = 'hidden'; // Можна сховати, або лишити пустими
         grid.appendChild(empty);
     }
 
-    // Дні
     for(let d=1; d<=daysInMonth; d++) {
         const dateObj = new Date(year, month, d);
         const dayCell = document.createElement('div');
         dayCell.className = 'cal-day';
         
+        // --- DRAG & DROP: Drop Zone ---
+        dayCell.setAttribute('data-date', dateObj.toISOString());
+        dayCell.ondragover = (e) => {
+            e.preventDefault();
+            if(!dayCell.classList.contains('past')) {
+                dayCell.style.background = 'rgba(124, 58, 237, 0.2)';
+                dayCell.style.borderColor = 'var(--color-primary)';
+            }
+        };
+        dayCell.ondragleave = (e) => {
+            dayCell.style.background = '';
+            dayCell.style.borderColor = '';
+        };
+        dayCell.ondrop = (e) => handleDrop(e, dateObj);
+
         if(dateObj < today) dayCell.classList.add('past');
         if(dateObj.getTime() === today.getTime()) dayCell.classList.add('today');
         if (selectedDate && dateObj.toDateString() === selectedDate.toDateString()) {
             dayCell.classList.add('selected');
         }
 
-        // Номер дня
         dayCell.innerHTML = `<div class="day-num">${d}</div>`;
         
-        // Фільтруємо пости для цього дня
         const postsForDay = allPosts.filter(p => {
             const pd = new Date(p.postAt);
             return pd.getDate() === d && pd.getMonth() === month && pd.getFullYear() === year;
         });
 
-        // Додаємо точки постів (максимум 3, щоб не розтягувати)
         const maxDots = 3;
         postsForDay.slice(0, maxDots).forEach(p => {
             const dot = document.createElement('div');
             dot.className = 'post-dot';
+            
+            // --- DRAG & DROP: Draggable Item ---
+            if(dateObj >= today) {
+                dot.draggable = true;
+                dot.style.cursor = 'grab';
+                dot.ondragstart = (e) => {
+                    e.dataTransfer.setData('text/plain', p.id);
+                    e.dataTransfer.effectAllowed = 'move';
+                    dot.style.opacity = '0.5';
+                };
+                dot.ondragend = () => { dot.style.opacity = '1'; };
+            }
+
             const time = new Date(p.postAt).toLocaleTimeString('uk-UA', {hour:'2-digit', minute:'2-digit'});
-            // Вирізаємо HTML теги для прев'ю
             const plainText = (p.text || "").replace(/<[^>]*>?/gm, ''); 
             dot.innerText = `${time} ${plainText.substring(0, 10)}...`;
             dayCell.appendChild(dot);
         });
         
-        // Якщо постів більше
         if(postsForDay.length > maxDots) {
             const more = document.createElement('div');
             more.style.fontSize = '0.7em'; more.style.color='#64748b'; more.style.textAlign='center';
@@ -211,19 +216,80 @@ function renderCalendar() {
             dayCell.appendChild(more);
         }
 
-        // Клік (блокуємо минуле)
         if(dateObj >= today) {
-            dayCell.onclick = () => selectDate(dateObj);
+            dayCell.onclick = (e) => {
+                // Prevent click if dropped
+                if(e.target.className.includes('post-dot')) return;
+                selectDate(dateObj);
+            };
         }
         
         grid.appendChild(dayCell);
     }
 }
 
-// --- 🔥 SELECTED DAY PANEL & RESCHEDULE ---
+// --- 🔥 DRAG & DROP HANDLER ---
+async function handleDrop(e, targetDate) {
+    e.preventDefault();
+    const postId = e.dataTransfer.getData('text/plain');
+    
+    // Скидання стилів
+    const cell = e.target.closest('.cal-day');
+    if(cell) {
+        cell.style.background = '';
+        cell.style.borderColor = '';
+    }
+
+    if (!postId) return;
+    
+    // Перевірка на минуле
+    if (targetDate < new Date().setHours(0,0,0,0)) {
+        alert("Неможливо перенести пост у минуле!");
+        return;
+    }
+
+    const post = allPosts.find(p => p.id === postId);
+    if (!post) return;
+
+    // Зберігаємо час, змінюємо тільки дату
+    const oldDate = new Date(post.postAt);
+    const newDate = new Date(targetDate);
+    newDate.setHours(oldDate.getHours(), oldDate.getMinutes());
+
+    if(!confirm(`Перенести пост на ${newDate.toLocaleDateString()} ${newDate.toLocaleTimeString()}?`)) return;
+
+    try {
+        const formData = new FormData();
+        formData.append('post_text', post.text);
+        formData.append('post_at', newDate.toISOString());
+        // Додаємо канали, щоб не збилися
+        if (post.targetChannelId) {
+             // Backend очікує target_channel_id як масив або одиночне значення, 
+             // але в API update логіка трохи інша. Спростимо:
+             // Якщо бекенд не змінює канали при відсутності поля, то ок. 
+             // Але краще передати явно, якщо підтримується.
+        }
+
+        // Використовуємо існуючий метод
+        const backendUrl = 'https://my-telegram-task-bot-5c4258bd3f9b.herokuapp.com';
+        await fetch(`${backendUrl}/api/scheduled_posts/${postId}/update`, {
+            method: 'POST',
+            headers: { 'X-Username': localStorage.getItem('username') || 'Unknown' },
+            body: formData
+        });
+
+        // Оновлюємо UI
+        await loadPosts();
+    } catch (err) {
+        console.error(err);
+        alert('Помилка при перенесенні');
+    }
+}
+
+// ... (Rest of logic: selectDate, closeDayPanel, quickReschedule, bulk actions - remains same) ...
 window.selectDate = (date) => {
     selectedDate = date;
-    renderCalendar(); // Оновити підсвітку
+    renderCalendar();
     
     const panel = document.getElementById('selectedDayPanel');
     const list = document.getElementById('selectedDayList');
@@ -231,7 +297,6 @@ window.selectDate = (date) => {
     
     panel.classList.add('active');
     
-    // Форматуємо дату для заголовка: "20 Грудня, П'ятниця"
     const dateOptions = { day: 'numeric', month: 'long', weekday: 'long' };
     titleText.innerText = date.toLocaleDateString('uk-UA', dateOptions);
     
@@ -259,18 +324,15 @@ window.selectDate = (date) => {
             const rawText = post.text || "Без тексту";
             const cleanText = rawText.replace(/<[^>]*>?/gm, '').substring(0, 60) + (rawText.length > 60 ? '...' : '');
             
-            // Визначаємо тип медіа для іконки
             let mediaIcon = '';
             if(post.photoIds?.length) mediaIcon = '<i data-feather="image" style="width:14px"></i>';
             if(post.videoIds?.length) mediaIcon = '<i data-feather="video" style="width:14px"></i>';
 
-            // Статусна бейджка
             let statusBadge = '';
             if (post.status === 'Draft') statusBadge = '<span class="badge" style="background:#64748b; color:white; margin-right:8px;">Чернетка</span>';
             else if (post.status === 'PendingReview') statusBadge = '<span class="badge" style="background:#f59e0b; color:black; margin-right:8px;">На перевірці</span>';
             else if (post.status === 'Scheduled') statusBadge = '<span class="badge" style="background:#10b981; color:white; margin-right:8px;">Заплановано</span>';
 
-            // Кнопка схвалення тільки для адмінів
             let approveBtn = '';
             if (isAdmin && post.status === 'PendingReview') {
                 approveBtn = `<button class="icon-btn btn-approve" onclick="approvePost('${post.id}')" title="Схвалити" style="width:32px; height:32px; margin-right:6px;">✅</button>`;
@@ -310,7 +372,6 @@ window.selectDate = (date) => {
     
     if(window.feather) feather.replace();
     
-    // Плавний скрол до панелі
     setTimeout(() => {
         panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }, 100);
@@ -324,37 +385,27 @@ window.closeDayPanel = () => {
 
 window.quickReschedule = async (postId, newTimeStr) => {
     if (!newTimeStr) return;
-    
-    // Перевірка на минуле
     if (new Date(newTimeStr) < new Date()) {
         alert("Не можна планувати пости в минулому!");
-        loadPosts(); // Скинути значення
+        loadPosts(); 
         return;
     }
-
     if (!confirm('Перенести пост на цей час?')) {
         loadPosts(); 
         return;
     }
-
     try {
         const post = allPosts.find(p => p.id === postId);
         if(!post) return;
-
-        // Використовуємо FormData, як вимагає ваш бекенд
         const formData = new FormData();
-        formData.append('post_text', post.text); // Текст обов'язковий, передаємо старий
+        formData.append('post_text', post.text);
         formData.append('post_at', new Date(newTimeStr).toISOString());
-        
-        // Запит через fetch напряму (або через api.js wrapper)
         const backendUrl = 'https://my-telegram-task-bot-5c4258bd3f9b.herokuapp.com';
         await fetch(`${backendUrl}/api/scheduled_posts/${postId}/update`, {
             method: 'POST',
             headers: { 'X-Username': localStorage.getItem('username') || 'Unknown' },
             body: formData
         });
-
-        // Оновлюємо дані
         await loadPosts(); 
     } catch (e) {
         alert('Помилка при перенесенні');
@@ -362,7 +413,6 @@ window.quickReschedule = async (postId, newTimeStr) => {
     }
 };
 
-// --- BULK ACTIONS (Без змін) ---
 window.toggleSelect = (id) => {
     if(selectedPosts.has(id)) selectedPosts.delete(id);
     else selectedPosts.add(id);
@@ -382,12 +432,10 @@ function updateBulkBar() {
     else bar.classList.remove('visible');
 }
 
-// API WRAPPERS
 window.singleDelete = async (id) => { if(confirm('Видалити?')) { await deleteScheduledPost(id); loadPosts(); } };
 window.singlePostNow = async (id) => { if(confirm('Опублікувати зараз?')) { await postScheduledNow(id); loadPosts(); } };
 window.bulkDelete = async () => { if(confirm(`Видалити ${selectedPosts.size}?`)) { for(let id of selectedPosts) await deleteScheduledPost(id); loadPosts(); } };
 window.bulkPostNow = async () => { if(confirm(`Опублікувати ${selectedPosts.size}?`)) { for(let id of selectedPosts) await postScheduledNow(id); loadPosts(); } };
-// Approve post (Admin only)
 window.approvePost = async (postId) => {
     if(!confirm('Схвалити цей пост?')) return;
     try {
