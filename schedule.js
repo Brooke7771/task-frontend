@@ -455,6 +455,31 @@ document.addEventListener('DOMContentLoaded', async () => {
         loadChannelsForSelect();
         renderFormFields(templateSelect.value);
         updatePreview();
+
+        // 🔥 ВИПРАВЛЕННЯ: Додаємо слухачі подій для кнопок
+        // 1. Кнопка "Запланувати" (це сабміт форми)
+        if (form) {
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+                handleFormSubmit('schedule');
+            });
+        }
+
+        // 2. Кнопка "Чернетка"
+        if (draftBtn) {
+            draftBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                handleFormSubmit('draft');
+            });
+        }
+
+        // 3. Кнопка "Опублікувати"
+        if (postNowBtn) {
+            postNowBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                handleFormSubmit('now');
+            });
+        }
     } catch (e) {
         console.error("Помилка ініціалізації:", e);
     }
