@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="manifest" href="manifest.json">
-    <title>Аналітика Pro</title>
+    <title>Аналітика Pro & Tools</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -17,44 +17,53 @@
             margin-bottom: 30px;
         }
         
-        .chart-container {
-            position: relative;
-            height: 250px;
-            width: 100%;
+        /* Спеціальна сітка для блоку посилань */
+        .tools-grid {
+            display: grid;
+            grid-template-columns: 1fr 1.5fr; /* Скорочувач вужчий, таблиця ширша */
+            gap: 20px;
+            margin-bottom: 30px;
         }
+        @media (max-width: 900px) { .tools-grid { grid-template-columns: 1fr; } }
+
+        .chart-container { position: relative; height: 250px; width: 100%; }
 
         .kpi-row {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 15px;
-            margin-bottom: 25px;
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 25px;
         }
         
         .kpi-card {
             background: linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02));
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 16px; padding: 20px;
+            border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 20px;
             display: flex; flex-direction: column; justify-content: center;
         }
+        @media (max-width: 768px) { .kpi-row { grid-template-columns: 1fr 1fr; } }
         
         .kpi-title { font-size: 0.8rem; color: #94a3b8; text-transform: uppercase; font-weight: 700; margin-bottom: 5px; }
         .kpi-value { font-size: 1.8rem; font-weight: 800; color: white; }
-        .kpi-trend { font-size: 0.8rem; margin-top: 5px; }
         .trend-up { color: #4ade80; }
-        .trend-neutral { color: #94a3b8; }
 
-        @media (max-width: 768px) {
-            .kpi-row { grid-template-columns: 1fr 1fr; }
-        }
-        
-        /* Таблиця */
+        /* Таблиці */
         table { width: 100%; border-collapse: collapse; }
-        th { text-align: left; color: #94a3b8; padding: 10px; font-size: 0.85rem; }
-        td { padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 0.95rem; }
+        th { text-align: left; color: #94a3b8; padding: 12px; font-size: 0.85rem; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        td { padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 0.9rem; color: #e2e8f0; }
+        
         .avatar-circle {
             width: 30px; height: 30px; border-radius: 50%; background: var(--color-primary);
             color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.8em;
         }
+
+        /* Shortener Input */
+        .shortener-box {
+            display: flex; gap: 10px; margin-top: 15px;
+        }
+        .copy-btn {
+            background: rgba(255,255,255,0.1); border: none; color: #cbd5e1; cursor: pointer; padding: 5px; border-radius: 6px; transition: 0.2s;
+        }
+        .copy-btn:hover { color: white; background: var(--color-primary); }
+        .link-row { font-family: monospace; color: var(--color-primary); }
+        
+        .section-header { margin: 40px 0 20px 0; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; color: white; font-weight: 700; display: flex; align-items: center; gap: 10px; }
     </style>
 </head>
 <body>
@@ -64,7 +73,7 @@
 
     <div class="container-main" style="max-width: 1400px;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
-            <h1><i data-feather="bar-chart-2"></i> Аналітика Pro</h1>
+            <h1><i data-feather="bar-chart-2"></i> Аналітика & Інструменти</h1>
             <button onclick="loadAnalytics()" class="btn" style="width: auto; padding: 8px 15px;">
                 <i data-feather="refresh-cw" style="width:16px;"></i>
             </button>
@@ -72,26 +81,67 @@
 
         <div class="kpi-row">
             <div class="kpi-card">
-                <div class="kpi-title">Всього постів (7 днів)</div>
+                <div class="kpi-title">Постів (7 днів)</div>
                 <div class="kpi-value" id="kpi-weekly">0</div>
-                <div class="kpi-trend trend-neutral">Динаміка публікацій</div>
             </div>
             <div class="kpi-card">
                 <div class="kpi-title">Всього Кліків</div>
                 <div class="kpi-value" id="kpi-clicks">0</div>
-                <div class="kpi-trend trend-up">За весь час</div>
+                <div class="kpi-trend trend-up">↗ Трафік</div>
             </div>
             <div class="kpi-card">
-                <div class="kpi-title">Активних редакторів</div>
+                <div class="kpi-title">Редакторів</div>
                 <div class="kpi-value" id="kpi-editors">0</div>
-                <div class="kpi-trend trend-neutral">За місяць</div>
             </div>
             <div class="kpi-card">
                 <div class="kpi-title">Топ канал</div>
-                <div class="kpi-value" id="kpi-top-channel" style="font-size: 1.2rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">-</div>
-                <div class="kpi-trend">Найбільше публікацій</div>
+                <div class="kpi-value" id="kpi-top-channel" style="font-size: 1.1rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">-</div>
             </div>
         </div>
+
+        <div class="section-header"><i data-feather="link"></i> Скорочувач посилань</div>
+        
+        <div class="tools-grid">
+            <div class="card">
+                <h2>✂️ Створити посилання</h2>
+                <p style="color:#94a3b8; font-size:0.9em; margin-bottom:15px;">Створіть коротке посилання для відстеження кліків у постах.</p>
+                
+                <div class="form-group">
+                    <label>Довге посилання</label>
+                    <input type="text" id="longUrl" placeholder="https://example.com/very-long-article...">
+                </div>
+                <button class="btn btn-primary" onclick="createShortLink()">Скоротити</button>
+                
+                <div id="shortenerResult" style="margin-top:20px; display:none; background:rgba(0,0,0,0.2); padding:15px; border-radius:12px; border:1px solid var(--color-success);">
+                    <label style="color:var(--color-success)">Готово!</label>
+                    <div style="display:flex; gap:10px; margin-top:5px;">
+                        <input type="text" id="shortUrlOutput" readonly style="background:transparent; border:none; color:white; padding:0;">
+                        <button class="copy-btn" onclick="copyToClipboard()"><i data-feather="copy"></i></button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>📜 Історія посилань</h2>
+                <div style="overflow-x: auto; max-height: 300px; overflow-y: auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Original</th>
+                                <th>Short</th>
+                                <th>Clicks</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody id="linksTableBody">
+                            <tr><td colspan="4" style="text-align:center">Завантаження...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-header"><i data-feather="pie-chart"></i> Графіки ефективності</div>
 
         <div class="analytics-grid">
             <div class="card" style="grid-column: span 2;">
@@ -111,34 +161,41 @@
 
         <div class="analytics-grid">
             <div class="card">
-                <h2>⏰ Активність по Годинах</h2>
+                <h2>⏰ Активність (Години)</h2>
                 <div class="chart-container">
                     <canvas id="hourlyChart"></canvas>
                 </div>
             </div>
 
             <div class="card">
+                <h2>📅 Дні Тижня</h2>
+                <div class="chart-container">
+                    <canvas id="dayOfWeekChart"></canvas>
+                </div>
+            </div>
+            
+            <div class="card">
                 <h2>📢 Топ Каналів</h2>
                 <div class="chart-container">
                     <canvas id="channelsChart"></canvas>
                 </div>
             </div>
-            
-            <div class="card">
-                <h2>🏆 Рейтинг Редакторів</h2>
-                <div style="overflow-x: auto;">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th width="50"></th>
-                                <th>Ім'я</th>
-                                <th>Постів</th>
-                                <th>Ефективність</th>
-                            </tr>
-                        </thead>
-                        <tbody id="editorsTable"></tbody>
-                    </table>
-                </div>
+        </div>
+        
+        <div class="card">
+            <h2>🏆 Рейтинг Редакторів</h2>
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th width="50"></th>
+                            <th>Ім'я</th>
+                            <th>Постів</th>
+                            <th>Ефективність</th>
+                        </tr>
+                    </thead>
+                    <tbody id="editorsTable"></tbody>
+                </table>
             </div>
         </div>
 
@@ -148,14 +205,43 @@
         import { backendUrl } from './api.js';
         feather.replace();
 
-        // Chart.js Global Config for Dark Theme
+        // Chart.js Config
         Chart.defaults.color = '#94a3b8';
         Chart.defaults.borderColor = 'rgba(255, 255, 255, 0.05)';
         Chart.defaults.font.family = "'Inter', sans-serif";
 
-        let trendChart, typeChart, hourlyChart, channelsChart;
+        let trendChart, typeChart, hourlyChart, channelsChart, dayOfWeekChart;
 
-        async function loadAnalytics() {
+        // --- SHORTENER LOGIC ---
+        window.createShortLink = async () => {
+            const url = document.getElementById('longUrl').value;
+            if(!url) return alert("Введіть URL");
+
+            try {
+                const res = await fetch(`${backendUrl}/api/links/shorten`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url })
+                });
+                const data = await res.json();
+                
+                document.getElementById('shortenerResult').style.display = 'block';
+                document.getElementById('shortUrlOutput').value = data.short_url;
+                loadAnalytics(); // Refresh table
+            } catch(e) {
+                alert("Помилка при скороченні");
+            }
+        };
+
+        window.copyToClipboard = () => {
+            const copyText = document.getElementById("shortUrlOutput");
+            copyText.select();
+            navigator.clipboard.writeText(copyText.value);
+            alert("Скопійовано!");
+        };
+
+        // --- ANALYTICS LOGIC ---
+        window.loadAnalytics = async () => {
             try {
                 const res = await fetch(`${backendUrl}/api/analytics/dashboard`);
                 const data = await res.json();
@@ -166,11 +252,15 @@
                 renderHourlyChart(data.hourly_activity);
                 renderChannelsChart(data.top_channels);
                 renderEditorsTable(data.editor_stats);
+                
+                // New Functions
+                renderLinksTable(data.recent_links);
+                renderDayOfWeekChart(data.day_of_week_stats);
 
             } catch (e) {
                 console.error("Analytics Error", e);
             }
-        }
+        };
 
         function updateKPI(data) {
             const weeklyTotal = data.weekly_trend.reduce((sum, item) => sum + item.count, 0);
@@ -183,10 +273,84 @@
             }
         }
 
+        // --- NEW RENDERERS ---
+        
+        function renderLinksTable(links) {
+            const tbody = document.getElementById('linksTableBody');
+            if(!links || links.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#64748b;">Історія порожня</td></tr>';
+                return;
+            }
+            
+            // Assume backendUrl doesn't have trailing slash, but link ID needs context.
+            // Actually, we can reconstruct the full short URL if we know the base.
+            // Or just show the ID.
+            
+            tbody.innerHTML = links.map(l => {
+                const shortUrl = `${window.location.protocol}//${window.location.host}/l/${l.id}`; // Approximate display
+                return `
+                <tr>
+                    <td title="${l.original_url}" style="max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+                        ${l.original_url}
+                    </td>
+                    <td><a href="${backendUrl}/l/${l.id}" target="_blank" class="link-row">/l/${l.id}</a></td>
+                    <td><span style="color:#4ade80; font-weight:bold;">${l.clicks}</span></td>
+                    <td>${new Date(l.created_at).toLocaleDateString()}</td>
+                </tr>
+                `;
+            }).join('');
+        }
+
+        function renderDayOfWeekChart(data) {
+            const ctx = document.getElementById('dayOfWeekChart').getContext('2d');
+            if(dayOfWeekChart) dayOfWeekChart.destroy();
+
+            // Map 1-7 (Postgres ISODOW) to Names
+            // Note: Postgres ISODOW: 1=Monday, 7=Sunday
+            // But data array might be sparse. Let's create a full array.
+            
+            const days = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Нд"];
+            const counts = new Array(7).fill(0);
+            
+            if(data) {
+                data.forEach(d => {
+                    if(d.day_index >= 1 && d.day_index <= 7) {
+                        counts[d.day_index - 1] = d.count;
+                    }
+                });
+            }
+
+            dayOfWeekChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: days,
+                    datasets: [{
+                        label: 'Публікації',
+                        data: counts,
+                        backgroundColor: 'rgba(245, 158, 11, 0.6)', // Amber
+                        borderColor: 'rgba(245, 158, 11, 1)',
+                        borderWidth: 1,
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+        }
+
+        // --- EXISTING RENDERERS (Simplified for brevity) ---
+
         function renderTrendChart(data) {
             const ctx = document.getElementById('trendChart').getContext('2d');
             const gradient = ctx.createLinearGradient(0, 0, 0, 300);
-            gradient.addColorStop(0, 'rgba(139, 92, 246, 0.5)'); // Primary color
+            gradient.addColorStop(0, 'rgba(139, 92, 246, 0.5)'); 
             gradient.addColorStop(1, 'rgba(139, 92, 246, 0.0)');
 
             if(trendChart) trendChart.destroy();
@@ -202,35 +366,17 @@
                         backgroundColor: gradient,
                         fill: true,
                         tension: 0.4,
-                        pointBackgroundColor: '#fff',
-                        pointBorderColor: '#8b5cf6',
                         pointRadius: 4
                     }]
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' } },
-                        x: { grid: { display: false } }
-                    }
-                }
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' } }, x: { grid: { display: false } } } }
             });
         }
 
         function renderTypeChart(data) {
             const ctx = document.getElementById('typeChart').getContext('2d');
             if(typeChart) typeChart.destroy();
-
-            // Mapping types to readable names
-            const labels = data.map(d => {
-                if(d.post_type === 'ad') return 'Реклама';
-                if(d.post_type === 'scheduled') return 'План';
-                if(d.post_type === 'instant') return 'Миттєво';
-                return d.post_type;
-            });
-
+            const labels = data.map(d => d.post_type === 'ad' ? 'Реклама' : (d.post_type === 'scheduled' ? 'План' : d.post_type));
             typeChart = new Chart(ctx, {
                 type: 'doughnut',
                 data: {
@@ -238,26 +384,16 @@
                     datasets: [{
                         data: data.map(d => d.count),
                         backgroundColor: ['#ec4899', '#8b5cf6', '#10b981', '#f59e0b'],
-                        borderWidth: 0,
-                        hoverOffset: 4
+                        borderWidth: 0
                     }]
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { 
-                        legend: { position: 'right', labels: { boxWidth: 12, usePointStyle: true } } 
-                    },
-                    cutout: '70%'
-                }
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { boxWidth: 12, usePointStyle: true } } }, cutout: '70%' }
             });
         }
 
         function renderHourlyChart(data) {
             const ctx = document.getElementById('hourlyChart').getContext('2d');
             if(hourlyChart) hourlyChart.destroy();
-
-            // Fill empty hours
             const fullData = new Array(24).fill(0);
             data.forEach(d => fullData[d.hour] = d.count);
             const labels = fullData.map((_, i) => `${i}:00`);
@@ -275,25 +411,13 @@
                         borderWidth: 2
                     }]
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        r: {
-                            angleLines: { color: 'rgba(255,255,255,0.1)' },
-                            grid: { color: 'rgba(255,255,255,0.1)' },
-                            ticks: { display: false, backdropColor: 'transparent' }
-                        }
-                    },
-                    plugins: { legend: { display: false } }
-                }
+                options: { responsive: true, maintainAspectRatio: false, scales: { r: { angleLines: { color: 'rgba(255,255,255,0.1)' }, grid: { color: 'rgba(255,255,255,0.1)' }, ticks: { display: false, backdropColor: 'transparent' } } }, plugins: { legend: { display: false } } }
             });
         }
 
         function renderChannelsChart(data) {
             const ctx = document.getElementById('channelsChart').getContext('2d');
             if(channelsChart) channelsChart.destroy();
-
             channelsChart = new Chart(ctx, {
                 type: 'bar',
                 data: {
@@ -301,45 +425,22 @@
                     datasets: [{
                         label: 'Постів',
                         data: data.map(d => d.count),
-                        backgroundColor: '#f59e0b',
+                        backgroundColor: '#10b981', // Green
                         borderRadius: 4
                     }]
                 },
-                options: {
-                    indexAxis: 'y',
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        x: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' } },
-                        y: { grid: { display: false } }
-                    }
-                }
+                options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' } }, y: { grid: { display: false } } } }
             });
         }
 
         function renderEditorsTable(data) {
             const tbody = document.getElementById('editorsTable');
             tbody.innerHTML = '';
-            
             const maxPosts = Math.max(...data.map(e => e.total_posts)) || 1;
-
             data.forEach(e => {
                 const percent = Math.round((e.total_posts / maxPosts) * 100);
                 const initial = e.username.charAt(0).toUpperCase();
-                
-                tbody.innerHTML += `
-                    <tr>
-                        <td><div class="avatar-circle">${initial}</div></td>
-                        <td>${e.username}</td>
-                        <td style="font-weight:bold; color:white;">${e.total_posts}</td>
-                        <td>
-                            <div style="width:100%; height:6px; background:rgba(255,255,255,0.1); border-radius:3px; overflow:hidden;">
-                                <div style="width:${percent}%; height:100%; background:var(--color-primary);"></div>
-                            </div>
-                        </td>
-                    </tr>
-                `;
+                tbody.innerHTML += `<tr><td><div class="avatar-circle">${initial}</div></td><td>${e.username}</td><td style="font-weight:bold; color:white;">${e.total_posts}</td><td><div style="width:100%; height:6px; background:rgba(255,255,255,0.1); border-radius:3px; overflow:hidden;"><div style="width:${percent}%; height:100%; background:var(--color-primary);"></div></div></td></tr>`;
             });
         }
 
