@@ -1,112 +1,134 @@
 import { schedulePost, postNewsNow, getChannels, backendUrl } from './api.js';
 
+// 1. Визначаємо шаблони (те, чого не вистачало)
+const templates = {
+    simple: {
+        name: '📝 Простий пост',
+        fields: [], // Порожньо, бо використовується основне поле
+        formatter: (data) => '' // Повертає порожній рядок, щоб не перезаписувати ручний ввід
+    },
+    news: {
+        name: '📰 Новина з заголовком',
+        fields: [
+            { id: 'news_title', label: 'Заголовок', type: 'input', placeholder: 'Гучний заголовок' },
+            { id: 'news_body', label: 'Текст новини', type: 'textarea', placeholder: 'Основний текст...' },
+            { id: 'news_source', label: 'Джерело (посилання)', type: 'input', placeholder: 'https://...' }
+        ],
+        formatter: (data) => {
+            let text = `*${escapeMarkdown(data.news_title || 'Заголовок')}*\n\n${escapeMarkdown(data.news_body || '')}`;
+            if(data.news_source) text += `\n\n[Джерело](${data.news_source})`;
+            return text;
+        }
+    },
+    promo: {
+        name: '📢 Рекламний пост',
+        fields: [
+            { id: 'promo_header', label: 'Заклик', type: 'input', placeholder: 'Увага! Акція!' },
+            { id: 'promo_desc', label: 'Опис пропозиції', type: 'textarea', placeholder: 'Деталі...' },
+            { id: 'promo_link', label: 'Посилання на кнопку', type: 'input', placeholder: 'https://t.me/...' }
+        ],
+        formatter: (data) => `*${escapeMarkdown(data.promo_header || 'Акція')}*\n\n${escapeMarkdown(data.promo_desc || '')}\n\n👉 [Детальніше](${data.promo_link || '#'})`
+    }
+};
+
+// 2. Допоміжна функція екранування (виправляємо помилку в консолі)
+function escapeMarkdown(text) {
+    if (!text) return '';
+    // Екрануємо символи для MarkdownV2, крім тих, що ми хочемо дозволити у простій розмітці
+    // Для простоти тут базове екранування, щоб не ламало структуру
+    return text.replace(/[_*[\]()~>#+=|{}.!-]/g, '\\$&');
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
     try {
         // Елементи DOM
         const templateSelect = document.getElementById('template-select');
-        const channelSelect = document.getElementById('channel_select'); // 🔥 Додано селект каналів
         const dynamicFieldsContainer = document.getElementById('dynamic-form-fields');
         const previewContent = document.getElementById('preview-content');
         const form = document.getElementById('postForm');
         const statusMessage = document.getElementById('statusMessage');
+        
+        // Кнопки
         const scheduleBtn = document.getElementById('scheduleBtn');
-        const draftBtn = document.getElementById('draftBtn'); // 🔥 Новая кнопка чернетки (может быть вставлена динамически)
+        const draftBtn = document.getElementById('draftBtn');
         const postNowBtn = document.getElementById('postNowBtn');
+        
+        // Поля
         const postAtInput = document.getElementById('post_at');
-        
-        // Основне текстове поле
-        const postTextInput = document.getElementById('post_text'); 
-        try { window.postTextInput = postTextInput } catch(e) {}
-        
-        // Фото/відео
+        const postTextInput = document.getElementById('post_text');
         const postPhotoInput = document.getElementById('post_photo');
-
-        // Контейнери прев'ю
         const mediaContainer = document.getElementById('preview-media');
-        const timeBadge = document.getElementById('preview-time');
 
-        // 🔥 AI Elements
-        const aiUrlInput = document.getElementById('ai_url_input');
-        const aiUrlBtn = document.getElementById('ai_url_btn');
-        const aiToneSelect = document.getElementById('ai_tone_select');
-        const aiRewriteBtn = document.getElementById('ai_rewrite_btn');
+        // Глобальний доступ для дебагу
+        window.postTextInput = postTextInput;
 
-        // --- 🔥 AI HANDLERS ---
-        // 1. URL Scraper
-        if (aiUrlBtn) {
-            aiUrlBtn.addEventListener('click', async () => {
-                const url = aiUrlInput.value.trim();
-                if (!url) return alert('Введіть URL');
-                
-                const originalHtml = aiUrlBtn.innerHTML;
-                aiUrlBtn.innerHTML = '<span class="loader" style="width:12px; height:12px; border-width:2px;"></span>';
-                aiUrlBtn.disabled = true;
+        // --- 1. ІНІЦІАЛІЗАЦІЯ ШАБЛОНІВ ---
+        if (templateSelect) {
+            // Очищаємо та наповнюємо селект
+            templateSelect.innerHTML = '';
+            Object.keys(templates).forEach(key => {
+                const opt = document.createElement('option');
+                opt.value = key;
+                opt.textContent = templates[key].name;
+                templateSelect.appendChild(opt);
+            });
 
-                try {
-                    const res = await fetch(`${backendUrl}/api/ai/parse_url`, {
-                        method: 'POST',
-                        headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify({ url })
-                    });
-                    const data = await res.json();
-                    
-                    if (data.result) {
-                        postTextInput.value = data.result;
-                        updatePreview(true); // Update preview manually
-                        aiUrlInput.value = ''; // Clear input
-                    } else {
-                        alert('Не вдалося отримати контент');
-                    }
-                } catch (e) {
-                    console.error(e);
-                    alert('Помилка сервера');
-                } finally {
-                    aiUrlBtn.innerHTML = originalHtml;
-                    aiUrlBtn.disabled = false;
-                }
+            // Обробник зміни шаблону
+            templateSelect.addEventListener('change', (e) => {
+                const templateId = e.target.value;
+                renderFormFields(templateId);
+                updatePreview();
             });
         }
 
-        // 2. Tone Rewriter
-        if (aiRewriteBtn) {
-            aiRewriteBtn.addEventListener('click', async () => {
-                const text = postTextInput.value.trim();
-                if (!text) return alert('Введіть текст для перепису');
-                
-                const tone = aiToneSelect.value;
-                const originalHtml = aiRewriteBtn.innerHTML;
-                aiRewriteBtn.innerHTML = '<span class="loader" style="width:12px; height:12px; border-width:2px;"></span>';
-                aiRewriteBtn.disabled = true;
+        // Функція рендерингу полів
+        function renderFormFields(templateId) {
+            if(!dynamicFieldsContainer) return;
+            dynamicFieldsContainer.innerHTML = '';
+            
+            const template = templates[templateId];
+            if (!template || !template.fields) return;
 
-                try {
-                    const res = await fetch(`${backendUrl}/api/ai/rewrite`, {
-                        method: 'POST',
-                        headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify({ text, tone })
-                    });
-                    const data = await res.json();
-                    
-                    if (data.result) {
-                        postTextInput.value = data.result;
-                        updatePreview(true);
-                    } else {
-                        alert('Помилка AI');
-                    }
-                } catch (e) {
-                    console.error(e);
-                    alert('Помилка мережі');
-                } finally {
-                    aiRewriteBtn.innerHTML = originalHtml;
-                    aiRewriteBtn.disabled = false;
+            template.fields.forEach(field => {
+                const group = document.createElement('div');
+                group.className = 'form-group';
+                
+                const label = document.createElement('label');
+                label.textContent = field.label;
+                label.style.fontSize = '0.85em';
+                label.style.color = '#94a3b8';
+                
+                let input;
+                if (field.type === 'textarea') {
+                    input = document.createElement('textarea');
+                    input.rows = 3;
+                } else {
+                    input = document.createElement('input');
+                    input.type = 'text';
                 }
+                
+                input.id = field.id;
+                input.placeholder = field.placeholder || '';
+                input.style.width = '100%';
+                
+                // Оновлюємо прев'ю при введенні в динамічні поля
+                input.addEventListener('input', () => updatePreview(false));
+
+                group.appendChild(label);
+                group.appendChild(input);
+                dynamicFieldsContainer.appendChild(group);
             });
         }
 
-        // --- 🔥 ЛОГІКА ЗАВАНТАЖЕННЯ КАНАЛІВ (МУЛЬТИ) ---
+        // --- 2. МУЛЬТИКАНАЛЬНІСТЬ (Групи та канали) ---
         const channelsDropdown = document.getElementById('channels-dropdown');
         const selectedCountSpan = document.getElementById('selected-count');
         const toggleBtn = document.getElementById('btn-toggle-channels');
-        
+        const groupsModal = document.getElementById('groupsModal');
+        const manageGroupsBtn = document.getElementById('btn-manage-groups');
+        const createGroupBtn = document.getElementById('btn-create-group');
+        const groupsList = document.getElementById('groups-list');
+
         if(toggleBtn) {
             toggleBtn.addEventListener('click', () => {
                 channelsDropdown.classList.toggle('hidden');
@@ -116,26 +138,24 @@ document.addEventListener('DOMContentLoaded', async () => {
         const loadChannelsMulti = async () => {
             try {
                 const channels = await getChannels();
-                channelsDropdown.innerHTML = '';
-                
-                channels.forEach(ch => {
-                    const label = document.createElement('label');
-                    label.className = 'channel-checkbox';
-                    label.innerHTML = `
-                        <input type="checkbox" name="target_channel_id" value="${ch.telegram_id}">
-                        <span>${ch.title}</span>
-                    `;
-                    
-                    // Стилізація при кліку
-                    const checkbox = label.querySelector('input');
-                    checkbox.addEventListener('change', () => {
-                        if(checkbox.checked) label.classList.add('checked');
-                        else label.classList.remove('checked');
-                        updateCount();
+                if(channelsDropdown) {
+                    channelsDropdown.innerHTML = '';
+                    channels.forEach(ch => {
+                        const label = document.createElement('label');
+                        label.className = 'channel-checkbox';
+                        label.innerHTML = `
+                            <input type="checkbox" name="target_channel_id" value="${ch.telegram_id}">
+                            <span>${ch.title}</span>
+                        `;
+                        const checkbox = label.querySelector('input');
+                        checkbox.addEventListener('change', () => {
+                            if(checkbox.checked) label.classList.add('checked');
+                            else label.classList.remove('checked');
+                            updateCount();
+                        });
+                        channelsDropdown.appendChild(label);
                     });
-                    
-                    channelsDropdown.appendChild(label);
-                });
+                }
             } catch (e) { console.error(e); }
         };
 
@@ -144,49 +164,37 @@ document.addEventListener('DOMContentLoaded', async () => {
             if(selectedCountSpan) selectedCountSpan.textContent = count;
         }
 
-        // Завантажуємо канали по-новому
-        loadChannelsMulti();
-
-        // 🔥 НОВЕ: Логіка Груп
-        const groupsModal = document.getElementById('groupsModal');
-        const manageGroupsBtn = document.getElementById('btn-manage-groups');
-        const createGroupBtn = document.getElementById('btn-create-group');
-        const groupsList = document.getElementById('groups-list');
-
+        // Логіка груп
         if(manageGroupsBtn) {
             manageGroupsBtn.addEventListener('click', () => {
-                groupsModal.style.display = 'flex';
+                if(groupsModal) groupsModal.style.display = 'flex';
                 loadGroups();
             });
         }
 
         async function loadGroups() {
-            // Треба додати getGroups в api.js
-            const res = await fetch(`${backendUrl}/api/channel_groups`);
-            const groups = await res.json();
-            
-            groupsList.innerHTML = groups.map(g => `
-                <div style="display:flex; justify-content:space-between; align-items:center; padding:8px; background:rgba(255,255,255,0.05); border-radius:8px; margin-bottom:5px;">
-                    <span style="font-weight:bold; color:white; cursor:pointer;" onclick="applyGroup('${g.id}')">${g.name} <small style="opacity:0.6">(${g.channel_ids.length} кан.)</small></span>
-                    <button class="btn-danger" style="width:24px; height:24px; padding:0; font-size:12px;" onclick="deleteGroup(${g.id})">x</button>
-                </div>
-            `).join('');
-            
-            // Зберігаємо групи в пам'яті для застосування
-            window.currentGroups = groups;
+            try {
+                const res = await fetch(`${backendUrl}/api/channel_groups`);
+                const groups = await res.json();
+                if(groupsList) {
+                    groupsList.innerHTML = groups.map(g => `
+                        <div style="display:flex; justify-content:space-between; align-items:center; padding:8px; background:rgba(255,255,255,0.05); border-radius:8px; margin-bottom:5px;">
+                            <span style="font-weight:bold; color:white; cursor:pointer;" onclick="applyGroup('${g.id}')">${g.name} <small style="opacity:0.6">(${g.channel_ids.length} кан.)</small></span>
+                            <button class="btn-danger" style="width:24px; height:24px; padding:0; font-size:12px;" onclick="deleteGroup(${g.id})">x</button>
+                        </div>
+                    `).join('');
+                }
+                window.currentGroups = groups;
+            } catch(e) {}
         }
 
         window.applyGroup = (groupId) => {
             const group = window.currentGroups.find(g => g.id == groupId);
             if(!group) return;
-            
-            // Скидаємо вибір
             document.querySelectorAll('input[name="target_channel_id"]').forEach(cb => {
                 cb.checked = false;
                 cb.parentElement.classList.remove('checked');
             });
-
-            // Ставимо галочки
             group.channel_ids.forEach(id => {
                 const cb = document.querySelector(`input[value="${id}"]`);
                 if(cb) {
@@ -195,7 +203,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }
             });
             updateCount();
-            groupsModal.style.display = 'none';
+            if(groupsModal) groupsModal.style.display = 'none';
         };
 
         window.deleteGroup = async (id) => {
@@ -208,10 +216,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             createGroupBtn.addEventListener('click', async () => {
                 const name = document.getElementById('new_group_name').value;
                 if(!name) return alert('Введіть назву');
-                
-                // Збираємо обрані канали
                 const selected = Array.from(document.querySelectorAll('input[name="target_channel_id"]:checked')).map(cb => cb.value);
-                
                 if(selected.length === 0) return alert('Оберіть канали для групи');
 
                 await fetch(`${backendUrl}/api/channel_groups`, {
@@ -219,253 +224,205 @@ document.addEventListener('DOMContentLoaded', async () => {
                     headers: {'Content-Type': 'application/json', 'X-Username': localStorage.getItem('username')},
                     body: JSON.stringify({ name, channel_ids: selected })
                 });
-                
                 document.getElementById('new_group_name').value = '';
                 loadGroups();
             });
         }
 
-        // --- ОНОВЛЕНА ФУНКЦІЯ ПРЕВ'Ю ---
+        // --- 3. AI HANDLERS ---
+        const aiUrlBtn = document.getElementById('ai_url_btn');
+        const aiRewriteBtn = document.getElementById('ai_rewrite_btn');
+
+        if (aiUrlBtn) {
+            aiUrlBtn.addEventListener('click', async () => {
+                const url = document.getElementById('ai_url_input').value.trim();
+                if (!url) return alert('Введіть URL');
+                
+                const orig = aiUrlBtn.innerHTML;
+                aiUrlBtn.innerHTML = '...'; aiUrlBtn.disabled = true;
+                try {
+                    const res = await fetch(`${backendUrl}/api/ai/parse_url`, {
+                        method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ url })
+                    });
+                    const data = await res.json();
+                    if (data.result && postTextInput) {
+                        postTextInput.value = data.result;
+                        updatePreview(true);
+                    }
+                } catch (e) { alert('Помилка AI'); }
+                finally { aiUrlBtn.innerHTML = orig; aiUrlBtn.disabled = false; }
+            });
+        }
+
+        if (aiRewriteBtn) {
+            aiRewriteBtn.addEventListener('click', async () => {
+                const text = postTextInput ? postTextInput.value : '';
+                if (!text) return alert('Текст порожній');
+                const tone = document.getElementById('ai_tone_select').value;
+                
+                const orig = aiRewriteBtn.innerHTML;
+                aiRewriteBtn.innerHTML = '...'; aiRewriteBtn.disabled = true;
+                try {
+                    const res = await fetch(`${backendUrl}/api/ai/rewrite`, {
+                        method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ text, tone })
+                    });
+                    const data = await res.json();
+                    if (data.result && postTextInput) {
+                        postTextInput.value = data.result;
+                        updatePreview(true);
+                    }
+                } catch (e) { alert('Помилка AI'); }
+                finally { aiRewriteBtn.innerHTML = orig; aiRewriteBtn.disabled = false; }
+            });
+        }
+
+        // --- 4. PREVIEW LOGIC ---
         function updatePreview(isManualEdit = false) {
             let finalText = '';
 
-            if (!isManualEdit) {
-                // Якщо це не ручне редагування, збираємо дані з шаблону
+            if (!isManualEdit && templateSelect) {
                 const templateId = templateSelect.value;
                 const template = templates[templateId];
-                if (template) {
+                if (template && template.fields.length > 0) {
                     const data = {};
                     template.fields.forEach(field => {
                         const input = document.getElementById(field.id);
                         if (input) data[field.id] = input.value;
                     });
-                    // Форматуємо текст через шаблон
                     finalText = template.formatter(data);
-                    
-                    // 🔥 Оновлюємо головне приховане поле
                     if (postTextInput) postTextInput.value = finalText;
+                } else {
+                    // Якщо шаблон "simple", беремо з основного поля
+                    finalText = postTextInput ? postTextInput.value : '';
                 }
             } else {
-                // Якщо редагуємо вручну в великому полі
                 finalText = postTextInput ? postTextInput.value : '';
             }
 
-            // Оновлюємо HTML прев'ю
             if (previewContent) {
                 previewContent.innerHTML = formatForPreview((finalText || '').trimStart());
             }
-
-            // Керування класами для медіа (скруглення)
-            const hasMedia = mediaContainer.style.display !== 'none' && mediaContainer.innerHTML !== '';
-            const textIsEmpty = !finalText || finalText.trim() === '';
             
+            // Media Preview Handling
+            const hasMedia = mediaContainer && mediaContainer.innerHTML !== '';
             const textContentDiv = document.querySelector('.tg-text-content');
-
-            if (hasMedia && textIsEmpty) {
-                if (textContentDiv) textContentDiv.style.display = 'none';
+            if (hasMedia && (!finalText || finalText.trim() === '') && textContentDiv) {
+                textContentDiv.style.display = 'none';
                 mediaContainer.style.borderRadius = '12px'; 
-            } else {
-                if (textContentDiv) textContentDiv.style.display = 'block';
-                mediaContainer.style.borderRadius = '12px 12px 0 0'; 
+            } else if (textContentDiv) {
+                textContentDiv.style.display = 'block';
+                if(mediaContainer) mediaContainer.style.borderRadius = '12px 12px 0 0';
             }
         }
 
-        // --- Форматування ---
         function formatForPreview(text) {
             if (!text) return '';
-            let html = text
+            return text
                 .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
-                .replace(/```([\s\S]*?)```/g, '<pre>$1</pre>')
-                .replace(/`([^`]+)`/g, '<code>$1</code>')
-                .replace(/\*([\s\S]+?)\*/g, '<b>$1</b>')
-                .replace(/_([\s\S]+?)_/g, '<i>$1</i>')
-                .replace(/~([\s\S]+?)~/g, '<s>$1</s>')
-                .replace(/\|\|([\s\S]+?)\|\|/g, '<span class="tg-spoiler" onclick="this.classList.toggle(\'revealed\')">$1</span>')
-                .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>')
+                .replace(/\*([\s\S]+?)\*/g, '<b>$1</b>') // Bold
+                .replace(/_([\s\S]+?)_/g, '<i>$1</i>') // Italic
+                .replace(/~([\s\S]+?)~/g, '<s>$1</s>') // Strike
+                .replace(/`([^`]+)`/g, '<code>$1</code>') // Code
+                .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>') // Link
                 .replace(/\n/g, '<br>');
-            return html;
         }
 
-        function escapeMarkdown(text) {
-            if (!text) return '';
-            const charsToEscape = '_*[]()~`>#+-=|{}.!';
-            return text.split('').map(char => charsToEscape.includes(char) ? '\\' + char : char).join('');
-        }
-
-        // --- 🔥 УНИВЕРСАЛЬНА ФУНКЦІЯ ПРИЙОМУ ФОРМИ ---
+        // --- 5. ОБРОБКА ВІДПРАВКИ ---
         async function handleFormSubmit(mode) {
-            // mode: 'schedule', 'draft', 'now'
-            let loadingText = 'Обробка...';
-            if (mode === 'schedule') loadingText = 'Плануємо...';
-            if (mode === 'draft') loadingText = 'Зберігаємо чернетку...';
-            if (mode === 'now') loadingText = 'Публікуємо...';
-
-            statusMessage.textContent = loadingText;
-            statusMessage.className = '';
+            if(statusMessage) {
+                statusMessage.textContent = 'Обробка...';
+                statusMessage.className = '';
+                statusMessage.style.display = 'block';
+            }
+            
             if (scheduleBtn) scheduleBtn.disabled = true;
             if (draftBtn) draftBtn.disabled = true;
             if (postNowBtn) postNowBtn.disabled = true;
 
-            // Валідація дати тільки для планування (не для чернеток)
-            if (mode === 'schedule' && !postAtInput.value) {
-                alert('Вкажіть дату та час для планування.');
-                statusMessage.textContent = '';
-                if(scheduleBtn) scheduleBtn.disabled = false;
-                if(draftBtn) draftBtn.disabled = false;
-                if(postNowBtn) postNowBtn.disabled = false;
-                return;
+            const finalText = postTextInput ? postTextInput.value : '';
+            
+            // Перевірки
+            if (mode === 'schedule' && postAtInput && !postAtInput.value) {
+                alert('Вкажіть дату для планування');
+                resetBtns(); return;
+            }
+            if (!finalText && mode !== 'draft') {
+                alert('Текст не може бути порожнім');
+                resetBtns(); return;
             }
 
-            const finalPostText = postTextInput ? postTextInput.value : '';
-            if (!finalPostText && mode !== 'draft') { // Чернетка може бути без тексту (тільки фото)
-                 alert('Текст поста порожній!');
-                 if(scheduleBtn) scheduleBtn.disabled = false;
-                 if(draftBtn) draftBtn.disabled = false;
-                 if(postNowBtn) postNowBtn.disabled = false;
-                 return;
-            }
-
-            const submissionData = new FormData();
-            submissionData.append('post_text', finalPostText);
-
-            // Збираємо мітки для мультиканальності
+            const formData = new FormData();
+            formData.append('post_text', finalText);
+            
+            // Канали
             const checkboxes = document.querySelectorAll('input[name="target_channel_id"]:checked');
-            if (checkboxes.length === 0) {
-                // Для планування і публікації вимагаємо хоча б один канал
-                if (mode === 'now' || mode === 'schedule' || mode === 'draft') {
-                    alert('Оберіть хоча б один канал!');
-                    if(scheduleBtn) scheduleBtn.disabled = false;
-                    if(draftBtn) draftBtn.disabled = false;
-                    if(postNowBtn) postNowBtn.disabled = false;
-                    return;
-                }
-            } else {
-                checkboxes.forEach(cb => submissionData.append('target_channel_id', cb.value));
+            if (checkboxes.length === 0 && mode !== 'draft') {
+                alert('Оберіть хоча б один канал');
+                resetBtns(); return;
             }
+            checkboxes.forEach(cb => formData.append('target_channel_id', cb.value));
 
-            // 🔥 Передаємо прапорець is_draft
+            // Статус і Дата
             if (mode === 'draft') {
-                submissionData.append('is_draft', 'true');
-                // Для чернетки дата необов'язкова, але якщо є - збережемо
-                if (postAtInput.value) {
-                    submissionData.append('post_at', new Date(postAtInput.value).toISOString());
-                } else {
-                    // Ставимо дату в далеке майбутнє або поточну, щоб сервер не лаявся
-                    submissionData.append('post_at', new Date().toISOString()); 
-                }
+                formData.append('is_draft', 'true');
+                formData.append('post_at', postAtInput && postAtInput.value ? new Date(postAtInput.value).toISOString() : new Date().toISOString());
             } else if (mode === 'schedule') {
-                submissionData.append('is_draft', 'false');
-                submissionData.append('post_at', new Date(postAtInput.value).toISOString());
+                formData.append('is_draft', 'false');
+                formData.append('post_at', new Date(postAtInput.value).toISOString());
             }
 
-            // Додаємо файли
-            const formDataLocal = new FormData(form);
-            const postPhotos = formDataLocal.getAll('post_photo');
-            if (postPhotos.length > 0) {
-                for (const photo of postPhotos) {
-                    if (photo.size > 0) submissionData.append('post_photo', photo, photo.name);
-                }
+            // Файли
+            if (form) {
+                const nativeFormData = new FormData(form);
+                const files = nativeFormData.getAll('post_photo');
+                files.forEach(file => {
+                    if (file.size > 0) formData.append('post_photo', file, file.name);
+                });
             }
 
-            // Відправка даних на сервер
             try {
                 let response;
-                if (mode === 'now') {
-                    response = await postNewsNow(submissionData);
-                } else {
-                    response = await schedulePost(submissionData);
-                }
+                if (mode === 'now') response = await postNewsNow(formData);
+                else response = await schedulePost(formData);
 
                 if (response && response.success) {
-                    statusMessage.textContent = 'Успішно надіслано!';
+                    statusMessage.textContent = 'Успішно!';
                     statusMessage.className = 'success';
-
-                    // Очищення форми після успішної відправки
-                    form.reset();
-                    mediaContainer.innerHTML = '';
-                    mediaContainer.style.display = 'none';
-                    templateSelect.selectedIndex = 0;
-                    dynamicFieldsContainer.innerHTML = '';
-
-                    // Повторне завантаження каналів (якщо потрібно)
-                    loadChannelsMulti();
+                    if(form) form.reset();
+                    if(mediaContainer) mediaContainer.innerHTML = '';
+                    if(postTextInput) postTextInput.value = '';
+                    updatePreview();
+                    setTimeout(() => { if(statusMessage) statusMessage.style.display='none'; }, 3000);
                 } else {
-                    throw new Error(response.message || 'Невідома помилка');
+                    throw new Error('Помилка сервера');
                 }
             } catch (e) {
-                console.error("Помилка при відправці:", e);
-                statusMessage.textContent = 'Помилка при відправці даних.';
+                console.error(e);
+                statusMessage.textContent = 'Помилка відправки';
                 statusMessage.className = 'error';
             } finally {
-                if (scheduleBtn) scheduleBtn.disabled = false;
-                if (draftBtn) draftBtn.disabled = false;
-                if (postNowBtn) postNowBtn.disabled = false;
+                resetBtns();
             }
         }
 
-        // --- Обробка подій ---
-        templateSelect.addEventListener('change', (e) => {
-            const templateId = e.target.value;
-            renderFormFields(templateId);
-            updatePreview(); // Оновлюємо прев'ю при зміні шаблону
-        });
+        function resetBtns() {
+            if (scheduleBtn) scheduleBtn.disabled = false;
+            if (draftBtn) draftBtn.disabled = false;
+            if (postNowBtn) postNowBtn.disabled = false;
+        }
 
-        // Ініціалізація
-        loadChannelsForSelect();
-        renderFormFields(templateSelect.value);
+        // Прив'язка кнопок
+        if(form) form.addEventListener('submit', (e) => { e.preventDefault(); handleFormSubmit('schedule'); });
+        if(draftBtn) draftBtn.addEventListener('click', (e) => { e.preventDefault(); handleFormSubmit('draft'); });
+        if(postNowBtn) postNowBtn.addEventListener('click', (e) => { e.preventDefault(); handleFormSubmit('now'); });
+        if(postTextInput) postTextInput.addEventListener('input', () => updatePreview(true));
+
+        // Ініціалізація сторінки
+        loadChannelsMulti();
+        if(templateSelect) renderFormFields(templateSelect.value);
         updatePreview();
 
-        // 🔥 ВИПРАВЛЕННЯ: Додаємо слухачі подій для кнопок
-        // 1. Кнопка "Запланувати" (це сабміт форми)
-        if (form) {
-            form.addEventListener('submit', (e) => {
-                e.preventDefault();
-                handleFormSubmit('schedule');
-            });
-        }
-
-        // 2. Кнопка "Чернетка"
-        if (draftBtn) {
-            draftBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                handleFormSubmit('draft');
-            });
-        }
-
-        // 3. Кнопка "Опублікувати"
-        if (postNowBtn) {
-            postNowBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                handleFormSubmit('now');
-            });
-        }
     } catch (e) {
-        console.error("Помилка ініціалізації:", e);
+        console.error("Initialization error:", e);
     }
 });
-
-// --- ГЛОБАЛЬНІ ФУНКЦІЇ ДЛЯ ТЕСТУВАННЯ ---
-function testEscapeMarkdown() {
-    const testCases = [
-        "Привіт, *світ*!",
-        "Це _курсив_ текст.",
-        "Тут ~~закреслений~~ текст.",
-        "`Код` в рядку.",
-        "[Посилання](https://example.com) тут.",
-        "Текст з `кодом` і *форматуванням*.",
-        "Спойлер: ||Це прихований текст||.",
-        "Текст з зображенням: ![alt текст](https://example.com/image.jpg)",
-        "Текст з відео: [![alt текст](https://img.youtube.com/vi/VIDEO_ID/0.jpg)](https://www.youtube.com/watch?v=VIDEO_ID)"
-    ];
-
-    testCases.forEach(testCase => {
-        console.log(`Тестуємо: ${testCase}`);
-        const escaped = escapeMarkdown(testCase);
-        console.log(`Результат: ${escaped}`);
-        console.log(`Зворотнє перетворення: ${escapeMarkdown(escaped)}`);
-        console.log('---');
-    });
-}
-
-// Для тестування можна викликати цю функцію в консолі браузера
-testEscapeMarkdown();
