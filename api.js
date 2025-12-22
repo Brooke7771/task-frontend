@@ -49,6 +49,7 @@ export const postScheduledNow = (postId) => apiFetch(`/api/scheduled_posts/${pos
 export const getScheduledPostById = (postId) => apiFetch(`/api/scheduled_posts/${postId}`);
 export const updateScheduledPost = (postId, formData) => apiFetch(`/api/scheduled_posts/${postId}/update`, { method: 'POST', body: formData });
 export const postNewsNow = (formData) => apiFetch('/api/post_now', { method: 'POST', body: formData });
+export const approveScheduledPost = (postId) => apiFetch(`/api/scheduled_posts/${postId}/approve`, { method: 'POST' });
 
 // --- API для чат-бота ---
 export const sendChatMessage = (prompt) => apiFetch('/api/chat', {

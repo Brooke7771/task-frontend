@@ -1,9 +1,10 @@
-import { getScheduledPosts, deleteScheduledPost, postScheduledNow, updateScheduledPost } from './api.js';
+import { getScheduledPosts, deleteScheduledPost, postScheduledNow, updateScheduledPost, getMyProfile, approveScheduledPost } from './api.js';
 
 let allPosts = [];
 let selectedPosts = new Set();
 let currentCalendarDate = new Date();
 let selectedDate = null; // Зберігаємо обрану дату
+let isAdmin = false; // визначаємо, чи поточний користувач адмін
 
 document.addEventListener('DOMContentLoaded', () => {
     loadPosts();
@@ -12,6 +13,12 @@ document.addEventListener('DOMContentLoaded', () => {
 // --- LOAD DATA ---
 window.loadPosts = async () => {
     try {
+        // Отримуємо профіль (щоб знати, чи показувати кнопки адміну)
+        try {
+            const profile = await getMyProfile();
+            isAdmin = profile && profile.is_admin;
+        } catch (e) { isAdmin = false; }
+
         const posts = await getScheduledPosts();
         if(!Array.isArray(posts)) throw new Error("Invalid response");
 
@@ -68,9 +75,31 @@ function renderTimeline() {
             
             const card = document.createElement('div');
             card.className = 'post-card';
+            
+            // Статусна бейджка
+            let statusBadge = '';
+            if (post.status === 'Draft') {
+                statusBadge = '<span class="badge" style="background:#64748b; color:white">Чернетка</span>'; 
+            } else if (post.status === 'PendingReview') {
+                statusBadge = '<span class="badge" style="background:#f59e0b; color:black">На перевірці</span>'; 
+            } else if (post.status === 'Scheduled') {
+                statusBadge = '<span class="badge" style="background:#10b981; color:white">Заплановано</span>'; 
+            } else if (post.status === 'Sent') {
+                statusBadge = '<span class="badge" style="background:#64748b; color:white">Відправлено</span>'; 
+            }
+
+            // Кнопка схвалення (тільки для адмінів та коли статус PendingReview)
+            let approveBtn = '';
+            if (isAdmin && post.status === 'PendingReview') {
+                approveBtn = `<button class="icon-btn btn-approve" onclick="approvePost('${post.id}')" title="Схвалити">✅</button>`;
+            }
+
             card.innerHTML = `
                 <input type="checkbox" class="card-select" value="${post.id}" onchange="toggleSelect('${post.id}')">
-                <div class="post-time">${timeStr}<small>${post.targetChannelId || 'Канал'}</small></div>
+                <div class="post-header">
+                    ${statusBadge}
+                    <div class="post-time">${timeStr}<small>${post.targetChannelId || 'Канал'}</small></div>
+                </div>
                 <div class="post-content">
                     <div class="post-text">${cleanText}</div>
                     <div class="post-meta">
@@ -78,6 +107,7 @@ function renderTimeline() {
                     </div>
                 </div>
                 <div class="post-actions">
+                    ${approveBtn}
                     <button class="icon-btn btn-now" onclick="singlePostNow('${post.id}')"><i data-feather="send"></i></button>
                     <button class="icon-btn btn-edit" onclick="window.location.href='schedule-edit.html?id=${post.id}'"><i data-feather="edit-2"></i></button>
                     <button class="icon-btn btn-delete" onclick="singleDelete('${post.id}')"><i data-feather="trash"></i></button>
@@ -234,6 +264,18 @@ window.selectDate = (date) => {
             if(post.photoIds?.length) mediaIcon = '<i data-feather="image" style="width:14px"></i>';
             if(post.videoIds?.length) mediaIcon = '<i data-feather="video" style="width:14px"></i>';
 
+            // Статусна бейджка
+            let statusBadge = '';
+            if (post.status === 'Draft') statusBadge = '<span class="badge" style="background:#64748b; color:white; margin-right:8px;">Чернетка</span>';
+            else if (post.status === 'PendingReview') statusBadge = '<span class="badge" style="background:#f59e0b; color:black; margin-right:8px;">На перевірці</span>';
+            else if (post.status === 'Scheduled') statusBadge = '<span class="badge" style="background:#10b981; color:white; margin-right:8px;">Заплановано</span>';
+
+            // Кнопка схвалення тільки для адмінів
+            let approveBtn = '';
+            if (isAdmin && post.status === 'PendingReview') {
+                approveBtn = `<button class="icon-btn btn-approve" onclick="approvePost('${post.id}')" title="Схвалити" style="width:32px; height:32px; margin-right:6px;">✅</button>`;
+            }
+
             return `
             <div class="day-task-row">
                 <div class="task-time-box">
@@ -241,7 +283,7 @@ window.selectDate = (date) => {
                 </div>
                 
                 <div class="task-content">
-                    <h4 title="${rawText.replace(/"/g, '&quot;')}">${cleanText}</h4>
+                    <h4 title="${rawText.replace(/"/g, '&quot;')}">${statusBadge}${cleanText}</h4>
                     <p>
                         ${mediaIcon} ${post.targetChannelId || 'Основний канал'} 
                         <span style="opacity:0.5; margin-left:10px;">👤 ${post.createdBy || 'Admin'}</span>
@@ -252,6 +294,7 @@ window.selectDate = (date) => {
                     <input type="datetime-local" class="quick-reschedule-input" value="${isoTime}" 
                            onchange="quickReschedule('${post.id}', this.value)" title="Перенести">
                            
+                    ${approveBtn}
                     <button class="icon-btn btn-edit" onclick="window.location.href='schedule-edit.html?id=${post.id}'" title="Редагувати" style="width:32px; height:32px;">
                         <i data-feather="edit-2" style="width:14px;"></i>
                     </button>
@@ -344,3 +387,15 @@ window.singleDelete = async (id) => { if(confirm('Видалити?')) { await d
 window.singlePostNow = async (id) => { if(confirm('Опублікувати зараз?')) { await postScheduledNow(id); loadPosts(); } };
 window.bulkDelete = async () => { if(confirm(`Видалити ${selectedPosts.size}?`)) { for(let id of selectedPosts) await deleteScheduledPost(id); loadPosts(); } };
 window.bulkPostNow = async () => { if(confirm(`Опублікувати ${selectedPosts.size}?`)) { for(let id of selectedPosts) await postScheduledNow(id); loadPosts(); } };
+// Approve post (Admin only)
+window.approvePost = async (postId) => {
+    if(!confirm('Схвалити цей пост?')) return;
+    try {
+        await approveScheduledPost(postId);
+        await loadPosts();
+        alert('Пост схвалено');
+    } catch (e) {
+        console.error(e);
+        alert('Не вдалося схвалити пост');
+    }
+};

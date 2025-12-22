@@ -65,6 +65,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         const toolbarCode = document.getElementById('toolbar-code');
         const toolbarLink = document.getElementById('toolbar-link');
 
+        // Додаємо в FormData
+        const formData = new FormData(form);
+        formData.append('is_draft', 'true');
+        
         // --- Шаблони ---
         const templates = {
             news_simple: {
