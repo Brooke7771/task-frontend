@@ -225,7 +225,8 @@
             if(!url) return alert("Введіть URL");
 
             try {
-                const res = await fetch(`${backendUrl}/api/links/shorten`, {
+                // Corrected endpoint to match backend: /api/shortner/create
+                const res = await fetch(`${backendUrl}/api/shortner/create`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ url })
@@ -253,7 +254,8 @@
             document.getElementById('kpi-weekly').textContent = '...';
             
             try {
-                const res = await fetch(`${backendUrl}/api/analytics/dashboard`);
+                // Fixed: endpoint path from /dashboard to root /analytics as defined in backend
+                const res = await fetch(`${backendUrl}/api/analytics`);
                 
                 // 🔥 ВИПРАВЛЕННЯ: Перевіряємо статус відповіді
                 if (!res.ok) {

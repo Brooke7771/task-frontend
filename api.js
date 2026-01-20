@@ -5,7 +5,7 @@ export const backendUrl = 'https://my-telegram-task-bot-5c4258bd3f9b.herokuapp.c
 
 async function apiFetch(endpoint, options = {}) {
     try {
-        // 🔥 ОТРИМУЄМО ТЕКУЩИЙ ТОКЕН
+        // 🔥 ОТРИМУЄМО ПОТОЧНИЙ ТОКЕН
         const token = localStorage.getItem('token');
 
         // Додаємо заголовок
