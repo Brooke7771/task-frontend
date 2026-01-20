@@ -304,6 +304,8 @@
                     const respData = await res.json();
                     localStorage.setItem('isLoggedIn', 'true');
                     localStorage.setItem('username', data.username);
+                    // Store JWT token for authenticated requests
+                    if (respData.token) localStorage.setItem('token', respData.token);
                     localStorage.setItem('isAdmin', respData.is_admin);
                     localStorage.setItem('allowedPages', JSON.stringify(respData.allowed_pages));
 

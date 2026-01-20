@@ -266,13 +266,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         if(createGroupBtn) {
             createGroupBtn.addEventListener('click', async () => {
                 const name = document.getElementById('new_group_name').value;
-                if(!name) return alert('Введіть назву');
+                if(!name) {
+                    if (typeof showToast === 'function') showToast('Введіть назву', 'error'); else alert('Введіть назву');
+                    return;
+                }
                 const selected = Array.from(document.querySelectorAll('input[name="target_channel_id"]:checked')).map(cb => cb.value);
-                if(selected.length === 0) return alert('Оберіть канали для групи');
+                if(selected.length === 0) { if (typeof showToast === 'function') showToast('Оберіть канали для групи', 'error'); else alert('Оберіть канали для групи'); return; }
 
                 await fetch(`${backendUrl}/api/channel_groups`, {
                     method: 'POST',
-                    headers: {'Content-Type': 'application/json', 'X-Username': localStorage.getItem('username')},
+                    headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('token')}`},
                     body: JSON.stringify({ name, channel_ids: selected })
                 });
                 document.getElementById('new_group_name').value = '';
@@ -287,7 +290,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (aiUrlBtn) {
             aiUrlBtn.addEventListener('click', async () => {
                 const url = document.getElementById('ai_url_input').value.trim();
-                if (!url) return alert('Введіть URL');
+                if (!url) { if (typeof showToast === 'function') showToast('Введіть URL', 'error'); else alert('Введіть URL'); return; }
                 
                 const orig = aiUrlBtn.innerHTML;
                 aiUrlBtn.innerHTML = '...'; aiUrlBtn.disabled = true;
@@ -300,7 +303,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                         postTextInput.value = data.result;
                         updatePreview(true);
                     }
-                } catch (e) { alert('Помилка AI'); }
+                } catch (e) { if (typeof showToast === 'function') showToast('Помилка AI', 'error'); else alert('Помилка AI'); }
                 finally { aiUrlBtn.innerHTML = orig; aiUrlBtn.disabled = false; }
             });
         }
@@ -308,7 +311,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (aiRewriteBtn) {
             aiRewriteBtn.addEventListener('click', async () => {
                 const text = postTextInput ? postTextInput.value : '';
-                if (!text) return alert('Текст порожній');
+                if (!text) { if (typeof showToast === 'function') showToast('Текст порожній', 'error'); else alert('Текст порожній'); return; }
                 const tone = document.getElementById('ai_tone_select').value;
                 
                 const orig = aiRewriteBtn.innerHTML;
@@ -322,7 +325,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                         postTextInput.value = data.result;
                         updatePreview(true);
                     }
-                } catch (e) { alert('Помилка AI'); }
+                } catch (e) { if (typeof showToast === 'function') showToast('Помилка AI', 'error'); else alert('Помилка AI'); }
                 finally { aiRewriteBtn.innerHTML = orig; aiRewriteBtn.disabled = false; }
             });
         }
@@ -417,11 +420,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             
             // Перевірки
             if (mode === 'schedule' && postAtInput && !postAtInput.value) {
-                alert('Вкажіть дату для планування');
+                if (typeof showToast === 'function') showToast('Вкажіть дату для планування', 'error'); else alert('Вкажіть дату для планування');
                 resetBtns(); return;
             }
             if (!finalText && mode !== 'draft') {
-                alert('Текст не може бути порожнім');
+                if (typeof showToast === 'function') showToast('Текст не може бути порожнім', 'error'); else alert('Текст не може бути порожнім');
                 resetBtns(); return;
             }
 
@@ -431,7 +434,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             // Канали
             const checkboxes = document.querySelectorAll('input[name="target_channel_id"]:checked');
             if (checkboxes.length === 0 && mode !== 'draft') {
-                alert('Оберіть хоча б один канал');
+                if (typeof showToast === 'function') showToast('Оберіть хоча б один канал', 'error'); else alert('Оберіть хоча б один канал');
                 resetBtns(); return;
             }
             checkboxes.forEach(cb => formData.append('target_channel_id', cb.value));
@@ -464,6 +467,13 @@ document.addEventListener('DOMContentLoaded', async () => {
                 if (label && url) buttonsData.push([label, url]);
             });
             formData.append('buttons', JSON.stringify(buttonsData));
+
+            // У функції handleFormSubmit
+            const repeatVal = document.getElementById('repeat_interval').value;
+            if (repeatVal) {
+                // Конвертуємо хвилини в секунди для бекенду, бо там repeat_every_seconds
+                formData.append('repeat_every_seconds', parseInt(repeatVal) * 60);
+            }
 
             try {
                 let response;
@@ -503,6 +513,43 @@ document.addEventListener('DOMContentLoaded', async () => {
         if(draftBtn) draftBtn.addEventListener('click', (e) => { e.preventDefault(); handleFormSubmit('draft'); });
         if(postNowBtn) postNowBtn.addEventListener('click', (e) => { e.preventDefault(); handleFormSubmit('now'); });
         if(postTextInput) postTextInput.addEventListener('input', () => updatePreview(true));
+
+        // Auto Tags
+        const btnTags = document.getElementById('btn-auto-tags');
+        if(btnTags) {
+            btnTags.addEventListener('click', async () => {
+                const textArea = document.getElementById('post_text');
+                const text = textArea.value;
+                if(!text) return alert("Спочатку введіть текст поста");
+                
+                const originalHtml = btnTags.innerHTML;
+                btnTags.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Thinking...';
+                btnTags.disabled = true;
+                
+                try {
+                    const res = await fetch('/api/ai/generate_tags', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Authorization': localStorage.getItem('token') },
+                        body: JSON.stringify({ text })
+                    });
+                    
+                    if(res.ok) {
+                        const data = await res.json();
+                        if(data.tags && data.tags.length > 0) {
+                            textArea.value += "\n\n" + data.tags.join(' ');
+                        }
+                    } else {
+                        console.error("AI Error");
+                    }
+                } catch(e) {
+                    console.error(e);
+                } finally {
+                    btnTags.innerHTML = originalHtml;
+                    btnTags.disabled = false;
+                    feather.replace();
+                }
+            });
+        }
 
         // Ініціалізація сторінки
         loadChannelsMulti();

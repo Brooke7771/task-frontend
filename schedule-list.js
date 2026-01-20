@@ -199,7 +199,47 @@ function renderCalendar() {
             dayCell.style.background = '';
             dayCell.style.borderColor = '';
         };
-        dayCell.ondrop = (e) => handleDrop(e, dateObj);
+        dayCell.ondrop = async (e) => {
+            e.preventDefault();
+            dayCell.style.background = ''; // Очистка стилю
+            dayCell.style.transform = '';
+            dayCell.style.borderColor = '';
+
+            const postId = e.dataTransfer.getData('text/plain');
+            if (!postId) return;
+
+            // Логіка зміни дати (збереження часу)
+            const post = allPosts.find(p => p.id === postId);
+            if (!post) return;
+
+            const oldDate = new Date(post.postAt);
+            // dateObj - це дата цієї клітинки (з циклу renderCalendar)
+            const newDate = new Date(dateObj); 
+            newDate.setHours(oldDate.getHours(), oldDate.getMinutes());
+
+            if (newDate < new Date()) {
+                showToast('Не можна перенести в минуле!', 'error');
+                return;
+            }
+
+            if (confirm(`Перенести пост на ${newDate.toLocaleDateString()}?`)) {
+                try {
+                    // Create FormData to replicate edit form submission (simplest way backend handles updates)
+                    const fd = new FormData();
+                    fd.append('post_text', post.text); 
+                    fd.append('post_at', newDate.toISOString());
+                    // Important: preserve other fields if required by backend, or ensure backend patch support
+                    // For now we assume backend handles partial updates or we re-send critical text/date
+                    
+                    await updateScheduledPost(postId, fd);
+                    showToast('Пост перенесено', 'success');
+                    loadPosts(); // Повне оновлення
+                } catch (err) {
+                    showToast('Помилка перенесення', 'error');
+                    console.error(err);
+                }
+            }
+        };
 
         if(dateObj < today) dayCell.classList.add('past');
         if(dateObj.getTime() === today.getTime()) dayCell.classList.add('today');
@@ -223,12 +263,14 @@ function renderCalendar() {
             if(dateObj >= today) {
                 dot.draggable = true;
                 dot.style.cursor = 'grab';
-                dot.ondragstart = (e) => {
+                dot.addEventListener('dragstart', (e) => {
                     e.dataTransfer.setData('text/plain', p.id);
                     e.dataTransfer.effectAllowed = 'move';
                     dot.style.opacity = '0.5';
-                };
-                dot.ondragend = () => { dot.style.opacity = '1'; };
+                });
+                dot.addEventListener('dragend', () => {
+                    dot.style.opacity = '1';
+                });
             }
 
             const time = new Date(p.postAt).toLocaleTimeString('uk-UA', {hour:'2-digit', minute:'2-digit'});
@@ -272,7 +314,7 @@ async function handleDrop(e, targetDate) {
     
     // Перевірка на минуле
     if (targetDate < new Date().setHours(0,0,0,0)) {
-        alert("Неможливо перенести пост у минуле!");
+        if (typeof showToast === 'function') showToast('Неможливо перенести пост у минуле!', 'error'); else alert('Неможливо перенести пост у минуле!');
         return;
     }
 
@@ -305,7 +347,7 @@ async function handleDrop(e, targetDate) {
         await loadPosts();
     } catch (err) {
         console.error(err);
-        alert('Помилка при перенесенні');
+        if (typeof showToast === 'function') showToast('Помилка при перенесенні', 'error'); else alert('Помилка при перенесенні');
     }
 }
 
@@ -409,7 +451,7 @@ window.closeDayPanel = () => {
 window.quickReschedule = async (postId, newTimeStr) => {
     if (!newTimeStr) return;
     if (new Date(newTimeStr) < new Date()) {
-        alert("Не можна планувати пости в минулому!");
+        if (typeof showToast === 'function') showToast('Не можна планувати пости в минулому!', 'error'); else alert('Не можна планувати пости в минулому!');
         loadPosts(); 
         return;
     }
@@ -427,7 +469,7 @@ window.quickReschedule = async (postId, newTimeStr) => {
         await updateScheduledPost(postId, formData);
         await loadPosts(); 
     } catch (e) {
-        alert('Помилка при перенесенні');
+        if (typeof showToast === 'function') showToast('Помилка при перенесенні', 'error'); else alert('Помилка при перенесенні');
         console.error(e);
     }
 };
@@ -460,9 +502,9 @@ window.approvePost = async (postId) => {
     try {
         await approveScheduledPost(postId);
         await loadPosts();
-        alert('Пост схвалено');
-    } catch (e) {
-        console.error(e);
-        alert('Не вдалося схвалити пост');
-    }
+        if (typeof showToast === 'function') showToast('Пост схвалено', 'success'); else alert('Пост схвалено');
+     } catch (e) {
+         console.error(e);
+         if (typeof showToast === 'function') showToast('Не вдалося схвалити пост', 'error'); else alert('Не вдалося схвалити пост');
+     }
 };

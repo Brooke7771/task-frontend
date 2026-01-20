@@ -333,7 +333,16 @@
                             <button type="button" class="toolbar-btn" id="toolbar-link" title="Посилання"><i data-feather="link" style="width:14px"></i></button>
                         </div>
                         
-                        <textarea id="post_text" name="post_text" rows="12" required placeholder="Почніть писати тут..."></textarea>
+                        <div class="mb-3">
+                            <label for="post_text" class="form-label">Текст посту</label>
+                             <div class="d-flex justify-content-end mb-1">
+                                <button type="button" id="btn-auto-tags" class="btn btn-sm btn-outline-primary">
+                                    <i data-feather="hash"></i> AI Tags
+                                </button>
+                            </div>
+                            <textarea class="form-control" id="post_text" name="post_text" rows="6" required></textarea>
+                        </div>
+                        
                         <small style="color: #64748b; font-size: 0.8em; margin-top: 5px; display: block;">* Підтримує форматування Telegram</small>
                     </div>
                     
@@ -370,7 +379,22 @@
 
                     <div class="form-group scheduling-group">
                         <label for="post_at"><i data-feather="calendar" style="width:14px; vertical-align:middle"></i> Час публікації</label>
-                        <input type="datetime-local" id="post_at" name="post_at">
+                        <input type="datetime-local" id="post_at" name="post_at" required>
+                    </div>
+
+                    <div class="form-group" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 10px;">
+                        <div>
+                            <label><i data-feather="repeat"></i> Повторювати кожні</label>
+                            <select id="repeat_interval" name="repeat_interval">
+                                <option value="">Не повторювати</option>
+                                <option value="60">1 годину</option>
+                                <option value="120">2 години</option>
+                                <option value="360">6 годин</option>
+                                <option value="720">12 годин</option>
+                                <option value="1440">24 години (Доба)</option>
+                                <option value="10080">7 днів (Тиждень)</option>
+                            </select>
+                        </div>
                     </div>
 
                     <div class="form-actions">
@@ -464,5 +488,32 @@
         }
     </script>
     <script src="nav-loader.js"></script>
+    <script>
+    document.getElementById('btn-ai-bulk').addEventListener('click', async () => {
+        const topic = prompt("Про що пишемо пости? (Тема)");
+        if(!topic) return;
+        
+        // showToast polyfill or assume it exists
+        if(window.showToast) showToast("AI думає... Це займе ~10 секунд");
+        else alert("AI думає... Це займе ~10 секунд");
+
+        try {
+            await fetch('/api/ai/generate_bulk_plan', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                },
+                body: JSON.stringify({ url: topic }) 
+            });
+            if(window.showToast) showToast("Чернетки створено!", "success");
+            else alert("Чернетки створено!");
+            setTimeout(() => window.location.href = 'schedule-list.html', 1000);
+        } catch(e) {
+            if(window.showToast) showToast("Помилка генерації", "error");
+            else alert("Помилка генерації");
+        }
+    });
+</script>
 </body>
 </html>

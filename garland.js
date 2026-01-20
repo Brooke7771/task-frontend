@@ -23,6 +23,15 @@ const CONFIG = {
     windForce: 0.0015 // Легкий вітерець
 };
 
+// Low-power / reduced-motion detection to improve battery life and performance on mobile
+const isLowPower = window.matchMedia('(prefers-reduced-motion: reduce)').matches || /Android|webOS|iPhone|iPad|iPod/i.test(navigator.userAgent);
+if (isLowPower) {
+    CONFIG.snowInteractionRadius = 0;
+    CONFIG.windForce *= 0.25;
+    // Signal other modules to reduce complexity
+    window.__GARLAND_LOW_POWER = true;
+}
+
 // === 1. CLASS: HYPER GARLAND (Cinematic Visuals) ===
 class XmasGarland {
     constructor(canvas) {
@@ -159,12 +168,14 @@ class XmasGarland {
     }
 
     addBulb(pointIndex) {
-        const el = document.createElement('div');
-        const colorIdx = Math.floor(Math.random() * CONFIG.colors.length);
-        const color = CONFIG.colors[colorIdx];
-        
-        el.className = 'physics-bulb';
-        
+        // If low-power mode is detected, avoid creating many DOM bulbs and heavy physics
+        if (window.__GARLAND_LOW_POWER) return;
+         const el = document.createElement('div');
+         const colorIdx = Math.floor(Math.random() * CONFIG.colors.length);
+         const color = CONFIG.colors[colorIdx];
+         
+         el.className = 'physics-bulb';
+         
         // CSS змінні для кольору
         el.style.setProperty('--bulb-color-transparent', color + '66'); // Hex + opacity
         el.style.setProperty('--bulb-glow', color);

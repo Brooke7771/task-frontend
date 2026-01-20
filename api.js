@@ -5,21 +5,24 @@ export const backendUrl = 'https://my-telegram-task-bot-5c4258bd3f9b.herokuapp.c
 
 async function apiFetch(endpoint, options = {}) {
     try {
-        // 🔥 ОТРИМУЄМО ІМ'Я КОРИСТУВАЧА З LOCALSTORAGE
-        const username = localStorage.getItem('username') || 'Unknown';
+        // 🔥 ОТРИМУЄМО ТЕКУЩИЙ ТОКЕН
+        const token = localStorage.getItem('token');
 
         // Додаємо заголовок
         if (!options.headers) {
             options.headers = {};
         }
+
+        // Додаємо Authorization якщо є токен
+        if (token) {
+            options.headers['Authorization'] = `Bearer ${token}`;
+        }
+
         // Якщо це не FormData (де headers встановлюються автоматично браузером для Content-Type), додаємо
         if (!(options.body instanceof FormData)) {
              // Для JSON запитів
         }
         
-        // Додаємо кастомний заголовок
-        options.headers['X-Username'] = username;
-
         const response = await fetch(`${backendUrl}${endpoint}`, options);
         if (!response.ok) {
             const errorText = await response.text();

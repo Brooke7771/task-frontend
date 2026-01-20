@@ -7,7 +7,25 @@ document.addEventListener('DOMContentLoaded', () => {
     const previewContent = document.getElementById('preview-content');
     const form = document.getElementById('taskForm');
     const statusMessage = document.getElementById('statusMessage');
-    
+
+    // Global helper for non-blocking toast notifications
+    window.showToast = function(message, type = '') {
+        const el = document.getElementById('statusMessage');
+        if (!el) {
+            alert(message);
+            return;
+        }
+        el.textContent = message;
+        el.className = type;
+        el.style.display = 'block';
+        // Auto-hide after 4 seconds
+        setTimeout(() => {
+            el.style.display = 'none';
+            el.className = '';
+            el.textContent = '';
+        }, 4000);
+    }
+
     // Визначення шаблонів
     const templates = {
         simple: {
@@ -177,15 +195,13 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             await createTask(submissionData);
 
-            statusMessage.textContent = 'Завдання успішно створено!';
-            statusMessage.className = 'success';
+            showToast('Завдання успішно створено!', 'success');
             form.reset();
             renderFormFields(templateSelect.value);
             updatePreview();
         } catch (error) {
             console.error('Не вдалося відправити завдання:', error);
-            statusMessage.textContent = 'Помилка! Не вдалося створити завдання.';
-            statusMessage.className = 'error';
+            showToast('Помилка! Не вдалося створити завдання.', 'error');
         }
     });
 

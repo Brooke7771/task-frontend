@@ -296,7 +296,7 @@
                         method: 'POST',
                         body: formData,
                         headers: {
-                            'X-Username': localStorage.getItem('username') || 'Unknown'
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`
                         }
                     });
 

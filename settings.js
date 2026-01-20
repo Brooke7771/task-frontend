@@ -217,7 +217,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-Username': localStorage.getItem('username')
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
                     },
                     body: JSON.stringify(payload)
                 });
@@ -260,7 +260,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // 1. Load Settings
         try {
             const res = await fetch(`${backendUrl}/api/user/watermark`, {
-                headers: { 'X-Username': localStorage.getItem('username') }
+                headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
             });
             const data = await res.json();
             
@@ -347,15 +347,48 @@ document.addEventListener('DOMContentLoaded', () => {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-Username': localStorage.getItem('username')
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
                     },
                     body: JSON.stringify(payload)
                 });
                 if(window.showToast) window.showToast('Вотермарку оновлено!');
                 else alert('Збережено!');
-            } catch(e) { alert('Помилка'); }
+            } catch(e) { 
+                if(window.showToast) window.showToast('Помилка при збереженні.', 'error');
+                else alert('Помилка');
+            }
             finally { btn.innerHTML = orig; btn.disabled = false; }
         });
+    };
+
+    // 2FA Functions
+    window.setup2FA = async () => {
+        try {
+            const res = await apiFetch('/api/auth/2fa/setup');
+            if(res.qr) {
+                document.getElementById('qr-image').src = `data:image/png;base64,${res.qr}`;
+                document.getElementById('qr-container').style.display = 'block';
+                document.getElementById('btn-setup-2fa').style.display = 'none';
+            }
+        } catch (e) {
+            alert('Error: ' + e);
+        }
+    };
+
+    window.verify2FA = async () => {
+        const code = document.getElementById('verify-code').value;
+        try {
+            const res = await apiFetch('/api/auth/2fa/verify', {
+                method: 'POST',
+                body: JSON.stringify({ code })
+            });
+            if(res.status === 'enabled') {
+                alert('2FA активовано!');
+                location.reload();
+            }
+        } catch (e) {
+            alert('Помилка: ' + e);
+        }
     };
 
     // Init

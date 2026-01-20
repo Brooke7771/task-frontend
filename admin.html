@@ -570,9 +570,9 @@
 
         async function apiFetch(endpoint, options = {}) {
             try {
-                const username = localStorage.getItem('username') || 'Unknown';
+                const token = localStorage.getItem('token');
                 if (!options.headers) options.headers = {};
-                options.headers['X-Username'] = username;
+                if (token) options.headers['Authorization'] = `Bearer ${token}`;
 
                 const response = await fetch(`${backendUrl}${endpoint}`, options);
                 if (!response.ok) {

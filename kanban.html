@@ -1,0 +1,83 @@
+<style>
+    .kanban-board {
+        display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 20px; height: calc(100vh - 150px); overflow-x: auto;
+    }
+    .kanban-col {
+        background: rgba(30, 41, 59, 0.5); border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 16px; padding: 15px; display: flex; flex-direction: column;
+        -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); min-width: 300px;
+    }
+    .kanban-header {
+        font-weight: 800; text-transform: uppercase; letter-spacing: 1px;
+        margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.1);
+        display: flex; justify-content: space-between;
+    }
+    .col-open .kanban-header { color: #4ade80; }
+    .col-progress .kanban-header { color: #facc15; }
+    .col-done .kanban-header { color: #60a5fa; }
+    
+    .kanban-items { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+    
+    .k-card {
+        background: rgba(255,255,255,0.05); padding: 15px; border-radius: 10px;
+        cursor: grab; border: 1px solid transparent; transition: 0.2s;
+    }
+    .k-card:hover { background: rgba(255,255,255,0.1); transform: translateY(-2px); }
+    .k-card:active { cursor: grabbing; }
+    
+    /* Drag & Drop Visuals */
+    .kanban-items.drag-over { background: rgba(255,255,255,0.02); }
+</style>
+
+<div class="container-main">
+    <h1><i data-feather="trello"></i> Дошка Завдань</h1>
+    <div class="kanban-board">
+        <div class="kanban-col col-open">
+            <div class="kanban-header">📌 Вільні <span id="count-open">0</span></div>
+            <div class="kanban-items" id="col-Open" ondrop="drop(event, 'Open')" ondragover="allowDrop(event)">
+                </div>
+        </div>
+        
+        <div class="kanban-col col-progress">
+            <div class="kanban-header">⚡ В роботі <span id="count-prog">0</span></div>
+            <div class="kanban-items" id="col-InProgress" ondrop="drop(event, 'InProgress')" ondragover="allowDrop(event)"></div>
+        </div>
+
+        <div class="kanban-col col-done">
+            <div class="kanban-header">✅ Завершено</div>
+            <div class="kanban-items" id="col-Done" ondrop="drop(event, 'Done')" ondragover="allowDrop(event)"></div>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+    import { getTasks, handleTaskAction, backendUrl } from './api.js'; // Ensure handleTaskAction updates status
+    
+    let tasks = [];
+
+    window.allowDrop = (e) => e.preventDefault();
+    
+    window.drag = (e, id) => {
+        e.dataTransfer.setData("text/plain", id);
+        e.target.style.opacity = '0.5';
+    };
+
+    window.drop = async (e, status) => {
+        e.preventDefault();
+        const id = e.dataTransfer.getData("text/plain");
+        const card = document.querySelector(`[data-id="${id}"]`);
+        card.style.opacity = '1';
+        
+        // Логіка оновлення на сервері
+        // Вам може знадобитися новий API endpoint для зміни статусу завдання напряму
+        // await updateTaskStatus(id, status); 
+        
+        // Оптимістичне оновлення UI
+        document.getElementById(`col-${status}`).appendChild(card);
+    };
+
+    // Placeholder for actual task loading logic
+    // loadTasks(); 
+</script>
+<script type="module" src="kanban.js"></script>

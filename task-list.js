@@ -132,6 +132,6 @@ window.processTaskAction = async (taskId, action, userId) => {
         await handleTaskAction(taskId, action, userId);
         loadTasks(); // Reload to see changes
     } catch (e) {
-        alert('Сталася помилка при обробці запиту.');
+        showToast('Сталася помилка при обробці запиту.', 'error');
     }
 };
