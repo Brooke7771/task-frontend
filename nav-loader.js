@@ -280,7 +280,7 @@ document.addEventListener("DOMContentLoaded", () => {
         { href: 'schedule.html', icon: 'edit-3', text: 'Новий Пост', type: ['main', 'menu'] },
         { href: 'task-list.html', icon: 'trello', text: 'Завдання', type: ['main', 'mobile-main'] },
         { href: 'schedule-list.html', icon: 'clock', text: 'Розклад', type: ['main', 'mobile-main'] }, 
-        { href: 'ads.html', icon: 'megaphone', text: 'Реклама', type: ['main', 'menu'] },
+        { href: 'ads.html', icon: 'volume-2', text: 'Реклама', type: ['main', 'menu'] },
         { href: 'analytics.html', icon: 'bar-chart-2', text: 'Аналітика', type: ['main', 'menu'], adminOnly: true },
         { href: 'chat.html', icon: 'cpu', text: 'AI Brain', type: ['main', 'mobile-main'] },
         { href: 'history.html', icon: 'archive', text: 'Архів', type: ['main', 'menu'] },

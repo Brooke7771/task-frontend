@@ -21,7 +21,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     <i data-feather="message-circle"></i> <span>AI Чат</span>
                 </a>
                 <a href="ads.html" class="fab-item">
-                    <i data-feather="megaphone"></i> <span>Реклама</span>
+                    <i data-feather="volume-2"></i> <span>Реклама</span>
                 </a>
                 <a href="history.html" class="fab-item">
                     <i data-feather="archive"></i> <span>Архів</span>
