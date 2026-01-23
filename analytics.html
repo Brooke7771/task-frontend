@@ -212,6 +212,8 @@
     <script type="module">
         import { backendUrl } from './api.js';
         
+        console.log("DEBUG: Loaded backendUrl:", backendUrl); // Debug print
+
         // --- AUTH & GLOBALS ---
         const token = localStorage.getItem('token');
         if (!token) window.location.href = 'login.html';
@@ -223,11 +225,14 @@
 
         // --- DASHBOARD LOGIC ---
         async function loadAnalytics() {
+            console.log("DEBUG: Fetching analytics from:", `${backendUrl}/api/analytics`); // Debug print
             try {
                 const res = await fetch(`${backendUrl}/api/analytics`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 
+                console.log("DEBUG: Response status:", res.status); // Debug print
+
                 if (!res.ok) {
                     if(res.status === 401) window.location.href = 'login.html';
                     throw new Error('API Request Failed');
