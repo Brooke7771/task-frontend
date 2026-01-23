@@ -208,33 +208,190 @@
 
     </div>
 
+    <!-- MAIN LOGIC (MODULE) -->
     <script type="module">
         import { backendUrl } from './api.js';
-        window.backendUrl = backendUrl;
-    </script>
-    <script>
-        feather.replace();
-        // Move backendUrl definition or injection mechanism before this script runs or within the same module scope.
-        // For simplicity, we can just hardcode or fetch it from a global variable set by the specific script.
-        // Ideally, we convert this whole block to module type or expose backendUrl globally.
-        // See the modification above.
+        
+        // --- AUTH & GLOBALS ---
+        const token = localStorage.getItem('token');
+        if (!token) window.location.href = 'login.html';
 
-        // --- CHART CONFIG (DARK THEME) ---
-        Chart.defaults.color = '#94a3b8';
-        Chart.defaults.borderColor = 'rgba(255, 255, 255, 0.05)';
-        Chart.defaults.scale.grid.color = 'rgba(255, 255, 255, 0.05)';
+        // Make functions global for HTML event attributes (onclick)
+        window.loadAnalytics = loadAnalytics;
+        window.createShortLink = createShortLink;
+        window.copyToClipboard = copyToClipboard;
 
-        // --- LOAD DATA ---
-        document.addEventListener('DOMContentLoaded', () => {
-            if(window.loadAnalytics) window.loadAnalytics();
-        });
-
-        // --- SHORTENER LOGIC ---
-        async function createShortLink() {
-            const urlInput = document.getElementById('urlInput');
-            /* ... existing code ... */
+        // --- DASHBOARD LOGIC ---
+        async function loadAnalytics() {
+            try {
+                const res = await fetch(`${backendUrl}/api/analytics`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (!res.ok) {
+                    if(res.status === 401) window.location.href = 'login.html';
+                    throw new Error('API Request Failed');
+                }
+                
+                const data = await res.json();
+                renderDashboard(data);
+            } catch (error) {
+                console.error("Analytics Load Error:", error);
+            }
         }
+
+        async function createShortLink() {
+            const urlInput = document.getElementById('longUrl');
+            if(!urlInput || !urlInput.value) return;
+            
+            try {
+                const res = await fetch(`${backendUrl}/api/shortner/create`, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ url: urlInput.value })
+                });
+                
+                if(res.ok) {
+                    const data = await res.json();
+                    document.getElementById('shortenerResult').style.display = 'block';
+                    document.getElementById('shortUrlOutput').value = data.short_url;
+                }
+            } catch (error) {
+                alert('Помилка створення посилання');
+            }
+        }
+
+        function copyToClipboard() {
+            const copyText = document.getElementById("shortUrlOutput");
+            copyText.select();
+            document.execCommand("copy");
+            alert("Скопійовано!");
+        }
+
+        function renderDashboard(data) {
+            // KPI Cards
+            document.getElementById('kpi-weekly').innerText = data.weekly_trend.reduce((a, b) => a + b.count, 0);
+            document.getElementById('kpi-clicks').innerText = data.total_clicks;
+            document.getElementById('kpi-editors').innerText = data.editor_stats.length;
+            document.getElementById('kpi-top-channel').innerText = data.top_channels[0] ? data.top_channels[0].title : '-';
+
+            // Editors Table
+            const editorsBody = document.getElementById('editorsTable');
+            editorsBody.innerHTML = data.editor_stats.map(ed => `
+                <tr>
+                    <td><div class="avatar-circle">${ed.username.substring(0,2).toUpperCase()}</div></td>
+                    <td>${ed.username}</td>
+                    <td>${ed.total_posts}</td>
+                    <td>
+                        <div style="width: 100%; max-width: 100px; background: rgba(255,255,255,0.1); height: 4px; border-radius: 2px;">
+                             <div style="width: ${Math.min(100, ed.total_posts * 2)}%; height: 100%; background: var(--color-primary); border-radius: 2px;"></div>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+
+            // Links Table
+            const linksBody = document.getElementById('linksTableBody');
+            if(data.recent_links.length > 0) {
+                linksBody.innerHTML = data.recent_links.map(l => `
+                    <tr>
+                        <td class="link-row" title="${l.original_url}">${l.original_url.substring(0, 30)}...</td>
+                        <td><a href="/s/${l.id}" target="_blank" style="color:var(--color-success)">/s/${l.id}</a></td>
+                        <td>${l.clicks}</td>
+                        <td>${new Date(l.created_at).toLocaleDateString()}</td>
+                    </tr>
+                `).join('');
+            } else {
+                linksBody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px; color:#64748b">Історія порожня</td></tr>';
+            }
+
+            // Charts
+            updateChart('trendChart', 'line', data.weekly_trend.map(d => d.date), [{
+                label: 'Пости',
+                data: data.weekly_trend.map(d => d.count),
+                borderColor: '#38bdf8',
+                backgroundColor: 'rgba(56, 189, 248, 0.1)',
+                fill: true,
+                tension: 0.4
+            }]);
+
+            updateChart('typeChart', 'doughnut', data.content_types.map(d => d.post_type), [{
+                data: data.content_types.map(d => d.count),
+                backgroundColor: ['#f472b6', '#34d399', '#fbbf24', '#a78bfa', '#60a5fa'],
+                borderWidth: 0
+            }]);
+
+            // Hourly Chart (Normalize to 0-23)
+            const hours = Array(24).fill(0);
+            data.hourly_activity.forEach(d => hours[d.hour] = d.count);
+            updateChart('hourlyChart', 'bar', hours.map((_, i) => `${i}:00`), [{
+                label: 'Активність',
+                data: hours,
+                backgroundColor: '#818cf8',
+                borderRadius: 4
+            }]);
+
+            // Day of Week
+            const daysMap = {1: 'Пн', 2: 'Вт', 3: 'Ср', 4: 'Чт', 5: 'Пт', 6: 'Сб', 0: 'Нд', 7: 'Нд' };
+            const daysValues = Array(8).fill(0); // Index 1-7
+            data.day_of_week_stats.forEach(d => { if(d.day_index) daysValues[Math.round(d.day_index)] = d.count; });
+            // Extract 1-7
+            const daysLabels = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Нд'];
+            const daysData = [daysValues[1], daysValues[2], daysValues[3], daysValues[4], daysValues[5], daysValues[6], daysValues[7]];
+             
+            updateChart('dayOfWeekChart', 'bar', daysLabels, [{
+                label: 'Пости',
+                data: daysData,
+                backgroundColor: '#34d399',
+                borderRadius: 4
+            }]);
+
+            updateChart('channelsChart', 'bar', data.top_channels.map(c => c.title.substring(0,10)), [{
+                label: 'Пости',
+                data: data.top_channels.map(c => c.count),
+                backgroundColor: '#fca5a5',
+                borderRadius: 4,
+                indexAxis: 'y'
+            }], { indexAxis: 'y' });
+        }
+
+        // --- CHART HELPER ---
+        function updateChart(canvasId, type, labels, datasets, extraOptions = {}) {
+            const ctx = document.getElementById(canvasId);
+            if(!ctx) return;
+            
+            if (Chart.getChart(ctx)) {
+                Chart.getChart(ctx).destroy();
+            }
+
+            // Global Chart Defaults
+            Chart.defaults.color = '#94a3b8';
+            Chart.defaults.borderColor = 'rgba(255, 255, 255, 0.05)';
+
+            new Chart(ctx, {
+                type: type,
+                data: { labels, datasets },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: type === 'doughnut' } },
+                    scales: type === 'doughnut' ? {} : {
+                        x: { grid: { display: false } },
+                        y: { beginAtZero: true }
+                    },
+                    ...extraOptions
+                }
+            });
+        }
+
+        // Initial Load
+        loadAnalytics();
+        feather.replace();
     </script>
+
     <script src="nav-loader.js"></script>
     <script src="garland.js" type="module"></script>
 </body>
