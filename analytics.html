@@ -386,6 +386,9 @@
                 }
             });
         }
+        
+        // Expose loadAnalytics globally so the button can call it
+        window.loadAnalytics = loadAnalytics;
 
         // Initial Load
         loadAnalytics();
