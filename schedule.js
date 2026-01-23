@@ -457,24 +457,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 });
             }
 
-            // Збір даних кнопок (URL-кнопки)
-            const buttonsData = [];
-            document.querySelectorAll('.button-row').forEach(row => {
-                const labelEl = row.querySelector('.btn-label');
-                const urlEl = row.querySelector('.btn-url');
-                const label = labelEl ? labelEl.value.trim() : '';
-                const url = urlEl ? urlEl.value.trim() : '';
-                if (label && url) buttonsData.push([label, url]);
-            });
-            formData.append('buttons', JSON.stringify(buttonsData));
-
-            // У функції handleFormSubmit
-            const repeatVal = document.getElementById('repeat_interval').value;
-            if (repeatVal) {
-                // Конвертуємо хвилини в секунди для бекенду, бо там repeat_every_seconds
-                formData.append('repeat_every_seconds', parseInt(repeatVal) * 60);
-            }
-
             try {
                 let response;
                 if (mode === 'now') response = await postNewsNow(formData);
@@ -546,15 +528,20 @@ document.addEventListener('DOMContentLoaded', async () => {
                 } finally {
                     btnTags.innerHTML = originalHtml;
                     btnTags.disabled = false;
-                    feather.replace();
+                    if(window.feather) feather.replace();
                 }
             });
         }
 
         // Ініціалізація сторінки
-        loadChannelsMulti();
+        if (typeof loadChannelsMulti === 'function') {
+             loadChannelsMulti();
+        } else {
+             console.warn("loadChannelsMulti is not defined");
+        }
+        
         if(templateSelect) renderFormFields(templateSelect.value);
-        updatePreview();
+        if (typeof updatePreview === 'function') updatePreview();
 
     } catch (e) {
         console.error("Initialization error:", e);

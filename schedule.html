@@ -465,7 +465,7 @@
 
     <script type="module" src="schedule.js"></script>
     <script>
-        feather.replace(); 
+        if (window.feather) feather.replace(); 
         const fabContainer = document.querySelector('.fab-container');
         window.addEventListener('pageshow', () => { if (fabContainer) fabContainer.classList.remove('active'); });
         let idleTimer;
