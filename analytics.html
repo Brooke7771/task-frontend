@@ -210,266 +210,30 @@
 
     <script type="module">
         import { backendUrl } from './api.js';
+        window.backendUrl = backendUrl;
+    </script>
+    <script>
         feather.replace();
+        // Move backendUrl definition or injection mechanism before this script runs or within the same module scope.
+        // For simplicity, we can just hardcode or fetch it from a global variable set by the specific script.
+        // Ideally, we convert this whole block to module type or expose backendUrl globally.
+        // See the modification above.
 
-        // Chart.js Config
+        // --- CHART CONFIG (DARK THEME) ---
         Chart.defaults.color = '#94a3b8';
         Chart.defaults.borderColor = 'rgba(255, 255, 255, 0.05)';
-        Chart.defaults.font.family = "'Inter', sans-serif";
+        Chart.defaults.scale.grid.color = 'rgba(255, 255, 255, 0.05)';
 
-        let trendChart, typeChart, hourlyChart, channelsChart, dayOfWeekChart;
+        // --- LOAD DATA ---
+        document.addEventListener('DOMContentLoaded', () => {
+            if(window.loadAnalytics) window.loadAnalytics();
+        });
 
         // --- SHORTENER LOGIC ---
-        window.createShortLink = async () => {
-            const url = document.getElementById('longUrl').value;
-            if(!url) return alert("Введіть URL");
-
-            try {
-                // Corrected endpoint to match backend: /api/shortner/create
-                const res = await fetch(`${backendUrl}/api/shortner/create`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ url })
-                });
-                const data = await res.json();
-                
-                document.getElementById('shortenerResult').style.display = 'block';
-                document.getElementById('shortUrlOutput').value = data.short_url;
-                loadAnalytics(); // Refresh table
-            } catch(e) {
-                alert("Помилка при скороченні");
-            }
-        };
-
-        window.copyToClipboard = () => {
-            const copyText = document.getElementById("shortUrlOutput");
-            copyText.select();
-            navigator.clipboard.writeText(copyText.value);
-            alert("Скопійовано!");
-        };
-
-        // --- ANALYTICS LOGIC ---
-        window.loadAnalytics = async () => {
-            // Очищуємо попередні значення (візуально)
-            document.getElementById('kpi-weekly').textContent = '...';
-            
-            try {
-                // Fixed: endpoint path from /dashboard to root /analytics as defined in backend
-                const res = await fetch(`${backendUrl}/api/analytics`);
-                
-                // 🔥 ВИПРАВЛЕННЯ: Перевіряємо статус відповіді
-                if (!res.ok) {
-                    const errorText = await res.text();
-                    throw new Error(`Server Error: ${errorText}`);
-                }
-
-                const data = await res.json();
-                
-                updateKPI(data);
-                renderTrendChart(data.weekly_trend);
-                renderTypeChart(data.content_types);
-                renderHourlyChart(data.hourly_activity);
-                renderChannelsChart(data.top_channels);
-                renderEditorsTable(data.editor_stats);
-                
-                // New Functions
-                renderLinksTable(data.recent_links);
-                renderDayOfWeekChart(data.day_of_week_stats);
-
-            } catch (e) {
-                console.error("Analytics Error Details:", e);
-                // Показуємо помилку прямо на сторінці, щоб ви бачили причину
-                document.querySelector('.container-main').insertAdjacentHTML('afterbegin', 
-                    `<div style="background: #ef4444; color: white; padding: 15px; border-radius: 10px; margin-bottom: 20px;">
-                        <strong>⚠️ Помилка завантаження:</strong> ${e.message}
-                     </div>`
-                );
-            }
-        };
-
-        function updateKPI(data) {
-            const weeklyTotal = data.weekly_trend.reduce((sum, item) => sum + item.count, 0);
-            document.getElementById('kpi-weekly').textContent = weeklyTotal;
-            document.getElementById('kpi-clicks').textContent = data.total_clicks;
-            document.getElementById('kpi-editors').textContent = data.editor_stats.length;
-            
-            if(data.top_channels.length > 0) {
-                document.getElementById('kpi-top-channel').textContent = data.top_channels[0].title;
-            }
+        async function createShortLink() {
+            const urlInput = document.getElementById('urlInput');
+            /* ... existing code ... */
         }
-
-        // --- NEW RENDERERS ---
-        
-        function renderLinksTable(links) {
-            const tbody = document.getElementById('linksTableBody');
-            if(!links || links.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#64748b;">Історія порожня</td></tr>';
-                return;
-            }
-            
-            // Assume backendUrl doesn't have trailing slash, but link ID needs context.
-            // Actually, we can reconstruct the full short URL if we know the base.
-            // Or just show the ID.
-            
-            tbody.innerHTML = links.map(l => {
-                const shortUrl = `${window.location.protocol}//${window.location.host}/l/${l.id}`; // Approximate display
-                return `
-                <tr>
-                    <td title="${l.original_url}" style="max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
-                        ${l.original_url}
-                    </td>
-                    <td><a href="${backendUrl}/l/${l.id}" target="_blank" class="link-row">/l/${l.id}</a></td>
-                    <td><span style="color:#4ade80; font-weight:bold;">${l.clicks}</span></td>
-                    <td>${new Date(l.created_at).toLocaleDateString()}</td>
-                </tr>
-                `;
-            }).join('');
-        }
-
-        function renderDayOfWeekChart(data) {
-            const ctx = document.getElementById('dayOfWeekChart').getContext('2d');
-            if(dayOfWeekChart) dayOfWeekChart.destroy();
-
-            // Map 1-7 (Postgres ISODOW) to Names
-            // Note: Postgres ISODOW: 1=Monday, 7=Sunday
-            // But data array might be sparse. Let's create a full array.
-            
-            const days = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Нд"];
-            const counts = new Array(7).fill(0);
-            
-            if(data) {
-                data.forEach(d => {
-                    if(d.day_index >= 1 && d.day_index <= 7) {
-                        counts[d.day_index - 1] = d.count;
-                    }
-                });
-            }
-
-            dayOfWeekChart = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: days,
-                    datasets: [{
-                        label: 'Публікації',
-                        data: counts,
-                        backgroundColor: 'rgba(245, 158, 11, 0.6)', // Amber
-                        borderColor: 'rgba(245, 158, 11, 1)',
-                        borderWidth: 1,
-                        borderRadius: 4
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' } },
-                        x: { grid: { display: false } }
-                    }
-                }
-            });
-        }
-
-        // --- EXISTING RENDERERS (Simplified for brevity) ---
-
-        function renderTrendChart(data) {
-            const ctx = document.getElementById('trendChart').getContext('2d');
-            const gradient = ctx.createLinearGradient(0, 0, 0, 300);
-            gradient.addColorStop(0, 'rgba(139, 92, 246, 0.5)'); 
-            gradient.addColorStop(1, 'rgba(139, 92, 246, 0.0)');
-
-            if(trendChart) trendChart.destroy();
-
-            trendChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: data.map(d => d.date),
-                    datasets: [{
-                        label: 'Публікації',
-                        data: data.map(d => d.count),
-                        borderColor: '#8b5cf6',
-                        backgroundColor: gradient,
-                        fill: true,
-                        tension: 0.4,
-                        pointRadius: 4
-                    }]
-                },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' } }, x: { grid: { display: false } } } }
-            });
-        }
-
-        function renderTypeChart(data) {
-            const ctx = document.getElementById('typeChart').getContext('2d');
-            if(typeChart) typeChart.destroy();
-            const labels = data.map(d => d.post_type === 'ad' ? 'Реклама' : (d.post_type === 'scheduled' ? 'План' : d.post_type));
-            typeChart = new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        data: data.map(d => d.count),
-                        backgroundColor: ['#ec4899', '#8b5cf6', '#10b981', '#f59e0b'],
-                        borderWidth: 0
-                    }]
-                },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { boxWidth: 12, usePointStyle: true } } }, cutout: '70%' }
-            });
-        }
-
-        function renderHourlyChart(data) {
-            const ctx = document.getElementById('hourlyChart').getContext('2d');
-            if(hourlyChart) hourlyChart.destroy();
-            const fullData = new Array(24).fill(0);
-            data.forEach(d => fullData[d.hour] = d.count);
-            const labels = fullData.map((_, i) => `${i}:00`);
-
-            hourlyChart = new Chart(ctx, {
-                type: 'radar',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Активність',
-                        data: fullData,
-                        borderColor: '#38bdf8',
-                        backgroundColor: 'rgba(56, 189, 248, 0.2)',
-                        pointRadius: 0,
-                        borderWidth: 2
-                    }]
-                },
-                options: { responsive: true, maintainAspectRatio: false, scales: { r: { angleLines: { color: 'rgba(255,255,255,0.1)' }, grid: { color: 'rgba(255,255,255,0.1)' }, ticks: { display: false, backdropColor: 'transparent' } } }, plugins: { legend: { display: false } } }
-            });
-        }
-
-        function renderChannelsChart(data) {
-            const ctx = document.getElementById('channelsChart').getContext('2d');
-            if(channelsChart) channelsChart.destroy();
-            channelsChart = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: data.map(d => d.title.substring(0, 15) + '...'),
-                    datasets: [{
-                        label: 'Постів',
-                        data: data.map(d => d.count),
-                        backgroundColor: '#10b981', // Green
-                        borderRadius: 4
-                    }]
-                },
-                options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' } }, y: { grid: { display: false } } } }
-            });
-        }
-
-        function renderEditorsTable(data) {
-            const tbody = document.getElementById('editorsTable');
-            tbody.innerHTML = '';
-            const maxPosts = Math.max(...data.map(e => e.total_posts)) || 1;
-            data.forEach(e => {
-                const percent = Math.round((e.total_posts / maxPosts) * 100);
-                const initial = e.username.charAt(0).toUpperCase();
-                tbody.innerHTML += `<tr><td><div class="avatar-circle">${initial}</div></td><td>${e.username}</td><td style="font-weight:bold; color:white;">${e.total_posts}</td><td><div style="width:100%; height:6px; background:rgba(255,255,255,0.1); border-radius:3px; overflow:hidden;"><div style="width:${percent}%; height:100%; background:var(--color-primary);"></div></div></td></tr>`;
-            });
-        }
-
-        loadAnalytics();
     </script>
     <script src="nav-loader.js"></script>
     <script src="garland.js" type="module"></script>
