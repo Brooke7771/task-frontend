@@ -7,6 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         /* --- Login Specific Styles --- */
         body {
@@ -245,12 +246,113 @@
 
         feather.replace();
 
+        // Telegram Web App Login Logic
+        window.onload = async function() {
+            if (window.Telegram && window.Telegram.WebApp) {
+                const tg = window.Telegram.WebApp;
+                const initData = tg.initData;
+                
+                if (initData) {
+                    tg.ready();
+                    // If initData is present, try to auto-login
+                    const message = document.getElementById('message');
+                    message.textContent = "Авторизація через Telegram...";
+                    message.style.display = 'block';
+
+                    try {
+                        const res = await fetch(`${backendUrl}/api/auth/telegram`, {
+                            method: 'POST',
+                            headers: {'Content-Type': 'application/json'},
+                            body: JSON.stringify({ init_data: initData })
+                        });
+
+                        if (res.ok) {
+                            const respData = await res.json();
+                            localStorage.setItem('isLoggedIn', 'true');
+                            localStorage.setItem('username', respData.username);
+                            if (respData.token) localStorage.setItem('token', respData.token);
+                            localStorage.setItem('isAdmin', respData.is_admin);
+                            localStorage.setItem('allowedPages', JSON.stringify(respData.allowed_pages));
+
+                            if (respData.is_admin) {
+                                window.location.href = 'admin.html';
+                            } else {
+                                window.location.href = 'index.html';
+                            }
+                        } else {
+                             // Fallback or show error
+                             console.warn("Telegram Auth failed:", await res.text());
+                             // We don't block normal login, just show notification or do nothing
+                        }
+                    } catch (e) {
+                        console.error("BG Auth Error", e);
+                    }
+                }
+            }
+        };
+
         const loginForm = document.getElementById('loginForm');
         const registerForm = document.getElementById('registerForm');
         const authToggle = document.getElementById('authToggle');
         const message = document.getElementById('message');
         const btnLogin = document.getElementById('btn-login');
         const btnRegister = document.getElementById('btn-register');
+
+        // TWA Auto-Login Logic
+        window.addEventListener('load', async () => {
+            // Check if running inside Telegram
+            if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData) {
+                const tg = window.Telegram.WebApp;
+                tg.ready();
+                tg.expand(); // Optional: expand to full height
+                
+                // Visual feedback
+                const btn = loginForm.querySelector('button');
+                const originalText = btn.innerHTML;
+                if(btn) {
+                    btn.innerHTML = '<span class="loader"></span> Telegram Auth...';
+                    btn.disabled = true;
+                }
+
+                try {
+                    console.log("Attempting Telegram Auth...");
+                    const res = await fetch(`${backendUrl}/api/auth/telegram`, {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({ init_data: tg.initData })
+                    });
+
+                    if (res.ok) {
+                        const respData = await res.json();
+                        // Save session
+                        localStorage.setItem('isLoggedIn', 'true');
+                        localStorage.setItem('token', respData.token);
+                        localStorage.setItem('isAdmin', respData.is_admin);
+                        localStorage.setItem('username', respData.username);
+                        localStorage.setItem('allowedPages', JSON.stringify(respData.allowed_pages));
+                        
+                        // Redirect
+                        if (respData.is_admin) {
+                            window.location.href = 'admin.html';
+                        } else {
+                            window.location.href = 'index.html'; // or kanban.html / landing.html
+                        }
+                    } else {
+                        console.warn("Telegram auth failed:", await res.text());
+                        if(btn) {
+                            btn.innerHTML = originalText;
+                            btn.disabled = false;
+                        }
+                    }
+                } catch (e) {
+                    console.error("TWA Auth Network error", e);
+                    if(btn) {
+                        btn.innerHTML = originalText;
+                        btn.disabled = false;
+                    }
+                }
+            }
+        });
 
         // 🔥 FIX 2: Прив'язуємо функцію до window явно
         window.switchMode = (mode) => {

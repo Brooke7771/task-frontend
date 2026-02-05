@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="uk" class="dark theme-xmas">
+<head>
+    <meta charset="UTF-8">
+    <title>Новини (RSS/AI) - TaskBot Admin</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    <style>
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .grid-layout { display: grid; grid-template-columns: 1fr 2fr; gap: 20px; }
+        @media(max-width: 768px) { .grid-layout { grid-template-columns: 1fr; } }
+        
+        .card { background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 20px; }
+        .feed-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .feed-item:last-child { border-bottom: none; }
+        .keywords { font-size: 0.8em; color: var(--color-text-light); }
+        .status-badge { background: rgba(16, 185, 129, 0.2); color: #34d399; padding: 2px 8px; border-radius: 10px; font-size: 0.7em; }
+    </style>
+</head>
+<body>
+    <div class="layout-wrapper">
+        <aside class="sidebar" id="sidebar-placeholder"></aside>
+        
+        <main class="main-content">
+            <!-- Mobile Toggle -->
+            <button class="menu-toggle" id="menu-toggle"><i data-feather="menu"></i></button>
+
+            <header class="top-bar">
+                <h2 style="display: flex; align-items: center; gap: 10px;">
+                    <i data-feather="rss" class="text-primary"></i> 
+                    AI News Feeds
+                </h2>
+                <div class="user-profile">
+                    <span id="username-display">Admin</span>
+                    <button class="btn-icon" onclick="logout()"><i data-feather="log-out"></i></button>
+                </div>
+            </header>
+
+            <div class="container">
+                <div class="grid-layout">
+                    <!-- Column 1: Add New Feed -->
+                    <div class="card">
+                        <h3><i data-feather="plus-circle" style="width:18px;"></i> Додати джерело</h3>
+                        <form id="addFeedForm" style="margin-top: 20px; display: flex; flex-direction: column; gap: 15px;">
+                            <div class="form-group">
+                                <label>Назва джерела</label>
+                                <input type="text" id="feedName" placeholder="Напр. ITC.ua" required>
+                            </div>
+                            <div class="form-group">
+                                <label>RSS URL</label>
+                                <input type="url" id="feedUrl" placeholder="https://itc.ua/rss" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Ключові слова (через кому)</label>
+                                <input type="text" id="feedKeywords" placeholder="apple, ai, crypto" required>
+                                <small style="color: grey;">Тільки новини з цими словами будуть оброблені AI.</small>
+                            </div>
+                            <button type="submit" class="btn-primary">Додати</button>
+                        </form>
+                    </div>
+
+                    <!-- Column 2: List of Feeds -->
+                    <div class="card">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                            <h3>Активні джерела</h3>
+                            <button id="refreshBtn" class="btn-secondary" onclick="refreshFeeds()">
+                                <i data-feather="refresh-cw"></i> Запустити AI аналіз
+                            </button>
+                        </div>
+                        <div id="feedsList">
+                            <div style="text-align: center; color: grey;">Завантаження...</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card" style="margin-top: 20px;">
+                    <h3>Як це працює?</h3>
+                    <p style="color: var(--color-text-light); line-height: 1.6;">
+                        1. Ви додаєте RSS-стрічку новинного сайту.<br>
+                        2. Вказуєте ключові слова для фільтрації.<br>
+                        3. Система (через Cron або кнопку "Запустити") перевіряє новини.<br>
+                        4. Знайдені новини відправляються в Gemini AI для перепису, перекладу та генерації хештегів.<br>
+                        5. Результат зберігається як <b>Чернетка (Draft)</b> у розділі "Планувальник".<br>
+                        6. Ви заходите в Планувальник, перевіряєте пост і публікуєте його.
+                    </p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="nav-loader.js"></script>
+    <script>
+        const backendUrl = window.location.hostname === 'localhost' ? 'http://localhost:8000' : '';
+
+        async function loadFeeds() {
+            try {
+                const token = localStorage.getItem('token');
+                const res = await fetch(`${backendUrl}/api/feeds`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                const list = document.getElementById('feedsList');
+                list.innerHTML = '';
+                
+                if (data.length === 0) list.innerHTML = '<p class="text-center">Немає джерел</p>';
+
+                data.forEach(feed => {
+                    const div = document.createElement('div');
+                    div.className = 'feed-item';
+                    div.innerHTML = `
+                        <div>
+                            <strong>${feed.name}</strong> 
+                            <a href="${feed.url}" target="_blank" style="color: var(--color-primary); margin-left: 5px;"><i data-feather="external-link" style="width:12px"></i></a>
+                            <div class="keywords">Tags: ${feed.keywords.join(', ')}</div>
+                            <div style="font-size: 0.7em; color: grey;">Last fetch: ${feed.last_fetched_at ? new Date(feed.last_fetched_at).toLocaleString() : 'Never'}</div>
+                        </div>
+                        <button class="btn-icon delete" onclick="deleteFeed(${feed.id})" style="color: #ef4444;"><i data-feather="trash-2"></i></button>
+                    `;
+                    list.appendChild(div);
+                });
+                feather.replace();
+            } catch(e) {
+                console.error(e);
+            }
+        }
+
+        async function refreshFeeds() {
+            const btn = document.getElementById('refreshBtn');
+            const originalHtml = btn.innerHTML;
+            btn.innerHTML = '<span class="loader"></span> Processing...';
+            btn.disabled = true;
+
+            try {
+                const token = localStorage.getItem('token');
+                const res = await fetch(`${backendUrl}/api/feeds/refresh`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                alert(data.message || 'Done');
+                loadFeeds();
+            } catch(e) {
+                alert('Error processing feeds');
+            } finally {
+                btn.innerHTML = originalHtml;
+                btn.disabled = false;
+            }
+        }
+
+        document.getElementById('addFeedForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const token = localStorage.getItem('token');
+            const body = {
+                name: document.getElementById('feedName').value,
+                url: document.getElementById('feedUrl').value,
+                keywords: document.getElementById('feedKeywords').value
+            };
+
+            await fetch(`${backendUrl}/api/feeds`, {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}` 
+                },
+                body: JSON.stringify(body)
+            });
+            e.target.reset();
+            loadFeeds();
+        });
+
+        async function deleteFeed(id) {
+            if(!confirm('Видалити це джерело?')) return;
+            const token = localStorage.getItem('token');
+            await fetch(`${backendUrl}/api/feeds/${id}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            loadFeeds();
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadFeeds();
+            feather.replace();
+        });
+    </script>
+</body>
+</html>

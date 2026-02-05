@@ -206,6 +206,25 @@
             </div>
         </div>
 
+        <div class="section-header"><i data-feather="clock"></i> Останні Посилання</div>
+        
+        <div class="card">
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Скорочене посилання</th>
+                            <th>Оригінал</th>
+                            <th>Кліки</th>
+                            <th>Дія</th>
+                        </tr>
+                    </thead>
+                    <tbody id="recent-links-body">
+                        <tr><td colspan="4" style="text-align:center">Завантаження...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 
     <!-- MAIN LOGIC (MODULE) -->
@@ -304,7 +323,7 @@
                 linksBody.innerHTML = data.recent_links.map(l => `
                     <tr>
                         <td class="link-row" title="${l.original_url}">${l.original_url.substring(0, 30)}...</td>
-                        <td><a href="/s/${l.id}" target="_blank" style="color:var(--color-success)">/s/${l.id}</a></td>
+                        <td><a href="/s/${l.id}" target="_blank" style="color:var(--color-success">/s/${l.id}</a></td>
                         <td>${l.clicks}</td>
                         <td>${new Date(l.created_at).toLocaleDateString()}</td>
                     </tr>
@@ -313,55 +332,66 @@
                 linksBody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px; color:#64748b">Історія порожня</td></tr>';
             }
 
-            // Charts
-            updateChart('trendChart', 'line', data.weekly_trend.map(d => d.date), [{
-                label: 'Пости',
-                data: data.weekly_trend.map(d => d.count),
-                borderColor: '#38bdf8',
-                backgroundColor: 'rgba(56, 189, 248, 0.1)',
-                fill: true,
-                tension: 0.4
-            }]);
+            // Render Recent Links (Enhanced)
+            if (data.recent_links) {
+                // Limit to last 5
+                const links = data.recent_links.slice(0, 7); 
+                document.getElementById('recent-links-body').innerHTML = links.map(l => `
+                    <tr>
+                        <td class="link-row">
+                             <a href="/s/${l.id}" target="_blank" style="color:var(--color-primary); text-decoration:none;">/s/${l.id}</a>
+                        </td>
+                        <td>${truncate(l.original_url, 30)}</td>
+                        <td><span class="badge ${l.clicks > 0 ? 'success' : 'neutral'}">${l.clicks}</span></td>
+                        <td>
+                            <button class="copy-btn" onclick="copyLink('${window.location.origin}/s/${l.id}')">
+                                <i data-feather="copy" style="width:14px;"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `).join('');
+                feather.replace();
+            }
 
-            updateChart('typeChart', 'doughnut', data.content_types.map(d => d.post_type), [{
-                data: data.content_types.map(d => d.count),
-                backgroundColor: ['#f472b6', '#34d399', '#fbbf24', '#a78bfa', '#60a5fa'],
-                borderWidth: 0
-            }]);
-
-            // Hourly Chart (Normalize to 0-23)
-            const hours = Array(24).fill(0);
-            data.hourly_activity.forEach(d => hours[d.hour] = d.count);
-            updateChart('hourlyChart', 'bar', hours.map((_, i) => `${i}:00`), [{
-                label: 'Активність',
-                data: hours,
-                backgroundColor: '#818cf8',
-                borderRadius: 4
-            }]);
-
-            // Day of Week
-            const daysMap = {1: 'Пн', 2: 'Вт', 3: 'Ср', 4: 'Чт', 5: 'Пт', 6: 'Сб', 0: 'Нд', 7: 'Нд' };
-            const daysValues = Array(8).fill(0); // Index 1-7
-            data.day_of_week_stats.forEach(d => { if(d.day_index) daysValues[Math.round(d.day_index)] = d.count; });
-            // Extract 1-7
-            const daysLabels = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Нд'];
-            const daysData = [daysValues[1], daysValues[2], daysValues[3], daysValues[4], daysValues[5], daysValues[6], daysValues[7]];
-             
-            updateChart('dayOfWeekChart', 'bar', daysLabels, [{
-                label: 'Пости',
-                data: daysData,
-                backgroundColor: '#34d399',
-                borderRadius: 4
-            }]);
-
-            updateChart('channelsChart', 'bar', data.top_channels.map(c => c.title.substring(0,10)), [{
-                label: 'Пости',
-                data: data.top_channels.map(c => c.count),
-                backgroundColor: '#fca5a5',
-                borderRadius: 4,
-                indexAxis: 'y'
-            }], { indexAxis: 'y' });
+            // Render Charts
+            renderActivityChart(data.heatmap_data);
+            renderChannelsPie(data.top_channels);
+            renderHourlyChart(data.hourly_activity); // NEW
+            renderTypesChart(data.content_types); // NEW
+        } catch (e) {
+            console.error(e);
         }
+    }
+
+    async function shortenUrl() {
+        const inp = document.getElementById('url-input');
+        const url = inp.value;
+        if (!url) return;
+        
+        const btn = document.querySelector('.shortener-box button');
+        btn.innerHTML = '<span class="loader"></span>';
+        
+        try {
+            const res = await apiFetch('/api/shortner/create', 'POST', { url });
+            if (res.short_url) {
+                inp.value = `${window.location.origin}/s/${res.short_url}`;
+                loadAnalytics(); // Refresh table
+            }
+        } catch (e) {
+            alert('Error creating link');
+        } finally {
+            btn.innerHTML = 'Shorten';
+        }
+    }
+
+    function copyLink(text) {
+        navigator.clipboard.writeText(text);
+        // Toast?
+    }
+
+    function truncate(str, n) {
+        return (str.length > n) ? str.substr(0, n-1) + '...' : str;
+    }
 
         // --- CHART HELPER ---
         function updateChart(canvasId, type, labels, datasets, extraOptions = {}) {
