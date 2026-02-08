@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="uk" class="dark theme-xmas">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Content Strategy</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    <script src="auth-guard.js"></script>
+    <style>
+        body { background-color: #0f172a; color: white; padding: 20px; font-family: 'Inter', sans-serif; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .card { background: #1e293b; padding: 20px; border-radius: 12px; margin-bottom: 20px; }
+        input, select { width: 100%; padding: 10px; background: #334155; border: none; color: white; border-radius: 8px; margin-bottom: 15px; }
+        button { background: #3b82f6; color: white; padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; }
+        button:hover { background: #2563eb; }
+        .plan-item { background: #334155; padding: 15px; margin-bottom: 10px; border-radius: 8px; border-left: 4px solid #3b82f6; }
+        h3 { margin-top: 0; }
+        .meta { font-size: 0.9em; color: #94a3b8; }
+        .spin { animation: spin 2s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🤖 AI Content Strategy</h1>
+        <div class="card">
+            <label>Ніша / Тема каналу</label>
+            <input type="text" id="nicheInput" placeholder="Напр. Криптовалюти, Кулінарія, Новини IT">
+            
+            <label>Кількість днів</label>
+            <select id="daysInput">
+                <option value="3">3 дні</option>
+                <option value="7" selected>7 днів</option>
+                <option value="14">14 днів</option>
+            </select>
+            
+            <button id="genBtn" onclick="generatePlan()">Згенерувати План</button>
+        </div>
+        
+        <div id="loading" style="display:none; text-align:center; margin: 20px;">
+            <i data-feather="loader" class="spin" style="width: 40px; height: 40px; color: #3b82f6;"></i>
+            <p style="color: #94a3b8; margin-top: 10px;">ШІ створює стратегію... Це може зайняти до 20 сек.</p>
+        </div>
+
+        <div id="results"></div>
+    </div>
+
+    <script>
+        feather.replace();
+
+        async function generatePlan() {
+            const niche = document.getElementById('nicheInput').value;
+            const days = parseInt(document.getElementById('daysInput').value);
+            const btn = document.getElementById('genBtn');
+            const resDiv = document.getElementById('results');
+            const loader = document.getElementById('loading');
+            
+            if(!niche) return alert("Введіть нішу!");
+            
+            btn.disabled = true;
+            btn.innerText = "Думаю...";
+            loader.style.display = 'block';
+            resDiv.innerHTML = '';
+            
+            try {
+                const res = await fetch('/api/ai/generate_plan', {
+                     method: 'POST',
+                     headers: {'Content-Type': 'application/json'},
+                     body: JSON.stringify({ niche, days })
+                });
+                
+                if(!res.ok) throw new Error(await res.text());
+                
+                const plan = await res.json();
+                
+                resDiv.innerHTML = '<h2>📅 Ваш план:</h2>';
+                plan.forEach((item, idx) => {
+                    const el = document.createElement('div');
+                    el.className = 'plan-item';
+                    
+                    // Add "Use Draft" button
+                    const draftData = encodeURIComponent(JSON.stringify({
+                        text: `*${item.topic}*\n\n${item.summary}`,
+                        post_at: item.suggested_time // simplified
+                    }));
+                    
+                    el.innerHTML = `
+                        <h3>День ${item.day || (idx+1)}: ${item.topic} <span style="float:right; font-size:0.7em; background:#475569; padding:2px 6px; border-radius:4px;">${item.type || 'General'}</span></h3>
+                        <p>${item.summary}</p>
+                        <div class="meta" style="display:flex; justify-content:space-between; align-items:center;">
+                            <span>🕒 Час: ${item.suggested_time}</span>
+                            <button onclick="useDraft(this)" data-topic="${item.topic}" data-summary="${item.summary}" style="width:auto; padding: 6px 12px; font-size:0.9em; background:#10b981;">
+                                <i data-feather="edit-2"></i> Створити Чернетку
+                            </button>
+                        </div>
+                    `;
+                    resDiv.appendChild(el);
+                });
+                feather.replace();
+            } catch(e) {
+                alert("Помилка генерації планую: " + e.message);
+                console.error(e);
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "Згенерувати План";
+                loader.style.display = 'none';
+            }
+        }
+
+        async function useDraft(btn) {
+            const topic = btn.getAttribute('data-topic');
+            const summary = btn.getAttribute('data-summary');
+            const text = `**${topic}**\n\n${summary}`;
+            
+            // Redirect to schedule-edit with pre-filled textual data via query params or localStorage
+            // Since textual data can be large, localStorage is safer.
+            localStorage.setItem('draft_text_from_ai', text);
+            window.location.href = 'schedule-edit.html?mode=from_ai';
+        }
+    </script>
+</body>
+</html>

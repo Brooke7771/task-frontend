@@ -179,6 +179,25 @@
                     <h1><i data-feather="edit-3"></i> Редактор</h1>
                     <span style="font-family:monospace; color:#64748b; background:rgba(255,255,255,0.05); padding:4px 8px; border-radius:6px;" id="postIdDisplay">#...</span>
                 </div>
+                
+                <!-- Comments Section (Accordion Style) -->
+                <div style="margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; overflow: hidden;">
+                    <div onclick="document.getElementById('commentsArea').classList.toggle('hidden')" 
+                         style="background: rgba(255,255,255,0.05); padding: 10px 15px; cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-weight: 600;"><i data-feather="message-square" style="width:14px"></i> Коментарі / Правки</span>
+                        <i data-feather="chevron-down" style="width:14px"></i>
+                    </div>
+                    <div id="commentsArea" class="hidden" style="padding: 15px; background: rgba(0,0,0,0.2);">
+                        <div id="commentsList" style="max-height: 200px; overflow-y: auto; margin-bottom: 10px; display: flex; flex-direction: column; gap: 8px;">
+                            <!-- Comments will be loaded here -->
+                            <div style="text-align: center; color: #64748b; font-size: 0.8em;">Немає коментарів</div>
+                        </div>
+                        <div style="display: flex; gap: 10px;">
+                            <input type="text" id="newCommentInput" placeholder="Написати коментар..." style="flex:1; padding: 8px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: white;">
+                            <button type="button" id="sendCommentBtn" class="btn-sm"><i data-feather="send"></i></button>
+                        </div>
+                    </div>
+                </div>
 
                 <form id="editForm">
                     <div class="form-group">

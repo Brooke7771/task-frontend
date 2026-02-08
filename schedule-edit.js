@@ -37,6 +37,121 @@ document.addEventListener('DOMContentLoaded', () => {
     const toolbarCode = document.getElementById('toolbar-code');
     const toolbarLink = document.getElementById('toolbar-link');
 
+    // --- 🤖 AI IMAGE GENERATION UI ---
+    // Inject "Generate Image" button into the form
+    const photoGroup = postPhotoInput.closest('.form-group');
+    if (photoGroup) {
+        // Clear old buttons if any (simple approach: remove custom container if exists)
+        const oldContainer = photoGroup.querySelector('.ai-tools-container');
+        if(oldContainer) oldContainer.remove();
+
+        // Create container
+        const aiContainer = document.createElement('div');
+        aiContainer.className = 'ai-tools-container';
+        aiContainer.style.cssText = 'display:flex; gap:10px; margin-top:10px; flex-wrap: wrap;';
+        photoGroup.appendChild(aiContainer);
+
+        const aiImgBtn = document.createElement('button');
+        aiImgBtn.type = 'button';
+        aiImgBtn.className = 'btn-sm'; 
+        aiImgBtn.style.cssText = 'background: linear-gradient(45deg, #8b5cf6, #d946ef); color:white; border:none; display:flex; align-items:center; gap:6px; font-size:0.85em; padding:6px 12px; border-radius: 6px; cursor: pointer; transition: filter 0.2s;';
+        aiImgBtn.innerHTML = '<i data-feather="image" style="width:14px"></i> AI Image (DALL-E)';
+        
+        aiImgBtn.onmouseover = () => aiImgBtn.style.filter = 'brightness(1.1)';
+        aiImgBtn.onmouseout = () => aiImgBtn.style.filter = 'brightness(1)';
+
+        aiImgBtn.onclick = async () => {
+             const prompt = prompt("Опишіть зображення, яке хочете згенерувати:");
+             if(!prompt) return;
+
+             const origHtml = aiImgBtn.innerHTML;
+             aiImgBtn.disabled = true;
+             aiImgBtn.innerHTML = '<i data-feather="loader" class="spin" style="width:14px"></i> Creating...';
+             feather.replace();
+
+             try {
+                const res = await fetch('/api/ai/generate_image', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ prompt })
+                });
+                
+                if(!res.ok) throw new Error(await res.text());
+                
+                const data = await res.json();
+                
+                // Show preview directly
+                let previewArea = document.getElementById('ai-image-preview');
+                if(!previewArea) {
+                     previewArea = document.createElement('div');
+                     previewArea.id = 'ai-image-preview';
+                     previewArea.style.cssText = 'margin-top:15px; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 8px; text-align: center;';
+                     photoGroup.appendChild(previewArea);
+                }
+                
+                previewArea.innerHTML = `
+                    <div style="font-size:0.8em; color:#94a3b8; margin-bottom:8px; text-align: left;">Згенеровано AI:</div>
+                    <img src="${data.url}" style="max-width:100%; border-radius:8px; border:1px solid rgba(255,255,255,0.1); box-shadow: 0 4px 12px rgba(0,0,0,0.3);">
+                    <div style="margin-top:8px; display:flex; gap:10px; justify-content: center;">
+                        <a href="${data.url}" target="_blank" class="btn-sm" style="text-decoration:none; background:#334155; color:white; padding: 4px 10px; border-radius:4px; font-size:0.8em;">Відкрити оригінал</a>
+                        <button type="button" class="btn-sm" style="background:#ef4444; border:none; color:white; padding: 4px 10px; border-radius:4px; font-size:0.8em;" onclick="this.closest('#ai-image-preview').remove()">Видалити</button>
+                    </div>
+                `;
+             } catch (e) {
+                alert("Помилка генерації: " + e.message);
+             } finally {
+                aiImgBtn.disabled = false;
+                aiImgBtn.innerHTML = origHtml;
+                feather.replace();
+             }
+        };
+        aiContainer.appendChild(aiImgBtn);
+    }
+
+    // --- 🤖 AI SENTIMENT ANALYSIS UI ---
+    const aiAnalyzeBtn = document.createElement('button');
+    aiAnalyzeBtn.type = 'button'; 
+    aiAnalyzeBtn.className = 'btn';
+    aiAnalyzeBtn.innerHTML = '<i data-feather="activity"></i> Аналіз тональності';
+    aiAnalyzeBtn.style.cssText = 'background: rgba(16, 185, 129, 0.2); border: 1px solid rgba(16, 185, 129, 0.4); color: #34d399; margin-left: 10px;';
+    
+    // Add inside toolbar if possible, or near text area
+    const toolbar = document.querySelector('.markdown-toolbar');
+    if(toolbar) {
+        toolbar.appendChild(aiAnalyzeBtn);
+    } else {
+        postTextInput.parentNode.insertBefore(aiAnalyzeBtn, postTextInput);
+    }
+
+    aiAnalyzeBtn.onclick = async () => {
+        const text = postTextInput.value;
+        if (!text) return alert("Введіть текст для аналізу!");
+
+        aiAnalyzeBtn.disabled = true;
+        aiAnalyzeBtn.innerHTML = '...';
+
+        try {
+            const res = await fetch('/api/ai/analyze_sentiment', {
+                 method: 'POST',
+                 headers: { 'Content-Type': 'application/json' },
+                 body: JSON.stringify({ text })
+            });
+            const data = await res.json();
+            
+            let msg = `Вердикт: ${data.verdict}\nОцінка: ${data.score}/10\n`;
+            if(data.suggestions && data.suggestions.length > 0) {
+                msg += `\nПоради:\n- ${data.suggestions.join('\n- ')}`;
+            }
+            alert(msg);
+        } catch(e) {
+            console.error(e);
+            alert("Помилка аналізу.");
+        } finally {
+            aiAnalyzeBtn.disabled = false;
+            aiAnalyzeBtn.innerHTML = '<i data-feather="activity"></i> Аналіз тональності';
+            feather.replace();
+        }
+    };
     /**
      * Головна функція, що "обгортає" виділений текст тегами Markdown.
      * @param {string} startTag - Символ(и) на початку (напр. "*")
@@ -306,6 +421,73 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- 🔥 ДОДАНО: Слухач для оновлення прев'ю під час друку ---
     postTextInput.addEventListener('input', updatePreview);
+
+    // COMMENTS LOGIC
+    const commentsList = document.getElementById('commentsList');
+    const newCommentInput = document.getElementById('newCommentInput');
+    const sendCommentBtn = document.getElementById('sendCommentBtn');
+
+    if (postId) {
+        // Load comments
+        fetch(`/api/posts/${postId}/comments`)
+            .then(r => r.json())
+            .then(comments => {
+                commentsList.innerHTML = '';
+                if(comments.length === 0) {
+                     commentsList.innerHTML = '<div style="text-align: center; color: #64748b; font-size: 0.8em;">Немає коментарів</div>';
+                } else {
+                    comments.forEach(c => {
+                        const div = document.createElement('div');
+                        div.style.cssText = 'background: rgba(255,255,255,0.05); padding: 8px; border-radius: 6px; font-size: 0.9em;';
+                        div.innerHTML = `
+                            <div style="display:flex; justify-content:space-between; color: #94a3b8; font-size:0.8em; margin-bottom: 4px;">
+                                <span>${c.username}</span> 
+                                <span>${new Date(c.created_at).toLocaleString()}</span>
+                            </div>
+                            <div style="color: #e2e8f0; white-space: pre-wrap;">${c.text}</div>
+                        `;
+                        commentsList.appendChild(div);
+                    });
+                }
+            })
+            .catch(e => console.error("Error loading comments:", e));
+
+        // Send Comment
+        sendCommentBtn.onclick = async () => {
+            const text = newCommentInput.value.trim();
+            if(!text) return;
+            
+            try {
+                const res = await fetch(`/api/posts/${postId}/comments`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text })
+                });
+                if(res.ok) {
+                    newCommentInput.value = '';
+                    // Reload comments simply by triggering the fetch again or appending
+                    // For simplicity, let's just append
+                    const c = await res.json();
+                     const div = document.createElement('div');
+                        div.style.cssText = 'background: rgba(255,255,255,0.05); padding: 8px; border-radius: 6px; font-size: 0.9em;';
+                        div.innerHTML = `
+                            <div style="display:flex; justify-content:space-between; color: #94a3b8; font-size:0.8em; margin-bottom: 4px;">
+                                <span>${c.username}</span> 
+                                <span>Just now</span>
+                            </div>
+                            <div style="color: #e2e8f0; white-space: pre-wrap;">${c.text}</div>
+                        `;
+                    commentsList.appendChild(div);
+                    // Remove "No comments" if present
+                    if(commentsList.innerText.includes('Немає коментарів')) {
+                         commentsList.firstChild.remove();
+                    }
+                }
+            } catch(e) {
+                alert("Error sending comment");
+            }
+        };
+    }
 
     loadPost();
 });

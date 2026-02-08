@@ -1,8 +1,8 @@
 // TG/frontend/api.js
 
 // 🔥 Ваша адреса бекенду
-// export const backendUrl = 'https://my-telegram-task-bot-5c4258bd3f9b.herokuapp.com';
-export const backendUrl = 'http://localhost:8080';
+export const backendUrl = 'https://my-telegram-task-bot-5c4258bd3f9b.herokuapp.com';
+// export const backendUrl = 'http://localhost:8080';
 
 async function apiFetch(endpoint, options = {}) {
     try {
